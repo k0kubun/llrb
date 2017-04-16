@@ -1,8 +1,8 @@
 require "spec_helper"
 
-RSpec.describe Llruby do
+RSpec.describe LLRuby do
   it "has a version number" do
-    expect(Llruby::VERSION).not_to be nil
+    expect(LLRuby::VERSION).not_to be nil
   end
 
   it "does something useful" do

@@ -1,9 +1,9 @@
 #include "llruby.h"
 
-VALUE rb_mLlruby;
+VALUE rb_mLLRuby;
 
 void
 Init_llruby(void)
 {
-  rb_mLlruby = rb_define_module("Llruby");
+  rb_mLLRuby = rb_define_module("LLRuby");
 }

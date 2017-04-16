@@ -5,7 +5,7 @@ require 'llruby/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'llruby'
-  spec.version       = Llruby::VERSION
+  spec.version       = LLRuby::VERSION
   spec.authors       = ['Takashi Kokubun']
   spec.email         = ['takashikkbn@gmail.com']
 
