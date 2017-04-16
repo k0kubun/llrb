@@ -15,5 +15,21 @@ describe LLRuby::MethodCompiler do
       a = A.new
       LLRuby::MethodCompiler.compile(a.method(:a))
     end
+
+    it 'rejects non-method argument' do
+      [
+        nil,
+        "str",
+        :sym,
+        100,
+        { foo: 'bar' },
+        A,
+        A.new,
+      ].each do |obj|
+        expect {
+          LLRuby::MethodCompiler.compile(obj)
+        }.to raise_error(ArgumentError)
+      end
+    end
   end
 end
