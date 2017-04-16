@@ -1,4 +1,4 @@
-# LLRuby
+# LLRuby [![wercker status](https://app.wercker.com/status/acd09c7ee0739521508fed6187758a53/s/master "wercker status")](https://app.wercker.com/project/byKey/acd09c7ee0739521508fed6187758a53)
 
 LLRuby is LLVM-based JIT compiler for Ruby.
 
