@@ -1,0 +1,10 @@
+box: ruby
+build:
+  steps:
+    - bundle-install
+    - script:
+        name: compile
+        code: bundle exec rake compile
+    - script:
+        name: rspec
+        code: bundle exec rake spec
