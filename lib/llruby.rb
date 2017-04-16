@@ -1,2 +1,2 @@
 require 'llruby/version'
-require 'llruby/llruby'
+require 'llruby/method_compiler'

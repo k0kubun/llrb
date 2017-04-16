@@ -25,6 +25,7 @@ describe LLRuby::MethodCompiler do
         { foo: 'bar' },
         A,
         A.new,
+        RubyVM::InstructionSequence.of(-> { puts 'hello' }),
       ].each do |obj|
         expect {
           LLRuby::MethodCompiler.compile(obj)
