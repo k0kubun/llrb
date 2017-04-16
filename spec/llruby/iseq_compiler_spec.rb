@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe LLRuby::IseqCompiler do
   describe '.compile' do
     it 'can be called' do

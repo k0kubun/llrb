@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe LLRuby::MethodCompiler do
   describe '.compile' do
     before do
