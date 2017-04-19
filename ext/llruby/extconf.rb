@@ -20,6 +20,9 @@ require 'mkmf'
   CONFIG['warnflags'].gsub!(flag, '')
 end
 
-$CXXFLAGS = "#{$CXXFLAGS} -std=c++0x -Wall -W -fno-exceptions -Wpedantic"
+unless system('which llvm-config 2>&1 >/dev/null')
+  raise "llvm-config(1) must be available!\nNot found in PATH='#{ENV['PATH']}'"
+end
+$CXXFLAGS = "#{$CXXFLAGS} #{`llvm-config --cxxflags`.rstrip}"
 
 create_makefile('llruby/llruby')
