@@ -17,11 +17,15 @@ rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
   return Qnil;
 }
 
+// @param  [Class,Module] klass
+// @param  [String,Symbol] method_name
+// @return [nil]
 static VALUE
 rb_nativem_define_internal(RB_UNUSED_VAR(VALUE self), VALUE klass, VALUE method_name)
 {
-  llruby::NativeMethod method;
-  method.Define();
+  VALUE name_str = rb_convert_type(method_name, T_STRING, "String", "to_s");
+  void *func = llruby::NativeMethod().CreateFunction();
+  rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), 0);
   return Qnil;
 }
 

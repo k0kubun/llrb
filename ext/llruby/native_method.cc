@@ -2,7 +2,8 @@
 
 namespace llruby {
 
-void NativeMethod::Define() {
+void* NativeMethod::CreateFunction() {
+  return (void *)0;
 }
 
 } // namespace llruby
