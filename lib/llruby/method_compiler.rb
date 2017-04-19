@@ -1,4 +1,5 @@
 require 'llruby/iseq_compiler'
+require 'llruby/native_method'
 
 module LLRuby
   module MethodCompiler
@@ -10,7 +11,8 @@ module LLRuby
       end
 
       iseq = RubyVM::InstructionSequence.of(method)
-      IseqCompiler.compile(iseq)
+      llvmir = IseqCompiler.compile(iseq)
+      NativeMethod.new(llvmir)
     end
   end
 end
