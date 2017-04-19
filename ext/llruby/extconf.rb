@@ -20,6 +20,6 @@ require 'mkmf'
   CONFIG['warnflags'].gsub!(flag, '')
 end
 
-$CXXFLAGS = "#{$CXXFLAGS} -Wall -W"
+$CXXFLAGS = "#{$CXXFLAGS} -Wall -W -fno-exceptions"
 
 create_makefile('llruby/llruby')

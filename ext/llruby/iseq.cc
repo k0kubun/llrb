@@ -1,4 +1,5 @@
-#include <stdexcept>
+#include <cstdlib>
+#include <cstdio>
 #include "ruby.h"
 #include "llruby/iseq.h"
 
@@ -41,7 +42,8 @@ void Object::SetTypeSpecificField() {
       boolean = RTEST(raw);
       break;
     default:
-      throw std::runtime_error(std::string("unexpected type is given!: ") + rb_obj_classname(raw));
+      fprintf(stderr, "unexpected type is given!: %s\n", rb_obj_classname(raw));
+      exit(1); // Use Ruby's raise instead
   }
 }
 
