@@ -11,7 +11,7 @@ module LLRuby
       compile_internal(iseq.to_a)
     end
 
-    # defined in ext/llruby/iseq_compiler.cc
+    # defined in ext/llruby/llruby.cc
     private_class_method :compile_internal
   end
 end

@@ -4,16 +4,14 @@
 #include "llruby/iseq.h"
 
 namespace llruby {
+  class IseqCompiler {
+   private:
+    const Iseq& iseq;
 
-class IseqCompiler {
- private:
-  const Iseq& iseq;
-
- public:
-  IseqCompiler(const Iseq& value):iseq(value) {};
-  void Compile();
-}; // class IseqCompiler
-
-}; // namespace llruby
+   public:
+    IseqCompiler(const Iseq& value):iseq(value) {};
+    void Compile();
+  };
+};
 
 #endif // LLRUBY_ISEQ_COMPILER_H
