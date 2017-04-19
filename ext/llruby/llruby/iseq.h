@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ruby.h"
+#include "llruby/ruby.h"
 
 namespace llruby {
   class Object {

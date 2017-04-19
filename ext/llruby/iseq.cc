@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <cstdio>
-#include "ruby.h"
+#include "llruby/ruby.h"
 #include "llruby/iseq.h"
 
 namespace llruby {

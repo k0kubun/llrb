@@ -1,4 +1,4 @@
-#include "ruby.h"
+#include "llruby/ruby.h"
 #include "llruby/iseq.h"
 #include "llruby/iseq_compiler.h"
 #include "llruby/native_method.h"
