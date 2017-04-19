@@ -42,6 +42,6 @@ namespace llruby {
       bytecode = array[13].array;
     };
   };
-};
+}
 
 #endif // LLRUBY_ISEQ_H

@@ -8,6 +8,6 @@ namespace llruby {
    public:
     void* CreateFunction();
   };
-};
+}
 
 #endif // LLRUBY_NATIVE_METHOD_H

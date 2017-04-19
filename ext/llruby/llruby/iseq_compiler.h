@@ -12,6 +12,6 @@ namespace llruby {
     IseqCompiler(const Iseq& value):iseq(value) {};
     void Compile();
   };
-};
+}
 
 #endif // LLRUBY_ISEQ_COMPILER_H

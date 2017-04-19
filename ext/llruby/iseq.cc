@@ -47,4 +47,4 @@ void Object::SetTypeSpecificField() {
   }
 }
 
-}; // namespace llruby
+} // namespace llruby

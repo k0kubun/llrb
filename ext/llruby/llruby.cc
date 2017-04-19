@@ -41,4 +41,4 @@ Init_llruby(void)
   VALUE rb_cNativeMethod = rb_define_class_under(rb_mLLRuby, "NativeMethod", rb_cObject);
   rb_define_method(rb_cNativeMethod, "define_internal", RUBY_METHOD_FUNC(rb_nativem_define_internal), 2);
 }
-}; // extern "C"
+} // extern "C"
