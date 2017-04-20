@@ -1,8 +1,10 @@
+#include <memory>
 #include "llruby/ruby.h"
 #include "llruby/native_method.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
 
 namespace llruby {
 
@@ -21,7 +23,8 @@ void* NativeMethod::CreateFunction() {
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
   builder.CreateRet(builder.getInt64(Qnil));
 
-  return (void *)0;
+  llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
+  return (void *)engine->getPointerToFunction(func);
 }
 
 } // namespace llruby
