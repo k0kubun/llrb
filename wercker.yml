@@ -1,10 +1,7 @@
-box: ruby
+box: k0kubun/llvm38-ruby
 build:
   steps:
     - bundle-install
-    - script:
-        name: install build-deps
-        code: sudo apt-get update && sudo apt-get install -y llvm
     - script:
         name: compile
         code: bundle exec rake compile
