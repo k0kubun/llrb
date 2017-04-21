@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/k0kubun/llruby'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
+  spec.files         = (Dir.exist?('.git') ? `git ls-files -z`.split("\x0") : `find .`.split("\n")).reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
   spec.bindir        = 'exe'
