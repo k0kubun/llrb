@@ -17,6 +17,11 @@ rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
   return Qnil;
 }
 
+VALUE
+hell_func(VALUE a) {
+  return Qnil;
+}
+
 // @param  [Class,Module] klass
 // @param  [String,Symbol] method_name
 // @return [nil]
@@ -24,7 +29,11 @@ static VALUE
 rb_nativem_define_internal(RB_UNUSED_VAR(VALUE self), VALUE klass, VALUE method_name)
 {
   VALUE name_str = rb_convert_type(method_name, T_STRING, "String", "to_s");
-  void *func = llruby::NativeMethod().CreateFunction();
+  uint64_t func = llruby::NativeMethod().CreateFunction();
+  if (func == 0) {
+    fprintf(stderr, "Failed to create native function...\n");
+    return Qnil;
+  }
   rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), 0);
   return Qnil;
 }

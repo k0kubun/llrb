@@ -6,7 +6,7 @@
 namespace llruby {
   class NativeMethod {
    public:
-    void* CreateFunction();
+    uint64_t CreateFunction();
   };
 }
 
