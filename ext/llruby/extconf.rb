@@ -24,6 +24,6 @@ unless system('which llvm-config 2>&1 >/dev/null')
   raise "llvm-config(1) must be available!\nNot found in PATH='#{ENV['PATH']}'"
 end
 $CXXFLAGS = "#{$CXXFLAGS} -Wall -W #{`llvm-config --cxxflags`.rstrip}"
-$LDFLAGS  = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs`}"
+$LDFLAGS  = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine`}"
 
 create_makefile('llruby/llruby')
