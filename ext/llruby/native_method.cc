@@ -35,7 +35,7 @@ uint64_t NativeMethod::CreateFunction() {
     fprintf(stderr, "Failed to create ExecutionEngine...\n");
     return 0;
   }
-  return engine->getFunctionAddress("rb_hello_func");
+  return engine->getFunctionAddress(func->getName());
 }
 
 } // namespace llruby
