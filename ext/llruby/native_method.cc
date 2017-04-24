@@ -15,6 +15,10 @@ static llvm::LLVMContext context;
 static llvm::IRBuilder<> builder(context);
 static std::unique_ptr<llvm::Module> mod;
 
+// NativeMethod#define_internal
+// @param  [Class,Module] klass
+// @param  [String,Symbol] method_name
+// @return [nil]
 uint64_t NativeMethod::CreateFunction() {
   mod = llvm::make_unique<llvm::Module>("top", context);
 

@@ -3,8 +3,11 @@
 #include "llruby/iseq_compiler.h"
 #include "llruby/native_method.h"
 
+VALUE rb_cLLVMFunction;
+
+// IseqCompiler#compile_internal
 // @param  [Array] ruby_iseq - Return value of RubyVM::InstructionSequence#to_a
-// @return [LLRuby::LLVMIR]
+// @return [LLRuby::LLVMFunction]
 static VALUE
 rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
 {
@@ -17,6 +20,7 @@ rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
   return Qnil;
 }
 
+// NativeMethod#define_internal
 // @param  [Class,Module] klass
 // @param  [String,Symbol] method_name
 // @return [nil]
@@ -38,6 +42,7 @@ void
 Init_llruby(void)
 {
   VALUE rb_mLLRuby = rb_define_module("LLRuby");
+  rb_cLLVMFunction = rb_define_class_under(rb_mLLRuby, "LLVMFunction", rb_cData);
 
   VALUE rb_mIseqCompiler = rb_define_module_under(rb_mLLRuby, "IseqCompiler");
   rb_define_singleton_method(rb_mIseqCompiler, "compile_internal", RUBY_METHOD_FUNC(rb_iseqcomp_compile_internal), 1);
