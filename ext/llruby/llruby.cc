@@ -17,11 +17,6 @@ rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
   return Qnil;
 }
 
-VALUE
-hell_func(VALUE a) {
-  return Qnil;
-}
-
 // @param  [Class,Module] klass
 // @param  [String,Symbol] method_name
 // @return [nil]
