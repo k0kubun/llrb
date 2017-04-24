@@ -1,11 +1,12 @@
 describe LLRuby::IseqCompiler do
   describe '.compile' do
-    it 'can be called' do
+    it 'returns a LLRuby::LLVMFunction object' do
       func = Proc.new do
         puts 'hello'
       end
       iseq = RubyVM::InstructionSequence.of(func)
-      LLRuby::IseqCompiler.compile(iseq)
+      func = LLRuby::IseqCompiler.compile(iseq)
+      expect(func).to be_a_kind_of(LLRuby::LLVMFunction)
     end
 
     it 'rejects non-iseq argument' do

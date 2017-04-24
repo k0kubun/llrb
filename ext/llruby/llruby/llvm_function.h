@@ -2,6 +2,7 @@
 #define LLRUBY_LLVM_FUNCTION_H
 
 #include "ruby.h"
+#include "llvm/IR/Function.h"
 
 namespace llruby {
   llvm::Function* GetLLVMFunction(VALUE llvm_function_obj);

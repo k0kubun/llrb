@@ -4,7 +4,7 @@ require 'llruby/native_method'
 module LLRuby
   module MethodCompiler
     # @param  [Method] method
-    # @return [LLRuby::LLVMIR]
+    # @return [LLRuby::NativeMethod]
     def self.compile(method)
       unless method.is_a?(Method)
         raise ArgumentError.new("wrong argument type #{method.class} is given! (expected Method)")

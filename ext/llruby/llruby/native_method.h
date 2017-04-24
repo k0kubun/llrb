@@ -2,11 +2,15 @@
 #define LLRUBY_NATIVE_METHOD_H
 
 #include "llruby/iseq.h"
+#include "llvm/IR/Function.h"
 
 namespace llruby {
   class NativeMethod {
    public:
-    uint64_t CreateFunction();
+    llvm::Function *llvmfunc;
+
+    NativeMethod(llvm::Function *func) : llvmfunc(func) {}
+    uint64_t CreateNativeFunction();
   };
 }
 

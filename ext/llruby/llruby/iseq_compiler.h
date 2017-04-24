@@ -2,6 +2,7 @@
 #define LLRUBY_ISEQ_COMPILER_H
 
 #include "llruby/iseq.h"
+#include "llvm/IR/Function.h"
 
 namespace llruby {
   class IseqCompiler {
@@ -10,7 +11,7 @@ namespace llruby {
 
    public:
     IseqCompiler(const Iseq& value):iseq(value) {};
-    void Compile();
+    llvm::Function* Compile();
   };
 }
 

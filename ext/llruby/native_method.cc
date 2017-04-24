@@ -19,7 +19,7 @@ static std::unique_ptr<llvm::Module> mod;
 // @param  [Class,Module] klass
 // @param  [String,Symbol] method_name
 // @return [nil]
-uint64_t NativeMethod::CreateFunction() {
+uint64_t NativeMethod::CreateNativeFunction() {
   mod = llvm::make_unique<llvm::Module>("top", context);
 
   std::vector<llvm::Type*> args;
