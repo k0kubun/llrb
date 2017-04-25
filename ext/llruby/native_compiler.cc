@@ -1,7 +1,6 @@
 #include <memory>
 #include "llruby/iseq.h"
 #include "llruby/native_compiler.h"
-#include "llvm/Support/TargetSelect.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
 
@@ -21,10 +20,6 @@ uint64_t NativeCompiler::Compile(const Iseq& iseq) {
 }
 
 uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {
-  llvm::InitializeNativeTarget();
-  llvm::InitializeNativeTargetAsmPrinter();
-  llvm::InitializeNativeTargetAsmParser();
-
   llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
   if (engine == NULL) {
     fprintf(stderr, "Failed to create ExecutionEngine...\n");

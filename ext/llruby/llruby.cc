@@ -1,6 +1,7 @@
 #include "llruby/ruby.h"
 #include "llruby/iseq.h"
 #include "llruby/native_compiler.h"
+#include "llvm/Support/TargetSelect.h"
 
 static llruby::NativeCompiler native_compiler;
 
@@ -25,6 +26,10 @@ extern "C" {
   void
   Init_llruby(void)
   {
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmPrinter();
+    llvm::InitializeNativeTargetAsmParser();
+
     VALUE rb_mLLRuby = rb_define_module("LLRuby");
     VALUE rb_mJIT = rb_define_module_under(rb_mLLRuby, "JIT");
     rb_define_singleton_method(rb_mJIT, "precompile_internal", RUBY_METHOD_FUNC(rb_jit_precompile_internal), 4);
