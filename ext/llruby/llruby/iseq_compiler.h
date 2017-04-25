@@ -9,11 +9,9 @@ namespace llruby {
   class IseqCompiler {
    private:
     llvm::LLVMContext context;
-    const Iseq& iseq;
 
    public:
-    IseqCompiler(const Iseq& value):iseq(value) {};
-    llvm::Function* Compile();
+    llvm::Function* Compile(const Iseq& iseq);
   };
 }
 

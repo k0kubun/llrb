@@ -8,7 +8,7 @@ namespace llruby {
 // IseqCompiler#compile_internal
 // @param  [Array] ruby_iseq - Return value of RubyVM::InstructionSequence#to_a
 // @return [LLRuby::LLVMFunction]
-llvm::Function* IseqCompiler::Compile() {
+llvm::Function* IseqCompiler::Compile(const Iseq& iseq) {
   std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
   llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
   llvm::Function *func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "rb_hello_func");

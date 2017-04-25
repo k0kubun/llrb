@@ -15,9 +15,9 @@ rb_iseqcomp_compile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq)
   Check_Type(ruby_iseq, T_ARRAY);
 
   llruby::Iseq iseq(ruby_iseq);
-  llruby::IseqCompiler compiler(iseq);
+  llruby::IseqCompiler compiler;
 
-  llvm::Function* func = compiler.Compile();
+  llvm::Function* func = compiler.Compile(iseq);
   return llruby::WrapLLVMFunction(func);
 }
 
