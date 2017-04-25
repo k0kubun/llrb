@@ -3,10 +3,12 @@
 
 #include "llruby/iseq.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/LLVMContext.h"
 
 namespace llruby {
   class IseqCompiler {
    private:
+    llvm::LLVMContext context;
     const Iseq& iseq;
 
    public:
