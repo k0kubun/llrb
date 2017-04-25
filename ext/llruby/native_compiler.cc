@@ -6,7 +6,7 @@
 
 namespace llruby {
 
-uint64_t NativeCompiler::Compile(const Iseq& iseq) {
+uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llruby", context);
 
   std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
@@ -16,7 +16,12 @@ uint64_t NativeCompiler::Compile(const Iseq& iseq) {
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
   builder.CreateRet(builder.getInt64(Qnil));
 
-  return CreateNativeFunction(func, std::move(mod));
+  if (dry_run) {
+    mod->dump();
+    return 0;
+  } else {
+    return CreateNativeFunction(func, std::move(mod));
+  }
 }
 
 uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {

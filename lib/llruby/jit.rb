@@ -2,14 +2,25 @@ require 'llruby/llruby'
 
 module LLRuby
   module JIT
+    # Precompile method to native code
+    #
     # @param [Object] receiver - receiver of method to be compiled
     # @param [String,Symbol] method_name - precompiled method name
+    # @param [Boolean] dry_run - don't precompile and just dump LLVM IR if true
     # @return [Boolean] - return true if precompiled
-    def self.precompile(receiver, method_name)
+    def self.precompile(receiver, method_name, dry_run: false)
       original = receiver.method(method_name)
       iseq = RubyVM::InstructionSequence.of(original)
       return false if iseq.nil?
-      precompile_internal(iseq.to_a, original.owner, original.original_name, original.arity)
+      precompile_internal(iseq.to_a, original.owner, original.original_name, original.arity, dry_run)
+    end
+
+    # Preview native code in LLVM IR
+    #
+    # @param [Object] receiver - receiver of method to be compiled
+    # @param [String,Symbol] method_name - precompiled method name
+    def self.preview(receiver, method_name)
+      precompile(receiver, method_name, dry_run: true)
     end
 
     # defined in ext/llruby/llruby.cc
@@ -18,6 +29,7 @@ module LLRuby
     # @param  [Class]   klass      - class to define method
     # @param  [Symbol]  method_sym - method name to define
     # @param  [Integer] arity      - method arity
+    # @param  [Boolean] dry_run    - don't precompile and just dump LLVM IR if true
     # @return [Boolean] return true if precompiled
     private_class_method :precompile_internal
   end

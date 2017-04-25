@@ -15,7 +15,7 @@ namespace llruby {
 
    public:
     NativeCompiler() : builder(context) {}
-    uint64_t Compile(const Iseq& iseq);
+    uint64_t Compile(const Iseq& iseq, bool dry_run);
 
    private:
     uint64_t CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod);

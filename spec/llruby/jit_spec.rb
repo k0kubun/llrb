@@ -1,6 +1,6 @@
 describe LLRuby::JIT do
   describe '.precompile' do
-    it 'compiles instance method' do
+    it 'compiles class method' do
       klass = Class.new
       def klass.hello
         100
@@ -14,7 +14,7 @@ describe LLRuby::JIT do
       klass.hello
     end
 
-    it 'compiles class method' do
+    it 'compiles instance method' do
       klass = Class.new
       klass.class_eval do
         def hello; 100; end
@@ -39,11 +39,27 @@ describe LLRuby::JIT do
     end
   end
 
+  describe '.preview' do
+    it 'dumps LLVM IR and does not redefine method' do
+      klass = Class.new
+      def klass.hello
+        100
+      end
+
+      expect {
+        LLRuby::JIT.preview(klass, :hello)
+      }.to_not change {
+        klass.method(:hello).hash
+      }
+      klass.hello
+    end
+  end
+
   describe '.precompile_internal' do
     it 'rejects non-Array argument' do
       object = Object.new
       expect {
-        LLRuby::JIT.send(:precompile_internal, object, Object, :hash, 0)
+        LLRuby::JIT.send(:precompile_internal, object, Object, :hash, 0, false)
       }.to raise_error(TypeError)
     end
   end
