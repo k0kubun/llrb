@@ -18,6 +18,15 @@ uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   }
 }
 
+uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {
+  llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
+  if (engine == NULL) {
+    fprintf(stderr, "Failed to create ExecutionEngine...\n");
+    return 0;
+  }
+  return engine->getFunctionAddress(func->getName());
+}
+
 llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod) {
   std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
   llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
@@ -26,15 +35,6 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
   builder.CreateRet(builder.getInt64(Qnil));
   return func;
-}
-
-uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {
-  llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
-  if (engine == NULL) {
-    fprintf(stderr, "Failed to create ExecutionEngine...\n");
-    return 0;
-  }
-  return engine->getFunctionAddress(func->getName());
 }
 
 } // namespace llruby

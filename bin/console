@@ -3,5 +3,23 @@
 require 'bundler/setup'
 require 'llruby'
 
+# For debugging
+module A
+  class << self
+    def empty
+    end
+
+    def num
+      42
+    end
+  end
+end
+
+JIT = LLRuby::JIT
+def JIT.iseq(receiver, method_name)
+  original = receiver.method(method_name)
+  RubyVM::InstructionSequence.of(original).to_a
+end
+
 require 'pry'
 Pry.start
