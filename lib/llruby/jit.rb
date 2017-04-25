@@ -8,6 +8,7 @@ module LLRuby
     def self.precompile(receiver, method_name)
       original = receiver.method(method_name)
       iseq = RubyVM::InstructionSequence.of(original)
+      return false if iseq.nil?
       precompile_internal(iseq.to_a, original.owner, original.original_name, original.arity)
     end
 

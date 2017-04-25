@@ -28,6 +28,15 @@ describe LLRuby::JIT do
       }
       object.hello
     end
+
+    it 'is callable multiple times' do
+      klass = Class.new
+      def klass.hello
+        100
+      end
+      expect(LLRuby::JIT.precompile(klass, :hello)).to eq(true)
+      expect(LLRuby::JIT.precompile(klass, :hello)).to eq(false)
+    end
   end
 
   describe '.precompile_internal' do
