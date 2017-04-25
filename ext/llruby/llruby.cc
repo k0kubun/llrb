@@ -1,8 +1,10 @@
 #include "llruby/ruby.h"
+#include "llruby/iseq.h"
 
 static VALUE
 rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE iseq_array, VALUE klass, VALUE method_sym)
 {
+  llruby::Iseq iseq(iseq_array);
   return Qnil;
 }
 
