@@ -5,7 +5,12 @@ describe LLRuby::JIT do
       def klass.hello
         100
       end
-      LLRuby::JIT.precompile(klass, :hello)
+
+      expect {
+        LLRuby::JIT.precompile(klass, :hello)
+      }.to change {
+        klass.method(:hello).hash
+      }
       klass.hello
     end
 
@@ -15,7 +20,12 @@ describe LLRuby::JIT do
         def hello; 100; end
       end
       object = klass.new
-      LLRuby::JIT.precompile(object, :hello)
+
+      expect {
+        LLRuby::JIT.precompile(object, :hello)
+      }.to change {
+        object.method(:hello).hash
+      }
       object.hello
     end
   end

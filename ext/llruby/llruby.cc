@@ -13,7 +13,10 @@ rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq, VALUE kla
 {
   Check_Type(ruby_iseq, T_ARRAY);
   llruby::Iseq iseq(ruby_iseq);
-  native_compiler.Compile(iseq);
+  uint64_t func = native_compiler.Compile(iseq);
+
+  VALUE method_str = rb_convert_type(method_sym, T_STRING, "String", "to_s");
+  rb_define_method(klass, RSTRING_PTR(method_str), RUBY_METHOD_FUNC(func), 0);
   return Qnil;
 }
 

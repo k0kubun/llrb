@@ -5,17 +5,20 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Function.h"
 
 namespace llruby {
   class NativeCompiler {
    private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
-    std::unique_ptr<llvm::Module> mod;
 
    public:
-    NativeCompiler();
+    NativeCompiler() : builder(context) {}
     uint64_t Compile(const Iseq& iseq);
+
+   private:
+    uint64_t CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod);
   };
 }
 
