@@ -3,8 +3,10 @@
 #include "llruby/iseq_compiler.h"
 #include "llruby/native_method.h"
 #include "llruby/llvm_function.h"
+#include "llvm/IR/LLVMContext.h"
 
 VALUE rb_cLLVMFunction;
+llvm::LLVMContext context;
 
 // IseqCompiler#compile_internal
 // @param  [Array] ruby_iseq - Return value of RubyVM::InstructionSequence#to_a

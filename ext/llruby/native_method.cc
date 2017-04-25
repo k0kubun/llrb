@@ -9,9 +9,10 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
 
+extern llvm::LLVMContext context;
+
 namespace llruby {
 
-static llvm::LLVMContext context;
 static llvm::IRBuilder<> builder(context);
 static std::unique_ptr<llvm::Module> mod;
 
