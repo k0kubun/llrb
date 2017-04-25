@@ -4,6 +4,7 @@ module LLRuby
   module JIT
     # @param [Object] receiver - receiver of method to be compiled
     # @param [String,Symbol] method_name - precompiled method name
+    # @return [Boolean] - return true if precompiled
     def self.precompile(receiver, method_name)
       original = receiver.method(method_name)
       iseq = RubyVM::InstructionSequence.of(original)
@@ -12,10 +13,11 @@ module LLRuby
 
     # defined in ext/llruby/llruby.cc
     #
-    # @param [Array]   iseq_array - result of RubyVM::InstructionSequence#to_a
-    # @param [Class]   klass      - class to define method
-    # @param [Symbol]  method_sym - method name to define
-    # @param [Integer] arity      - method arity
+    # @param  [Array]   iseq_array - result of RubyVM::InstructionSequence#to_a
+    # @param  [Class]   klass      - class to define method
+    # @param  [Symbol]  method_sym - method name to define
+    # @param  [Integer] arity      - method arity
+    # @return [Boolean] return true if precompiled
     private_class_method :precompile_internal
   end
 end
