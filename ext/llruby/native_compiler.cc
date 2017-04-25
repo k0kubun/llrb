@@ -8,13 +8,7 @@ namespace llruby {
 
 uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llruby", context);
-
-  std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
-  llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
-  llvm::Function *func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "rb_hello_func", mod.get());
-
-  builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
-  builder.CreateRet(builder.getInt64(Qnil));
+  llvm::Function *func = CompileIseq(iseq, mod.get());
 
   if (dry_run) {
     mod->dump();
@@ -22,6 +16,16 @@ uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   } else {
     return CreateNativeFunction(func, std::move(mod));
   }
+}
+
+llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod) {
+  std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
+  llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
+  llvm::Function *func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "precompiled_method", mod);
+
+  builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
+  builder.CreateRet(builder.getInt64(Qnil));
+  return func;
 }
 
 uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {

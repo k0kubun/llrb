@@ -15,7 +15,7 @@ module LLRuby
       precompile_internal(iseq.to_a, original.owner, original.original_name, original.arity, dry_run)
     end
 
-    # Preview native code in LLVM IR
+    # Preview compiled method in LLVM IR
     #
     # @param [Object] receiver - receiver of method to be compiled
     # @param [String,Symbol] method_name - precompiled method name
