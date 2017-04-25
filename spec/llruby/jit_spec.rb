@@ -34,7 +34,7 @@ describe LLRuby::JIT do
     it 'rejects non-Array argument' do
       object = Object.new
       expect {
-        LLRuby::JIT.send(:precompile_internal, object, Object, :hash)
+        LLRuby::JIT.send(:precompile_internal, object, Object, :hash, 0)
       }.to raise_error(TypeError)
     end
   end
