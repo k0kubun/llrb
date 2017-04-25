@@ -35,10 +35,6 @@ namespace llruby {
     std::vector<Object> bytecode;
 
     Iseq(VALUE ruby_obj):Object(ruby_obj) {
-      if (TYPE(ruby_obj) != T_ARRAY || RARRAY_LEN(ruby_obj) != 14) {
-        fprintf(stderr, "unexpected type object is given!: %s\n", RSTRING_PTR(rb_inspect(ruby_obj)));
-        exit(1); // Use Ruby's raise instead
-      }
       bytecode = array[13].array;
     };
   };

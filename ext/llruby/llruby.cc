@@ -2,9 +2,10 @@
 #include "llruby/iseq.h"
 
 static VALUE
-rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE iseq_array, VALUE klass, VALUE method_sym)
+rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq, VALUE klass, VALUE method_sym)
 {
-  llruby::Iseq iseq(iseq_array);
+  Check_Type(ruby_iseq, T_ARRAY);
+  llruby::Iseq iseq(ruby_iseq);
   return Qnil;
 }
 
