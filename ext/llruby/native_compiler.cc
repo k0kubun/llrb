@@ -1,6 +1,6 @@
 #include <memory>
-#include "llruby/iseq.h"
-#include "llruby/native_compiler.h"
+#include "iseq.h"
+#include "native_compiler.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
 

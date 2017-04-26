@@ -1,7 +1,7 @@
 #ifndef LLRUBY_NATIVE_COMPILER_H
 #define LLRUBY_NATIVE_COMPILER_H
 
-#include "llruby/iseq.h"
+#include "iseq.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"

@@ -1,6 +1,6 @@
-#include "llruby/ruby.h"
-#include "llruby/iseq.h"
-#include "llruby/native_compiler.h"
+#include "llruby.h"
+#include "iseq.h"
+#include "native_compiler.h"
 #include "llvm/Support/TargetSelect.h"
 
 static llruby::NativeCompiler native_compiler;

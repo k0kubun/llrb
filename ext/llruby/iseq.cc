@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
-#include "llruby/ruby.h"
-#include "llruby/iseq.h"
+#include "llruby.h"
+#include "iseq.h"
 
 namespace llruby {
 
