@@ -1,6 +1,7 @@
 #ifndef LLRUBY_NATIVE_COMPILER_H
 #define LLRUBY_NATIVE_COMPILER_H
 
+#include <vector>
 #include "iseq.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
@@ -10,6 +11,7 @@
 namespace llruby {
   class NativeCompiler {
    private:
+    std::vector<Object> stack;
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
 
@@ -20,6 +22,7 @@ namespace llruby {
    private:
     uint64_t CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod);
     llvm::Function* CompileIseq(const Iseq& iseq, llvm::Module* mod);
+    void CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod);
   };
 }
 

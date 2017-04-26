@@ -32,9 +32,31 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
   llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
   llvm::Function *func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "precompiled_method", mod);
 
+  stack.clear();
+  for (const Object& insn : iseq.bytecode) {
+    if (insn.klass == "Array") {
+      CompileInstruction(insn.array, mod);
+    } else if (insn.klass == "Symbol") {
+      // label. ignored for now
+    } else if (insn.klass == "Integer") {
+      // lineno. ignored for now
+    }
+  }
+
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
   builder.CreateRet(builder.getInt64(Qnil));
   return func;
+}
+
+void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod) {
+  const std::string& name = instruction[0].symbol;
+  if (name == "putnil") {
+    stack.push_back(Object(Qnil));
+  } else if (name == "trace") {
+    // ignored for now
+  } else if (name == "leave") {
+    // ignored for now
+  }
 }
 
 } // namespace llruby
