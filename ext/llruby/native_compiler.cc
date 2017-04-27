@@ -9,6 +9,7 @@ namespace llruby {
 uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llruby", context);
   llvm::Function *func = CompileIseq(iseq, mod.get());
+  if (!func) return 0;
 
   if (dry_run) {
     mod->dump();
@@ -38,8 +39,11 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
       CompileInstruction(insn.array, mod);
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
-    } else if (insn.klass == "Integer") {
+    } else if (insn.klass == "Fixnum" || insn.klass == "Integer") {
       // lineno. ignored for now
+    } else {
+      fprintf(stderr, "unexpected insn.klass!: %s\n", insn.klass.c_str());
+      return nullptr;
     }
   }
 
