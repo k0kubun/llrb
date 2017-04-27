@@ -67,6 +67,8 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     // ignored for now
   } else if (name == "leave") {
     // ignored for now
+  } else if (name == "nop") {
+    // nop
   } else {
     fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
   }

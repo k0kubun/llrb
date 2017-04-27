@@ -40,8 +40,8 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-- [ ] nop
-  - [ ] nop
+- [x] nop
+  - [x] nop
 - [ ] variable
   - [ ] getlocal
   - [ ] setlocal
