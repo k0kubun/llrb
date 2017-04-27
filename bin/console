@@ -3,21 +3,11 @@
 require 'bundler/setup'
 require 'llruby'
 
-# For debugging
-module A
-  class << self
-    def empty
-    end
-
-    def num
-      42
-    end
-  end
-end
-
 JIT = LLRuby::JIT
-def JIT.iseq(receiver, method_name)
-  original = receiver.method(method_name)
+def JIT.iseq(&block)
+  klass = Class.new
+  klass.send(:define_singleton_method, :test, &block)
+  original = klass.method(:test)
   RubyVM::InstructionSequence.of(original).to_a
 end
 
