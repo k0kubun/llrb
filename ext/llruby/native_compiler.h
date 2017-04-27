@@ -7,6 +7,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Value.h"
 
 namespace llruby {
   class NativeCompiler {
@@ -23,6 +24,7 @@ namespace llruby {
     uint64_t CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod);
     llvm::Function* CompileIseq(const Iseq& iseq, llvm::Module* mod);
     void CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod);
+    llvm::Value* CompileObject(const Object& object);
   };
 }
 

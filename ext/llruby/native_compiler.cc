@@ -44,7 +44,11 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
   }
 
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
-  builder.CreateRet(builder.getInt64(Qnil));
+  if (stack.size() > 0) {
+    builder.CreateRet(CompileObject(stack.back()));
+  } else {
+    builder.CreateRet(builder.getInt64(Qnil)); // TODO: return NULL
+  }
   return func;
 }
 
@@ -56,6 +60,14 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     // ignored for now
   } else if (name == "leave") {
     // ignored for now
+  }
+}
+
+llvm::Value* NativeCompiler::CompileObject(const Object& object) {
+  if (object.klass == "NilClass") {
+    return builder.getInt64(Qnil);
+  } else {
+    return builder.getInt64(Qnil); // TODO: return NULL
   }
 }
 
