@@ -52,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
     builder.CreateRet(CompileObject(stack.back()));
   } else {
     fprintf(stderr, "unexpected stack size at CompileIseq: %d\n", (int)stack.size());
-    builder.CreateRet(builder.getInt64(Qnil)); // TODO: return NULL
+    return nullptr;
   }
   return func;
 }
@@ -85,7 +85,7 @@ llvm::Value* NativeCompiler::CompileObject(const Object& object) {
     return builder.getInt64(Qfalse);
   } else {
     fprintf(stderr, "unexpected object.klass at CompileObject: %s\n", object.klass.c_str());
-    return builder.getInt64(Qnil); // TODO: return NULL
+    return nullptr;
   }
 }
 
