@@ -42,15 +42,16 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
     } else if (insn.klass == "Fixnum" || insn.klass == "Integer") {
       // lineno. ignored for now
     } else {
-      fprintf(stderr, "unexpected insn.klass!: %s\n", insn.klass.c_str());
+      fprintf(stderr, "unexpected insn.klass at CompileIseq: %s\n", insn.klass.c_str());
       return nullptr;
     }
   }
 
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
-  if (stack.size() > 0) {
+  if (stack.size() == 1) {
     builder.CreateRet(CompileObject(stack.back()));
   } else {
+    fprintf(stderr, "unexpected stack size at CompileIseq: %d\n", (int)stack.size());
     builder.CreateRet(builder.getInt64(Qnil)); // TODO: return NULL
   }
   return func;
@@ -60,17 +61,26 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(Object(Qnil));
+  } else if (name == "putobject") {
+    stack.push_back(instruction[1]);
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
     // ignored for now
+  } else {
+    fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
   }
 }
 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {
   if (object.klass == "NilClass") {
     return builder.getInt64(Qnil);
+  } else if (object.klass == "TrueClass") {
+    return builder.getInt64(Qtrue);
+  } else if (object.klass == "FalseClass") {
+    return builder.getInt64(Qfalse);
   } else {
+    fprintf(stderr, "unexpected object.klass at CompileObject: %s\n", object.klass.c_str());
     return builder.getInt64(Qnil); // TODO: return NULL
   }
 }

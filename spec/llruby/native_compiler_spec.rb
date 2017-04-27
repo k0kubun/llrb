@@ -7,7 +7,12 @@ describe 'llruby::NativeCompiler' do
     expect(klass.test).to eq(result)
   end
 
-  it 'compiles nil' do
+  it 'compiles putnil' do
     test_compile { nil }
+  end
+
+  it 'compiles putobject' do
+    test_compile { true }
+    test_compile { false }
   end
 end
