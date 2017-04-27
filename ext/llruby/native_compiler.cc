@@ -75,6 +75,8 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {
   if (object.klass == "NilClass") {
     return builder.getInt64(Qnil);
+  } else if (object.klass == "Fixnum") {
+    return builder.getInt64(INT2FIX(object.integer));
   } else if (object.klass == "TrueClass") {
     return builder.getInt64(Qtrue);
   } else if (object.klass == "FalseClass") {

@@ -14,5 +14,6 @@ describe 'llruby::NativeCompiler' do
   it 'compiles putobject' do
     test_compile { true }
     test_compile { false }
+    test_compile { 100 }
   end
 end

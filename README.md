@@ -60,7 +60,7 @@ LLRuby::JIT.preview(Hello, :world)
 - [ ] put
   - [x] putnil
   - [ ] putself
-  - [x] putobject (true, false)
+  - [x] putobject (true, false, Fixnum)
   - [ ] putstring
   - [ ] concatstrings
   - [ ] tostring
