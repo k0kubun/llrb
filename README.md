@@ -38,9 +38,71 @@ LLRuby::JIT.preview(Hello, :world)
 # }
 ```
 
-## Contributing
+## Supported Iseq instructions
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/k0kubun/llruby.
+- [ ] nop
+  - [ ] nop
+- [ ] variable
+  - [ ] getlocal
+  - [ ] setlocal
+  - [ ] getspecial
+  - [ ] setspecial
+  - [ ] getdynamic
+  - [ ] setdynamic
+  - [ ] getinstancevariable
+  - [ ] setinstancevariable
+  - [ ] getclassvariable
+  - [ ] setclassvariable
+  - [ ] getconstant
+  - [ ] setconstant
+  - [ ] getglobal
+  - [ ] setglobal
+- [ ] put
+  - [x] putnil
+  - [ ] putself
+  - [ ] putobject
+  - [ ] putstring
+  - [ ] concatstrings
+  - [ ] tostring
+  - [ ] toregexp
+  - [ ] newarray
+  - [ ] duparray
+  - [ ] expandarray
+  - [ ] newhash
+  - [ ] newrange
+  - [ ] putnot
+- [ ] stack
+  - [ ] pop
+  - [ ] dup
+  - [ ] dupn
+  - [ ] swap
+  - [ ] reput
+  - [ ] topn
+- [ ] setting
+  - [ ] methoddef
+  - [ ] singletonmethoddef
+  - [ ] alias
+  - [ ] undef
+  - [ ] defined
+- [ ] class/module
+  - [ ] classdef
+  - [ ] singletonclassdef
+  - [ ] moduledef
+  - [ ] popcref
+- [ ] method/iterator
+  - [ ] send
+  - [ ] super
+  - [ ] zsuper
+  - [ ] yield
+  - [ ] end
+- [ ] exception
+  - [ ] throw
+- [ ] jump
+  - [ ] jump
+  - [ ] if
+  - [ ] unless
+
+1/52
 
 ## License
 
