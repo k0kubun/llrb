@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'benchmark/ips'
+require 'llruby'
+
+Benchmark.ips do |x|
+  x.report('ruby')   { 100 }
+  x.report('native') { 100 }
+  x.compare!
+end
