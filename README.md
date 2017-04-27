@@ -10,17 +10,33 @@ Add this line to your application's Gemfile:
 gem 'llruby'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install llruby
-
 ## Usage
+### Compiling method to native code
 
-`require 'llruby'` is enough.
+```rb
+require 'llruby'
+
+class Hello
+  def world
+     puts "Hello world!"
+  end
+end
+
+hello = Hello.new
+LLRuby::JIT.precompile(hello, :world)
+hello.world # Executed in native code
+```
+
+### Dumping LLVM IR
+
+```rb
+LLRuby::JIT.preview(Hello, :world)
+# ; ModuleID = 'llruby'
+#
+# define i64 @precompiled_method(i64) {
+#   ret i64 8
+# }
+```
 
 ## Contributing
 
