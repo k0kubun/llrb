@@ -101,8 +101,33 @@ LLRuby::JIT.preview(Hello, :world)
   - [ ] jump
   - [ ] if
   - [ ] unless
+- [ ] optimize
+  - [ ] getinlinecache
+  - [ ] setinlinecache
+  - [ ] opt\_plus
+  - [ ] opt\_minus
+  - [ ] opt\_lt
+  - [ ] opt\_ltlt
+  - [ ] opt\_regexpmatch1
+  - [ ] opt\_regexpmatch2
+  - [ ] opt\_call\_native\_compiled
+  - [ ] getlocal\_OP\_1
+  - [ ] setlocal\_OP\_1
+  - [ ] getlocal\_OP\_2
+  - [ ] setlocal\_OP\_2
+  - [ ] getdynamic\_OP\_\_WC\_\_0
+  - [ ] getdynamic\_OP\_1\_0
+  - [ ] putobject\_OP\_INT2FIX\_O\_0\_C\_
+  - [ ] putobject\_OP\_INT2FIX\_O\_1\_C\_
+  - [ ] putobject\_OP\_Qtrue
+  - [ ] putobject\_OP\_Qfalse
+  - [ ] send\_OP\_\_WC\_\_\_WC\_\_Qfalse\_0\_\_WC\_
+  - [ ] UNIFIED\_putobject\_putobject
+  - [ ] UNIFIED\_putstring\_putstring
+  - [ ] UNIFIED\_putstring\_putobject
+  - [ ] UNIFIED\_putobject\_putstring
 
-1/52
+3/76
 
 ## License
 
