@@ -40,94 +40,113 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-- [x] nop
-  - [x] nop
-- [ ] variable
-  - [ ] getlocal
-  - [ ] setlocal
-  - [ ] getspecial
-  - [ ] setspecial
-  - [ ] getdynamic
-  - [ ] setdynamic
-  - [ ] getinstancevariable
-  - [ ] setinstancevariable
-  - [ ] getclassvariable
-  - [ ] setclassvariable
-  - [ ] getconstant
-  - [ ] setconstant
-  - [ ] getglobal
-  - [ ] setglobal
-- [ ] put
-  - [x] putnil
-  - [ ] putself
-  - [x] putobject (true, false, Fixnum)
-  - [ ] putstring
-  - [ ] concatstrings
-  - [ ] tostring
-  - [ ] toregexp
-  - [ ] newarray
-  - [ ] duparray
-  - [ ] expandarray
-  - [ ] newhash
-  - [ ] newrange
-  - [ ] putnot
-- [ ] stack
-  - [ ] pop
-  - [ ] dup
-  - [ ] dupn
-  - [ ] swap
-  - [ ] reput
-  - [ ] topn
-- [ ] setting
-  - [ ] methoddef
-  - [ ] singletonmethoddef
-  - [ ] alias
-  - [ ] undef
-  - [ ] defined
-- [ ] class/module
-  - [ ] classdef
-  - [ ] singletonclassdef
-  - [ ] moduledef
-  - [ ] popcref
-- [ ] method/iterator
-  - [ ] send
-  - [ ] super
-  - [ ] zsuper
-  - [ ] yield
-  - [ ] end
-- [ ] exception
-  - [ ] throw
-- [ ] jump
-  - [ ] jump
-  - [ ] if
-  - [ ] unless
-- [ ] optimize
-  - [ ] getinlinecache
-  - [ ] setinlinecache
-  - [ ] opt\_plus
-  - [ ] opt\_minus
-  - [ ] opt\_lt
-  - [ ] opt\_ltlt
-  - [ ] opt\_regexpmatch1
-  - [ ] opt\_regexpmatch2
-  - [ ] opt\_call\_native\_compiled
-  - [ ] getlocal\_OP\_1
-  - [ ] setlocal\_OP\_1
-  - [ ] getlocal\_OP\_2
-  - [ ] setlocal\_OP\_2
-  - [ ] getdynamic\_OP\_\_WC\_\_0
-  - [ ] getdynamic\_OP\_1\_0
-  - [ ] putobject\_OP\_INT2FIX\_O\_0\_C\_
-  - [ ] putobject\_OP\_INT2FIX\_O\_1\_C\_
-  - [ ] putobject\_OP\_Qtrue
-  - [ ] putobject\_OP\_Qfalse
-  - [ ] send\_OP\_\_WC\_\_\_WC\_\_Qfalse\_0\_\_WC\_
-  - [ ] UNIFIED\_putobject\_putobject
-  - [ ] UNIFIED\_putstring\_putstring
-  - [ ] UNIFIED\_putstring\_putobject
-  - [ ] UNIFIED\_putobject\_putstring
+3/84 (3.6%)
 
-3/76
+### nop
+- [x] nop
+
+### variable
+- [ ] getlocal
+- [ ] setlocal
+- [ ] getspecial
+- [ ] setspecial
+- [ ] getinstancevariable
+- [ ] setinstancevariable
+- [ ] getclassvariable
+- [ ] setclassvariable
+- [ ] getconstant
+- [ ] setconstant
+- [ ] getglobal
+- [ ] setglobal
+
+### put
+- [x] putnil
+- [ ] putself
+- [x] putobject (true, false, Fixnum)
+- [ ] putspecialobject
+- [ ] putiseq
+- [ ] putstring
+- [ ] concatstrings
+- [ ] tostring
+- [ ] freezestring
+- [ ] toregexp
+- [ ] newarray
+- [ ] duparray
+- [ ] expandarray
+- [ ] concatarray
+- [ ] splatarray
+- [ ] newhash
+- [ ] newrange
+
+### stack
+- [ ] pop
+- [ ] dup
+- [ ] dupn
+- [ ] swap
+- [ ] reverse
+- [ ] reput
+- [ ] topn
+- [ ] setn
+- [ ] adjuststack
+
+### setting
+- [ ] defined
+- [ ] checkmatch
+- [ ] checkkeyword
+- [ ] trace
+
+### class/module
+- [ ] defineclass
+
+### method/iterator
+- [ ] send
+- [ ] invokesuper
+- [ ] invokeblock
+- [ ] leave
+
+### optimize
+- [ ] opt\_send\_without\_block
+- [ ] getinlinecache
+- [ ] setinlinecache
+- [ ] once
+- [ ] opt\_case\_dispatch
+- [ ] opt\_plus
+- [ ] opt\_minus
+- [ ] opt\_mult
+- [ ] opt\_div
+- [ ] opt\_mod
+- [ ] opt\_eq
+- [ ] opt\_neq
+- [ ] opt\_lt
+- [ ] opt\_le
+- [ ] opt\_gt
+- [ ] opt\_ge
+- [ ] opt\_ltlt
+- [ ] opt\_aref
+- [ ] opt\_aset
+- [ ] opt\_aset\_with
+- [ ] opt\_aref\_with
+- [ ] opt\_length
+- [ ] opt\_size
+- [ ] opt\_empty\_p
+- [ ] opt\_succ
+- [ ] opt\_not
+- [ ] opt\_regexpmatch1
+- [ ] opt\_regexpmatch2
+- [ ] opt\_call\_c\_function
+
+### exception
+- [ ] throw
+
+### jump
+- [ ] jump
+- [ ] branchif
+- [ ] branchunless
+- [ ] branchnil
+
+### joke
+- [ ] bitblt
+- [ ] answer
 
 ## License
 
