@@ -16,4 +16,8 @@ describe 'llruby::NativeCompiler' do
     test_compile { false }
     test_compile { 100 }
   end
+
+  it 'compiles opt_plus' do
+    test_compile { 2 + 3 }
+  end
 end

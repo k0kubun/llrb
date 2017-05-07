@@ -32,14 +32,25 @@ uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_
 }
 
 llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod) {
-  std::vector<llvm::Type*> args = { llvm::IntegerType::get(context, 64) };
-  llvm::FunctionType *func_type = llvm::FunctionType::get(llvm::Type::getInt64Ty(context), args, false);
-  llvm::Function *func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "precompiled_method", mod);
+  llvm::Function *func = llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
+      llvm::Function::ExternalLinkage, "precompiled_method", mod);
+
+  llvm::Function *rb_funcallf = llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 32),
+        llvm::IntegerType::get(context, 64)},
+        false),
+      llvm::Function::ExternalLinkage, "rb_funcall", mod);
 
   stack.clear();
+  builder.SetInsertPoint(llvm::BasicBlock::Create(context, "entry", func));
+
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      CompileInstruction(insn.array, mod);
+      CompileInstruction(insn.array, mod, rb_funcallf);
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
     } else if (insn.klass == "Fixnum" || insn.klass == "Integer") {
@@ -50,22 +61,31 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
     }
   }
 
-  builder.SetInsertPoint(llvm::BasicBlock::Create(context, "", func));
   if (stack.size() == 1) {
-    builder.CreateRet(CompileObject(stack.back()));
+    builder.CreateRet(stack.back());
   } else {
     fprintf(stderr, "unexpected stack size at CompileIseq: %d\n", (int)stack.size());
+    mod->dump();
     return nullptr;
   }
   return func;
 }
 
-void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod) {
+void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
-    stack.push_back(Object(Qnil));
+    stack.push_back(CompileObject(Object(Qnil)));
   } else if (name == "putobject") {
-    stack.push_back(instruction[1]);
+    stack.push_back(CompileObject(instruction[1]));
+  } else if (name == "opt_plus") {
+    llvm::Value *lhs = stack.back();
+    stack.pop_back();
+    llvm::Value *rhs = stack.back();
+    stack.pop_back();
+
+    std::vector<llvm::Value*> args = { lhs, builder.getInt64('+'), builder.getInt32(1), rhs };
+    llvm::Value* result = builder.CreateCall(rb_funcallf, args, "opt_plus");
+    stack.push_back(result);
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
