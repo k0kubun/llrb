@@ -1,7 +1,10 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #include "llruby.h"
 #include "iseq.h"
 #include "native_compiler.h"
 #include "llvm/Support/TargetSelect.h"
+#pragma clang diagnostic pop
 
 static llruby::NativeCompiler native_compiler;
 

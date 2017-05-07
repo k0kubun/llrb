@@ -3,11 +3,14 @@
 
 #include <vector>
 #include "iseq.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
+#pragma clang diagnostic pop
 
 namespace llruby {
   class NativeCompiler {
