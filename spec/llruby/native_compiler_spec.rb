@@ -20,4 +20,9 @@ describe 'llruby::NativeCompiler' do
   it 'compiles opt_plus' do
     test_compile { 2 + 3 }
   end
+
+  it 'compiles opt_minus' do
+    test_compile { 3 - 2 }
+    test_compile { 3 + 4 - 2 }
+  end
 end

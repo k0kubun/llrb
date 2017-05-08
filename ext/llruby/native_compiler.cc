@@ -78,14 +78,9 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
   } else if (name == "putobject") {
     stack.push_back(CompileObject(instruction[1]));
   } else if (name == "opt_plus") {
-    llvm::Value *lhs = stack.back();
-    stack.pop_back();
-    llvm::Value *rhs = stack.back();
-    stack.pop_back();
-
-    std::vector<llvm::Value*> args = { lhs, builder.getInt64('+'), builder.getInt32(1), rhs };
-    llvm::Value* result = builder.CreateCall(rb_funcallf, args, "opt_plus");
-    stack.push_back(result);
+    CompileBinop(rb_funcallf, builder.getInt64('+'));
+  } else if (name == "opt_minus") {
+    CompileBinop(rb_funcallf, builder.getInt64('-'));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
@@ -95,6 +90,17 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
   } else {
     fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
   }
+}
+
+void NativeCompiler::CompileBinop(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
+  llvm::Value *rhs = stack.back();
+  stack.pop_back();
+  llvm::Value *lhs = stack.back();
+  stack.pop_back();
+
+  std::vector<llvm::Value*> args = { lhs, op_sym, builder.getInt32(1), rhs };
+  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "binop");
+  stack.push_back(result);
 }
 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {
