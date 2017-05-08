@@ -40,7 +40,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-17/84 (20.2%)
+18/84 (21.4%)
 
 ### nop
 - [x] nop
@@ -146,7 +146,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ### joke
 - [ ] bitblt
-- [ ] answer
+- [x] answer
 
 ## License
 

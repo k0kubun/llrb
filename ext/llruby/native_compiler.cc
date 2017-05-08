@@ -114,6 +114,8 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     // ignored for now
   } else if (name == "nop") {
     // nop
+  } else if (name == "answer") {
+    stack.push_back(builder.getInt64(INT2FIX(42)));
   } else {
     fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
     return false;
