@@ -1,5 +1,6 @@
 #include <memory>
 #include "iseq.h"
+#include "llruby.h"
 #include "native_compiler.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
@@ -86,6 +87,20 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     CompileBinop(rb_funcallf, builder.getInt64('*'));
   } else if (name == "opt_div") {
     CompileBinop(rb_funcallf, builder.getInt64('/'));
+  } else if (name == "opt_mod") {
+    CompileBinop(rb_funcallf, builder.getInt64('%'));
+  } else if (name == "opt_eq") {
+    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("==")));
+  } else if (name == "opt_neq") {
+    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("!=")));
+  } else if (name == "opt_lt") {
+    CompileBinop(rb_funcallf, builder.getInt64('<'));
+  } else if (name == "opt_le") {
+    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("<=")));
+  } else if (name == "opt_gt") {
+    CompileBinop(rb_funcallf, builder.getInt64('>'));
+  } else if (name == "opt_ge") {
+    CompileBinop(rb_funcallf, builder.getInt64(rb_intern(">=")));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {

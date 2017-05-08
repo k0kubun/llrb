@@ -33,8 +33,46 @@ describe 'llruby::NativeCompiler' do
     test_compile { 3 / 2 }
   end
 
+  specify 'opt_mod' do
+    test_compile { 3 % 2 }
+  end
+
+  specify 'opt_eq' do
+    test_compile { 2 == 2 }
+    test_compile { 3 == 2 }
+  end
+
+  specify 'opt_neq' do
+    test_compile { 2 != 2 }
+    test_compile { 3 != 2 }
+  end
+
+  specify 'opt_lt' do
+    test_compile { 2 < 3 }
+    test_compile { 2 < 2 }
+    test_compile { 3 < 2 }
+  end
+
+  specify 'opt_le' do
+    test_compile { 2 <= 3 }
+    test_compile { 2 <= 2 }
+    test_compile { 3 <= 2 }
+  end
+
+  specify 'opt_gt' do
+    test_compile { 2 > 3 }
+    test_compile { 2 > 2 }
+    test_compile { 3 > 2 }
+  end
+
+  specify 'opt_ge' do
+    test_compile { 2 >= 3 }
+    test_compile { 2 >= 2 }
+    test_compile { 3 >= 2 }
+  end
+
   describe 'integration' do
-    it 'compiles arithmetic' do
+    specify 'arithmetic' do
       test_compile { 6 + (3 - 4) * 5 / 2 }
     end
   end
