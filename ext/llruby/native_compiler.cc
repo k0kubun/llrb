@@ -32,7 +32,7 @@ uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_
   return engine->getFunctionAddress(func->getName());
 }
 
-llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod) {
+llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod) {
   llvm::Function *rb_funcallf = llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
@@ -71,12 +71,17 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
   return func;
 }
 
-bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf) {
+bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod, llvm::Function *rb_funcallf) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(CompileObject(Object(Qnil)));
   } else if (name == "putobject") {
     stack.push_back(CompileObject(instruction[1]));
+  } else if (name == "opt_send_without_block") {
+    std::map<std::string, Object> options = instruction[1].hash;
+    Object mid = options["mid"];
+    Object orig_argc = options["orig_argc"];
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
   } else if (name == "opt_plus") {
     CompileBinop(rb_funcallf, builder.getInt64('+'));
   } else if (name == "opt_minus") {
@@ -116,7 +121,19 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
   return true;
 }
 
-void NativeCompiler::CompileUnary(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
+void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op_sym, int argc) {
+  size_t last = stack.size() - 1;
+  std::vector<llvm::Value*> args = { stack[last-argc], op_sym, builder.getInt32(argc) };
+  for (int i = 0; i < argc; i++) {
+    args.push_back(stack[last-i]);
+  }
+  for (int i = 0; i <= argc; i++) stack.pop_back();
+
+  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "rb_funcall");
+  stack.push_back(result);
+}
+
+void NativeCompiler::CompileUnary(llvm::Function *rb_funcallf, llvm::Value *op_sym) {
   llvm::Value *recv = stack.back();
   stack.pop_back();
 
@@ -125,7 +142,7 @@ void NativeCompiler::CompileUnary(llvm::Function* rb_funcallf, llvm::Value* op_s
   stack.push_back(result);
 }
 
-void NativeCompiler::CompileBinop(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
+void NativeCompiler::CompileBinop(llvm::Function *rb_funcallf, llvm::Value *op_sym) {
   llvm::Value *rhs = stack.back();
   stack.pop_back();
   llvm::Value *lhs = stack.back();

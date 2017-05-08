@@ -86,6 +86,11 @@ describe 'llruby::NativeCompiler' do
     test_compile { 100.! }
   end
 
+  specify 'opt_send_without_block' do
+    test_compile { 2 ** 3 }
+    test_compile { 2.even? }
+  end
+
   describe 'integration' do
     specify 'arithmetic' do
       test_compile { 6 + (3 - 4) * 5 / 2 }
