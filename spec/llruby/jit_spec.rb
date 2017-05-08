@@ -39,22 +39,6 @@ describe LLRuby::JIT do
     end
   end
 
-  describe '.preview' do
-    it 'dumps LLVM IR and does not redefine method' do
-      klass = Class.new
-      def klass.hello
-        100
-      end
-
-      expect {
-        LLRuby::JIT.preview(klass, :hello)
-      }.to_not change {
-        klass.method(:hello).hash
-      }
-      klass.hello
-    end
-  end
-
   describe '.precompile_internal' do
     it 'rejects non-Array argument' do
       object = Object.new
