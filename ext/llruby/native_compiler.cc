@@ -82,6 +82,10 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     CompileBinop(rb_funcallf, builder.getInt64('+'));
   } else if (name == "opt_minus") {
     CompileBinop(rb_funcallf, builder.getInt64('-'));
+  } else if (name == "opt_mult") {
+    CompileBinop(rb_funcallf, builder.getInt64('*'));
+  } else if (name == "opt_div") {
+    CompileBinop(rb_funcallf, builder.getInt64('/'));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {

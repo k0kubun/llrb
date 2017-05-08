@@ -40,7 +40,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-5/84 (5.9%)
+7/84 (8.3%)
 
 ### nop
 - [x] nop
@@ -112,8 +112,8 @@ LLRuby::JIT.preview(Hello, :world)
 - [ ] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
-- [ ] opt\_mult
-- [ ] opt\_div
+- [x] opt\_mult
+- [x] opt\_div
 - [ ] opt\_mod
 - [ ] opt\_eq
 - [ ] opt\_neq
