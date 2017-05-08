@@ -28,8 +28,6 @@ namespace llruby {
     llvm::Function* CompileIseq(const Iseq& iseq, llvm::Module* mod);
     bool CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf);
     void CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op_sym, int argc);
-    void CompileUnary(llvm::Function* rb_funcallf, llvm::Value* op_sym);
-    void CompileBinop(llvm::Function* rb_funcallf, llvm::Value* op_sym);
     llvm::Value* CompileObject(const Object& object);
   };
 }

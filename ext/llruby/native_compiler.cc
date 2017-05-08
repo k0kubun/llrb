@@ -83,31 +83,31 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     Object orig_argc = options["orig_argc"];
     CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
   } else if (name == "opt_plus") {
-    CompileBinop(rb_funcallf, builder.getInt64('+'));
+    CompileFuncall(rb_funcallf, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
-    CompileBinop(rb_funcallf, builder.getInt64('-'));
+    CompileFuncall(rb_funcallf, builder.getInt64('-'), 1);
   } else if (name == "opt_mult") {
-    CompileBinop(rb_funcallf, builder.getInt64('*'));
+    CompileFuncall(rb_funcallf, builder.getInt64('*'), 1);
   } else if (name == "opt_div") {
-    CompileBinop(rb_funcallf, builder.getInt64('/'));
+    CompileFuncall(rb_funcallf, builder.getInt64('/'), 1);
   } else if (name == "opt_mod") {
-    CompileBinop(rb_funcallf, builder.getInt64('%'));
+    CompileFuncall(rb_funcallf, builder.getInt64('%'), 1);
   } else if (name == "opt_eq") {
-    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("==")));
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("==")), 1);
   } else if (name == "opt_neq") {
-    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("!=")));
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("!=")), 1);
   } else if (name == "opt_lt") {
-    CompileBinop(rb_funcallf, builder.getInt64('<'));
+    CompileFuncall(rb_funcallf, builder.getInt64('<'), 1);
   } else if (name == "opt_le") {
-    CompileBinop(rb_funcallf, builder.getInt64(rb_intern("<=")));
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("<=")), 1);
   } else if (name == "opt_gt") {
-    CompileBinop(rb_funcallf, builder.getInt64('>'));
+    CompileFuncall(rb_funcallf, builder.getInt64('>'), 1);
   } else if (name == "opt_ge") {
-    CompileBinop(rb_funcallf, builder.getInt64(rb_intern(">=")));
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(">=")), 1);
   } else if (name == "opt_succ") {
-    CompileUnary(rb_funcallf, builder.getInt64(rb_intern("succ")));
+    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("succ")), 0);
   } else if (name == "opt_not") {
-    CompileUnary(rb_funcallf, builder.getInt64('!'));
+    CompileFuncall(rb_funcallf, builder.getInt64('!'), 0);
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
@@ -130,26 +130,6 @@ void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op
   for (int i = 0; i <= argc; i++) stack.pop_back();
 
   llvm::Value* result = builder.CreateCall(rb_funcallf, args, "rb_funcall");
-  stack.push_back(result);
-}
-
-void NativeCompiler::CompileUnary(llvm::Function *rb_funcallf, llvm::Value *op_sym) {
-  llvm::Value *recv = stack.back();
-  stack.pop_back();
-
-  std::vector<llvm::Value*> args = { recv, op_sym, builder.getInt32(0) };
-  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "unary");
-  stack.push_back(result);
-}
-
-void NativeCompiler::CompileBinop(llvm::Function *rb_funcallf, llvm::Value *op_sym) {
-  llvm::Value *rhs = stack.back();
-  stack.pop_back();
-  llvm::Value *lhs = stack.back();
-  stack.pop_back();
-
-  std::vector<llvm::Value*> args = { lhs, op_sym, builder.getInt32(1), rhs };
-  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "binop");
   stack.push_back(result);
 }
 
