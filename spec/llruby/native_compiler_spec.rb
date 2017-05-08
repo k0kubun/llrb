@@ -71,6 +71,21 @@ describe 'llruby::NativeCompiler' do
     test_compile { 3 >= 2 }
   end
 
+  specify 'opt_succ' do
+    test_compile { 2.succ }
+  end
+
+  specify 'opt_not' do
+    test_compile { !nil }
+    test_compile { !true }
+    test_compile { !false }
+    test_compile { !100 }
+    test_compile { nil.! }
+    test_compile { true.! }
+    test_compile { false.! }
+    test_compile { 100.! }
+  end
+
   describe 'integration' do
     specify 'arithmetic' do
       test_compile { 6 + (3 - 4) * 5 / 2 }

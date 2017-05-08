@@ -40,7 +40,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-14/84 (16.7%)
+16/84 (19.0%)
 
 ### nop
 - [x] nop
@@ -129,8 +129,8 @@ LLRuby::JIT.preview(Hello, :world)
 - [ ] opt\_length
 - [ ] opt\_size
 - [ ] opt\_empty\_p
-- [ ] opt\_succ
-- [ ] opt\_not
+- [x] opt\_succ
+- [x] opt\_not
 - [ ] opt\_regexpmatch1
 - [ ] opt\_regexpmatch2
 - [ ] opt\_call\_c\_function

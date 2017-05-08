@@ -33,21 +33,19 @@ uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_
 }
 
 llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod) {
-  llvm::Function *func = llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
-      llvm::Function::ExternalLinkage, "precompiled_method", mod);
-
   llvm::Function *rb_funcallf = llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 32),
-        llvm::IntegerType::get(context, 64)},
-        false),
+        llvm::IntegerType::get(context, 32)},
+        true),
       llvm::Function::ExternalLinkage, "rb_funcall", mod);
 
-  stack.clear();
+  llvm::Function *func = llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
+      llvm::Function::ExternalLinkage, "precompiled_method", mod);
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "entry", func));
+  stack.clear();
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
@@ -101,6 +99,10 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     CompileBinop(rb_funcallf, builder.getInt64('>'));
   } else if (name == "opt_ge") {
     CompileBinop(rb_funcallf, builder.getInt64(rb_intern(">=")));
+  } else if (name == "opt_succ") {
+    CompileUnary(rb_funcallf, builder.getInt64(rb_intern("succ")));
+  } else if (name == "opt_not") {
+    CompileUnary(rb_funcallf, builder.getInt64('!'));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
@@ -112,6 +114,15 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     return false;
   }
   return true;
+}
+
+void NativeCompiler::CompileUnary(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
+  llvm::Value *recv = stack.back();
+  stack.pop_back();
+
+  std::vector<llvm::Value*> args = { recv, op_sym, builder.getInt32(0) };
+  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "unary");
+  stack.push_back(result);
 }
 
 void NativeCompiler::CompileBinop(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
