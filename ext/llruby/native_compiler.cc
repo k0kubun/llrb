@@ -50,7 +50,8 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      CompileInstruction(insn.array, mod, rb_funcallf);
+      bool compiled = CompileInstruction(insn.array, mod, rb_funcallf);
+      if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
     } else if (insn.klass == "Fixnum" || insn.klass == "Integer") {
@@ -71,7 +72,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module* mod)
   return func;
 }
 
-void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf) {
+bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(CompileObject(Object(Qnil)));
@@ -89,7 +90,9 @@ void NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     // nop
   } else {
     fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
+    return false;
   }
+  return true;
 }
 
 void NativeCompiler::CompileBinop(llvm::Function* rb_funcallf, llvm::Value* op_sym) {
