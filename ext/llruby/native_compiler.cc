@@ -83,7 +83,7 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     Object orig_argc = options["orig_argc"];
     CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
   } else if (name == "opt_plus") {
-    CompileFuncall(rb_funcallf, builder.getInt64('+'), 1);
+    CompileFixnumPlus();
   } else if (name == "opt_minus") {
     CompileFuncall(rb_funcallf, builder.getInt64('-'), 1);
   } else if (name == "opt_mult") {
@@ -133,6 +133,22 @@ void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op
 
   llvm::Value* result = builder.CreateCall(rb_funcallf, args, "rb_funcall");
   stack.push_back(result);
+}
+
+void NativeCompiler::CompileFixnumPlus() {
+  llvm::Value* lhs = stack.back();
+  stack.pop_back();
+  llvm::Value* rhs = stack.back();
+  stack.pop_back();
+
+  llvm::Value* long_lhs = builder.CreateAShr(lhs, builder.getInt64(1)); // RB_FIX2LONG
+  llvm::Value* long_rhs = builder.CreateAShr(rhs, builder.getInt64(1)); // RB_FIX2LONG
+
+  llvm::Value* result = builder.CreateNSWAdd(long_lhs, long_rhs);
+  llvm::Value* result_obj = builder.CreateOr(
+      builder.CreateShl(result, builder.getInt64(1)),
+      builder.getInt64(1)); // RB_INT2FIX
+  stack.push_back(result_obj);
 }
 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {
