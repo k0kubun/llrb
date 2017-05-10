@@ -62,7 +62,7 @@ LLRuby::JIT.preview(Hello, :world)
 ### put
 - [x] putnil
 - [ ] putself
-- [x] putobject (true, false, Fixnum)
+- [x] putobject (true, false, Fixnum, 0, 1)
 - [ ] putspecialobject
 - [ ] putiseq
 - [ ] putstring

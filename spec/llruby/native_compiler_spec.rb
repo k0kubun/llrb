@@ -15,26 +15,28 @@ describe 'llruby::NativeCompiler' do
     test_compile { true }
     test_compile { false }
     test_compile { 100 }
+    test_compile { 0 }
+    test_compile { 1 }
   end
 
   specify 'opt_plus' do
-    test_compile { 2 + 3 }
+    test_compile { 1 + 2 + 3 }
   end
 
   specify 'opt_minus' do
-    test_compile { 3 - 2 }
+    test_compile { 1 - 3 - 2 }
   end
 
   specify 'opt_mult' do
-    test_compile { 3 * 2 }
+    test_compile { 3 * 2 * 1 }
   end
 
   specify 'opt_div' do
-    test_compile { 3 / 2 }
+    test_compile { 3 / 2 / 1 }
   end
 
   specify 'opt_mod' do
-    test_compile { 3 % 2 }
+    test_compile { 3 % 2 % 1 }
   end
 
   specify 'opt_eq' do
@@ -93,7 +95,7 @@ describe 'llruby::NativeCompiler' do
 
   describe 'integration' do
     specify 'arithmetic' do
-      test_compile { 6 + (3 - 4) * 5 / 2 }
+      test_compile { 1 + (3 - 4) * 5 / 2 }
     end
   end
 end

@@ -77,6 +77,10 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     stack.push_back(CompileObject(Object(Qnil)));
   } else if (name == "putobject") {
     stack.push_back(CompileObject(instruction[1]));
+  } else if (name == "putobject_OP_INT2FIX_O_0_C_") {
+    stack.push_back(builder.getInt64(INT2FIX(0)));
+  } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
+    stack.push_back(builder.getInt64(INT2FIX(1)));
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;
     Object mid = options["mid"];
