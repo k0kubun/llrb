@@ -40,7 +40,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-18/84 (21.4%)
+18/88 (20.4%)
 
 ### nop
 - [x] nop
@@ -105,6 +105,10 @@ LLRuby::JIT.preview(Hello, :world)
 - [ ] leave
 
 ### optimize
+- [ ] opt\_str\_freeze
+- [ ] opt\_str\_uminus
+- [ ] opt\_newarray\_max
+- [ ] opt\_newarray\_min
 - [x] opt\_send\_without\_block
 - [ ] getinlinecache
 - [ ] setinlinecache
