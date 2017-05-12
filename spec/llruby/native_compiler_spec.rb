@@ -19,8 +19,14 @@ describe 'llruby::NativeCompiler' do
     test_compile { 1 }
   end
 
+  specify 'newarray' do
+    test_compile { [] }
+    test_compile { [[], nil, 1] }
+  end
+
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
+    test_compile { [nil] + [nil] }
   end
 
   specify 'opt_minus' do
@@ -91,6 +97,7 @@ describe 'llruby::NativeCompiler' do
   specify 'opt_send_without_block' do
     test_compile { 2 ** 3 }
     test_compile { 2.even? }
+    test_compile { [nil].push(3) }
   end
 
   describe 'integration' do

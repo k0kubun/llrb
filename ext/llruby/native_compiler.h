@@ -26,7 +26,8 @@ namespace llruby {
    private:
     uint64_t CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod);
     llvm::Function* CompileIseq(const Iseq& iseq, llvm::Module* mod);
-    bool CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf);
+    bool CompileInstruction(const std::vector<Object>& instruction, llvm::Module* mod, llvm::Function* rb_funcallf, llvm::Function* rb_arynewf);
+    void CompileNewArray(llvm::Function *rb_arynewf, int num);
     void CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op_sym, int argc);
     llvm::Value* CompileObject(const Object& object);
   };

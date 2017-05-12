@@ -40,6 +40,9 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
         llvm::IntegerType::get(context, 32)},
         true),
       llvm::Function::ExternalLinkage, "rb_funcall", mod);
+  llvm::Function *rb_arynewf = llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
 
   llvm::Function *func = llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
@@ -49,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      bool compiled = CompileInstruction(insn.array, mod, rb_funcallf);
+      bool compiled = CompileInstruction(insn.array, mod, rb_funcallf, rb_arynewf);
       if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
@@ -71,7 +74,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
   return func;
 }
 
-bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod, llvm::Function *rb_funcallf) {
+bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod, llvm::Function *rb_funcallf, llvm::Function *rb_arynewf) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(CompileObject(Object(Qnil)));
@@ -86,6 +89,8 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     Object mid = options["mid"];
     Object orig_argc = options["orig_argc"];
     CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
+  } else if (name == "newarray") {
+    CompileNewArray(rb_arynewf, instruction[1].integer);
   } else if (name == "opt_plus") {
     CompileFuncall(rb_funcallf, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
@@ -125,6 +130,17 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     return false;
   }
   return true;
+}
+
+void NativeCompiler::CompileNewArray(llvm::Function *rb_arynewf, int num) {
+  std::vector<llvm::Value*> args = { builder.getInt64(num) };
+  for (int i = (int)stack.size() - num; i < num; i++) {
+    args.push_back(stack[i]);
+  }
+  for (int i = 0; i < num; i++) stack.pop_back();
+
+  llvm::Value* result = builder.CreateCall(rb_arynewf, args, "rb_ary_new_from_args");
+  stack.push_back(result);
 }
 
 void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op_sym, int argc) {

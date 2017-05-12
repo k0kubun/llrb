@@ -40,7 +40,7 @@ LLRuby::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-18/88 (20.4%)
+19/88 (21.6%)
 
 ### nop
 - [x] nop
@@ -70,7 +70,7 @@ LLRuby::JIT.preview(Hello, :world)
 - [ ] tostring
 - [ ] freezestring
 - [ ] toregexp
-- [ ] newarray
+- [x] newarray
 - [ ] duparray
 - [ ] expandarray
 - [ ] concatarray
