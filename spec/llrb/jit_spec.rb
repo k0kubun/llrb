@@ -1,4 +1,4 @@
-describe LLRuby::JIT do
+describe LLRB::JIT do
   describe '.precompile' do
     it 'compiles class method' do
       klass = Class.new
@@ -7,7 +7,7 @@ describe LLRuby::JIT do
       end
 
       expect {
-        LLRuby::JIT.precompile(klass, :hello)
+        LLRB::JIT.precompile(klass, :hello)
       }.to change {
         klass.method(:hello).hash
       }
@@ -22,7 +22,7 @@ describe LLRuby::JIT do
       object = klass.new
 
       expect {
-        LLRuby::JIT.precompile(object, :hello)
+        LLRB::JIT.precompile(object, :hello)
       }.to change {
         object.method(:hello).hash
       }
@@ -34,8 +34,8 @@ describe LLRuby::JIT do
       def klass.hello
         100
       end
-      expect(LLRuby::JIT.precompile(klass, :hello)).to eq(true)
-      expect(LLRuby::JIT.precompile(klass, :hello)).to eq(false)
+      expect(LLRB::JIT.precompile(klass, :hello)).to eq(true)
+      expect(LLRB::JIT.precompile(klass, :hello)).to eq(false)
     end
   end
 
@@ -43,7 +43,7 @@ describe LLRuby::JIT do
     it 'rejects non-Array argument' do
       object = Object.new
       expect {
-        LLRuby::JIT.send(:precompile_internal, object, Object, :hash, 0, false)
+        LLRB::JIT.send(:precompile_internal, object, Object, :hash, 0, false)
       }.to raise_error(TypeError)
     end
   end

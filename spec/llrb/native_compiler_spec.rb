@@ -1,9 +1,9 @@
-describe 'llruby::NativeCompiler' do
+describe 'llrb::NativeCompiler' do
   def test_compile(&block)
     klass = Class.new
     klass.send(:define_singleton_method, :test, &block)
     result = klass.test
-    expect(LLRuby::JIT.precompile(klass, :test)).to eq(true)
+    expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
     expect(klass.test).to eq(result)
   end
 

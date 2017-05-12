@@ -1,6 +1,6 @@
-require 'llruby/llruby'
+require 'llrb/llrb'
 
-module LLRuby
+module LLRB
   module JIT
     # Precompile method to native code
     #
@@ -23,7 +23,7 @@ module LLRuby
       precompile(receiver, method_name, dry_run: true)
     end
 
-    # defined in ext/llruby/llruby.cc
+    # defined in ext/llrb/llrb.cc
     #
     # @param  [Array]   iseq_array - result of RubyVM::InstructionSequence#to_a
     # @param  [Class]   klass      - class to define method

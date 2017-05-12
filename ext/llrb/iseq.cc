@@ -1,9 +1,9 @@
 #include <cstdlib>
 #include <cstdio>
-#include "llruby.h"
+#include "llrb.h"
 #include "iseq.h"
 
-namespace llruby {
+namespace llrb {
 
 static int object_set_hash_i(VALUE key, VALUE value, VALUE obj_value) {
   Object *obj_ptr = (Object *)obj_value;
@@ -47,4 +47,4 @@ void Object::SetTypeSpecificField() {
   }
 }
 
-} // namespace llruby
+} // namespace llrb

@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "llruby.h"
+#include "llrb.h"
 
-namespace llruby {
+namespace llrb {
   class Object {
    public:
     std::string klass;

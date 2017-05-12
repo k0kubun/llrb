@@ -12,7 +12,7 @@
 #include "llvm/IR/Value.h"
 #pragma clang diagnostic pop
 
-namespace llruby {
+namespace llrb {
   class NativeCompiler {
    private:
     std::vector<llvm::Value *> stack;

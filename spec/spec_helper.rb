@@ -1,5 +1,5 @@
 require 'bundler/setup'
-require 'llruby'
+require 'llrb'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

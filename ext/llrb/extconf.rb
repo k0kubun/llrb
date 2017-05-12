@@ -26,4 +26,4 @@ end
 $CXXFLAGS = "#{$CXXFLAGS} -Wall -W #{`llvm-config --cxxflags`.rstrip}"
 $LDFLAGS  = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine`}"
 
-create_makefile('llruby/llruby')
+create_makefile('llrb/llrb')

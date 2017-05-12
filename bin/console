@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'bundler/setup'
-require 'llruby'
+require 'llrb'
 
-JIT = LLRuby::JIT
+JIT = LLRB::JIT
 def JIT.iseq(&block)
   klass = Class.new
   klass.send(:define_singleton_method, :test, &block)

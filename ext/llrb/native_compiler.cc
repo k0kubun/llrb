@@ -1,6 +1,6 @@
 #include <memory>
 #include "iseq.h"
-#include "llruby.h"
+#include "llrb.h"
 #include "native_compiler.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
@@ -8,10 +8,10 @@
 #include "llvm/ExecutionEngine/MCJIT.h"
 #pragma clang diagnostic pop
 
-namespace llruby {
+namespace llrb {
 
 uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
-  std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llruby", context);
+  std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llrb", context);
   llvm::Function *func = CompileIseq(mod.get(), iseq);
   if (!func) return 0;
 
@@ -170,4 +170,4 @@ llvm::Value* NativeCompiler::CompileObject(const Object& object) {
   }
 }
 
-} // namespace llruby
+} // namespace llrb

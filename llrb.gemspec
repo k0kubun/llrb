@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'llruby/version'
+require 'llrb/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'llruby'
-  spec.version       = LLRuby::VERSION
+  spec.name          = 'llrb'
+  spec.version       = LLRB::VERSION
   spec.authors       = ['Takashi Kokubun']
   spec.email         = ['takashikkbn@gmail.com']
 
-  spec.summary       = 'LLRuby is LLVM-based JIT compiler for Ruby'
-  spec.description   = 'LLRuby is LLVM-based JIT compiler for Ruby'
-  spec.homepage      = 'https://github.com/k0kubun/llruby'
+  spec.summary       = 'LLRB is LLVM-based JIT compiler for Ruby'
+  spec.description   = 'LLRB is LLVM-based JIT compiler for Ruby'
+  spec.homepage      = 'https://github.com/k0kubun/llrb'
   spec.license       = 'MIT'
 
   spec.files         = (Dir.exist?('.git') ? `git ls-files -z`.split("\x0") : `find .`.split("\n")).reject do |f|
@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
-  spec.extensions    = ['ext/llruby/extconf.rb']
+  spec.extensions    = ['ext/llrb/extconf.rb']
 
   spec.add_development_dependency 'benchmark-ips'
   spec.add_development_dependency 'bundler'

@@ -7,8 +7,8 @@ require "rake/extensiontask"
 
 task :build => :compile
 
-Rake::ExtensionTask.new("llruby") do |ext|
-  ext.lib_dir = "lib/llruby"
+Rake::ExtensionTask.new("llrb") do |ext|
+  ext.lib_dir = "lib/llrb"
 end
 
 task :default => [:compile, :spec]
