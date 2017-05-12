@@ -33,14 +33,14 @@ uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_
 }
 
 llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod) {
-  llvm::Function *rb_funcallf = llvm::Function::Create(
+  llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 32)},
         true),
       llvm::Function::ExternalLinkage, "rb_funcall", mod);
-  llvm::Function *rb_arynewf = llvm::Function::Create(
+  llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
 
@@ -52,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      bool compiled = CompileInstruction(insn.array, mod, rb_funcallf, rb_arynewf);
+      bool compiled = CompileInstruction(insn.array, mod);
       if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
@@ -74,7 +74,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
   return func;
 }
 
-bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod, llvm::Function *rb_funcallf, llvm::Function *rb_arynewf) {
+bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(CompileObject(Object(Qnil)));
@@ -88,35 +88,35 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
     std::map<std::string, Object> options = instruction[1].hash;
     Object mid = options["mid"];
     Object orig_argc = options["orig_argc"];
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
+    CompileFuncall(mod, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
   } else if (name == "newarray") {
-    CompileNewArray(rb_arynewf, instruction[1].integer);
+    CompileNewArray(mod, instruction[1].integer);
   } else if (name == "opt_plus") {
-    CompileFuncall(rb_funcallf, builder.getInt64('+'), 1);
+    CompileFuncall(mod, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
-    CompileFuncall(rb_funcallf, builder.getInt64('-'), 1);
+    CompileFuncall(mod, builder.getInt64('-'), 1);
   } else if (name == "opt_mult") {
-    CompileFuncall(rb_funcallf, builder.getInt64('*'), 1);
+    CompileFuncall(mod, builder.getInt64('*'), 1);
   } else if (name == "opt_div") {
-    CompileFuncall(rb_funcallf, builder.getInt64('/'), 1);
+    CompileFuncall(mod, builder.getInt64('/'), 1);
   } else if (name == "opt_mod") {
-    CompileFuncall(rb_funcallf, builder.getInt64('%'), 1);
+    CompileFuncall(mod, builder.getInt64('%'), 1);
   } else if (name == "opt_eq") {
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("==")), 1);
+    CompileFuncall(mod, builder.getInt64(rb_intern("==")), 1);
   } else if (name == "opt_neq") {
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("!=")), 1);
+    CompileFuncall(mod, builder.getInt64(rb_intern("!=")), 1);
   } else if (name == "opt_lt") {
-    CompileFuncall(rb_funcallf, builder.getInt64('<'), 1);
+    CompileFuncall(mod, builder.getInt64('<'), 1);
   } else if (name == "opt_le") {
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("<=")), 1);
+    CompileFuncall(mod, builder.getInt64(rb_intern("<=")), 1);
   } else if (name == "opt_gt") {
-    CompileFuncall(rb_funcallf, builder.getInt64('>'), 1);
+    CompileFuncall(mod, builder.getInt64('>'), 1);
   } else if (name == "opt_ge") {
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern(">=")), 1);
+    CompileFuncall(mod, builder.getInt64(rb_intern(">=")), 1);
   } else if (name == "opt_succ") {
-    CompileFuncall(rb_funcallf, builder.getInt64(rb_intern("succ")), 0);
+    CompileFuncall(mod, builder.getInt64(rb_intern("succ")), 0);
   } else if (name == "opt_not") {
-    CompileFuncall(rb_funcallf, builder.getInt64('!'), 0);
+    CompileFuncall(mod, builder.getInt64('!'), 0);
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
@@ -132,18 +132,18 @@ bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, 
   return true;
 }
 
-void NativeCompiler::CompileNewArray(llvm::Function *rb_arynewf, int num) {
+void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   std::vector<llvm::Value*> args = { builder.getInt64(num) };
   for (int i = (int)stack.size() - num; i < num; i++) {
     args.push_back(stack[i]);
   }
   for (int i = 0; i < num; i++) stack.pop_back();
 
-  llvm::Value* result = builder.CreateCall(rb_arynewf, args, "rb_ary_new_from_args");
+  llvm::Value* result = builder.CreateCall(mod->getFunction("rb_ary_new_from_args"), args, "newarray");
   stack.push_back(result);
 }
 
-void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op_sym, int argc) {
+void NativeCompiler::CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc) {
   size_t last = stack.size() - 1;
   std::vector<llvm::Value*> args = { stack[last-argc], op_sym, builder.getInt32(argc) };
   for (int i = 0; i < argc; i++) {
@@ -151,7 +151,7 @@ void NativeCompiler::CompileFuncall(llvm::Function *rb_funcallf, llvm::Value *op
   }
   for (int i = 0; i <= argc; i++) stack.pop_back();
 
-  llvm::Value* result = builder.CreateCall(rb_funcallf, args, "rb_funcall");
+  llvm::Value* result = builder.CreateCall(mod->getFunction("rb_funcall"), args, "funcall");
   stack.push_back(result);
 }
 
