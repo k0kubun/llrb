@@ -33,20 +33,11 @@ uint64_t NativeCompiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod,
 }
 
 llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 32)},
-        true),
-      llvm::Function::ExternalLinkage, "rb_funcall", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
-      llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
-
+  DeclareCRubyAPIs(mod);
   llvm::Function *func = llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
       llvm::Function::ExternalLinkage, "precompiled_method", mod);
+
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "entry", func));
   stack.clear();
 
@@ -72,6 +63,20 @@ llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq)
     return nullptr;
   }
   return func;
+}
+
+void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 32)},
+        true),
+      llvm::Function::ExternalLinkage, "rb_funcall", mod);
+
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
