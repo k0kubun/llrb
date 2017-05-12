@@ -12,18 +12,18 @@ namespace llruby {
 
 uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llruby", context);
-  llvm::Function *func = CompileIseq(iseq, mod.get());
+  llvm::Function *func = CompileIseq(mod.get(), iseq);
   if (!func) return 0;
 
   if (dry_run) {
     mod->dump();
     return 0;
   } else {
-    return CreateNativeFunction(func, std::move(mod));
+    return CreateNativeFunction(std::move(mod), func);
   }
 }
 
-uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_ptr<llvm::Module> mod) {
+uint64_t NativeCompiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func) {
   llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
   if (engine == NULL) {
     fprintf(stderr, "Failed to create ExecutionEngine...\n");
@@ -32,7 +32,7 @@ uint64_t NativeCompiler::CreateNativeFunction(llvm::Function *func, std::unique_
   return engine->getFunctionAddress(func->getName());
 }
 
-llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod) {
+llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
@@ -52,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      bool compiled = CompileInstruction(insn.array, mod);
+      bool compiled = CompileInstruction(mod, insn.array);
       if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
@@ -74,7 +74,7 @@ llvm::Function* NativeCompiler::CompileIseq(const Iseq& iseq, llvm::Module *mod)
   return func;
 }
 
-bool NativeCompiler::CompileInstruction(const std::vector<Object>& instruction, llvm::Module *mod) {
+bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
     stack.push_back(CompileObject(Object(Qnil)));
