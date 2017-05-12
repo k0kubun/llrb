@@ -10,6 +10,11 @@ Add this line to your application's Gemfile:
 gem 'llrb'
 ```
 
+## Build dependency
+
+- LLVM/clang 3.8+
+  - `llvm-config` command needs to appear in `$PATH`
+
 ## Usage
 ### Compiling method to native code
 
