@@ -142,6 +142,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileFuncall(mod, builder.getInt64(rb_intern("length")), 0);
   } else if (name == "opt_size") {
     CompileFuncall(mod, builder.getInt64(rb_intern("size")), 0);
+  } else if (name == "opt_empty_p") {
+    CompileFuncall(mod, builder.getInt64(rb_intern("empty?")), 0);
   } else if (name == "opt_succ") {
     CompileFuncall(mod, builder.getInt64(rb_intern("succ")), 0);
   } else if (name == "opt_not") {

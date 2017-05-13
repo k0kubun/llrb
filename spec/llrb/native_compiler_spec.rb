@@ -116,6 +116,11 @@ describe 'llrb::NativeCompiler' do
     test_compile { [1, nil, false].size }
   end
 
+  specify 'opt_empty_p' do
+    test_compile { [].empty? }
+    test_compile { [1].empty? }
+  end
+
   specify 'opt_succ' do
     test_compile { 2.succ }
   end
