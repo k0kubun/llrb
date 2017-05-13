@@ -17,6 +17,7 @@ describe 'llrb::NativeCompiler' do
     test_compile { 100 }
     test_compile { 0 }
     test_compile { 1 }
+    test_compile { :hello }
   end
 
   specify 'newarray' do

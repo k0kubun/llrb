@@ -182,6 +182,8 @@ llvm::Value* NativeCompiler::CompileObject(const Object& object) {
     return builder.getInt64(Qnil);
   } else if (object.klass == "Fixnum") {
     return builder.getInt64(INT2FIX(object.integer));
+  } else if (object.klass == "Symbol") {
+    return builder.getInt64(object.raw);
   } else if (object.klass == "TrueClass") {
     return builder.getInt64(Qtrue);
   } else if (object.klass == "FalseClass") {
