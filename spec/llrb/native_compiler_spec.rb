@@ -108,6 +108,14 @@ describe 'llrb::NativeCompiler' do
     test_compile { [nil][0] = 1 }
   end
 
+  specify 'opt_length' do
+    test_compile { [1, nil, false].length }
+  end
+
+  specify 'opt_size' do
+    test_compile { [1, nil, false].size }
+  end
+
   specify 'opt_succ' do
     test_compile { 2.succ }
   end
