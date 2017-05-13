@@ -108,8 +108,9 @@ describe 'llrb::NativeCompiler' do
 
   specify 'opt_send_without_block' do
     test_compile { 2 ** 3 }
-    test_compile { 2.even? }
+    test_compile { false || 2.even? }
     test_compile { [nil].push(3) }
+    test_compile { [] + [nil].push(3) }
   end
 
   describe 'integration' do
