@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-30/94 (31.9%)
+32/94 (34.0%)
 
 ### nop
 - [x] nop
@@ -118,8 +118,8 @@ LLRB::JIT.preview(Hello, :world)
 ### optimize
 - [ ] opt\_str\_freeze
 - [ ] opt\_str\_uminus
-- [ ] opt\_newarray\_max
-- [ ] opt\_newarray\_min
+- [x] opt\_newarray\_max
+- [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
 - [ ] getinlinecache
 - [ ] setinlinecache

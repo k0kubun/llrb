@@ -38,6 +38,23 @@ describe 'llrb::NativeCompiler' do
     test_compile { [nil][0] = 1 }
   end
 
+  if RUBY_VERSION >= "2.4.0"
+    specify 'opt_newarray_max' do
+      test_compile { [[], [0]].max }
+    end
+
+    specify 'opt_newarray_min' do
+      test_compile { [[], [0]].min }
+    end
+  end
+
+  specify 'opt_send_without_block' do
+    test_compile { 2 ** 3 }
+    test_compile { false || 2.even? }
+    test_compile { [nil].push(3) }
+    test_compile { [] + [nil].push(3) }
+  end
+
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
     test_compile { [nil] + [nil] }
@@ -134,13 +151,6 @@ describe 'llrb::NativeCompiler' do
     test_compile { true.! }
     test_compile { false.! }
     test_compile { 100.! }
-  end
-
-  specify 'opt_send_without_block' do
-    test_compile { 2 ** 3 }
-    test_compile { false || 2.even? }
-    test_compile { [nil].push(3) }
-    test_compile { [] + [nil].push(3) }
   end
 
   describe 'integration' do

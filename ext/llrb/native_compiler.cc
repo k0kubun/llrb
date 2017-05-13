@@ -110,6 +110,12 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   } else if (name == "setn") {
     int last = (int)stack.size() - 1;
     stack[last - instruction[1].integer] = stack.back();
+  } else if (name == "opt_newarray_max") {
+    CompileNewArray(mod, instruction[1].integer);
+    CompileFuncall(mod, builder.getInt64(rb_intern("max")), 0);
+  } else if (name == "opt_newarray_min") {
+    CompileNewArray(mod, instruction[1].integer);
+    CompileFuncall(mod, builder.getInt64(rb_intern("min")), 0);
   } else if (name == "opt_plus") {
     CompileFuncall(mod, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
