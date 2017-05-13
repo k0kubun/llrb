@@ -67,7 +67,7 @@ LLRB::JIT.preview(Hello, :world)
 ### put
 - [x] putnil
 - [ ] putself
-- [x] putobject (true, false, Fixnum, Symbol)
+- [x] putobject (true, false, Fixnum, Integer, Symbol)
 - [ ] putspecialobject
 - [ ] putiseq
 - [ ] putstring

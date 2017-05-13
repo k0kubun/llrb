@@ -185,7 +185,7 @@ void NativeCompiler::CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {
   if (object.klass == "NilClass") {
     return builder.getInt64(Qnil);
-  } else if (object.klass == "Fixnum") {
+  } else if (object.klass == "Fixnum" || object.klass == "Integer") {
     return builder.getInt64(INT2FIX(object.integer));
   } else if (object.klass == "Symbol") {
     return builder.getInt64(object.raw);
