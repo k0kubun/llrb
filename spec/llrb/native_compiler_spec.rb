@@ -30,6 +30,14 @@ describe 'llrb::NativeCompiler' do
     test_compile { [:foo, :bar] }
   end
 
+  specify 'pop' do
+    test_compile { [nil][0] = 1 }
+  end
+
+  specify 'setn' do
+    test_compile { [nil][0] = 1 }
+  end
+
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
     test_compile { [nil] + [nil] }
@@ -94,6 +102,10 @@ describe 'llrb::NativeCompiler' do
   specify 'opt_aref' do
     test_compile { [1, 2, 3][1] }
     test_compile { ([] << [[nil, false], [[], 3]][1][0])[0] }
+  end
+
+  specify 'opt_aset' do
+    test_compile { [nil][0] = 1 }
   end
 
   specify 'opt_succ' do

@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-22/88 (25.0%)
+25/88 (28.4%)
 
 ### nop
 - [x] nop
@@ -84,14 +84,14 @@ LLRB::JIT.preview(Hello, :world)
 - [ ] newrange
 
 ### stack
-- [ ] pop
+- [x] pop
 - [ ] dup
 - [ ] dupn
 - [ ] swap
 - [ ] reverse
 - [ ] reput
 - [ ] topn
-- [ ] setn
+- [x] setn
 - [ ] adjuststack
 
 ### setting
@@ -132,7 +132,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] opt\_ge
 - [x] opt\_ltlt
 - [x] opt\_aref
-- [ ] opt\_aset
+- [x] opt\_aset
 - [ ] opt\_aset\_with
 - [ ] opt\_aref\_with
 - [ ] opt\_length

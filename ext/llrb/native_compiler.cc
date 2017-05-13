@@ -105,6 +105,11 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileNewArray(mod, instruction[1].integer);
   } else if (name == "duparray") {
     CompileDupArray(mod, instruction);
+  } else if (name == "pop") {
+    stack.pop_back();
+  } else if (name == "setn") {
+    int last = (int)stack.size() - 1;
+    stack[last - instruction[1].integer] = stack.back();
   } else if (name == "opt_plus") {
     CompileFuncall(mod, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
@@ -131,6 +136,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileFuncall(mod, builder.getInt64(rb_intern("<<")), 1);
   } else if (name == "opt_aref") {
     CompileFuncall(mod, builder.getInt64(rb_intern("[]")), 1);
+  } else if (name == "opt_aset") {
+    CompileFuncall(mod, builder.getInt64(rb_intern("[]=")), 2);
   } else if (name == "opt_succ") {
     CompileFuncall(mod, builder.getInt64(rb_intern("succ")), 0);
   } else if (name == "opt_not") {
