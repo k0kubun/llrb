@@ -84,9 +84,13 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
-    stack.push_back(CompileObject(Object(Qnil)));
+    llvm::Value *result = CompileObject(Object(Qnil));
+    if (!result) return false;
+    stack.push_back(result);
   } else if (name == "putobject") {
-    stack.push_back(CompileObject(instruction[1]));
+    llvm::Value *result = CompileObject(instruction[1]);
+    if (!result) return false;
+    stack.push_back(result);
   } else if (name == "putobject_OP_INT2FIX_O_0_C_") {
     stack.push_back(builder.getInt64(INT2FIX(0)));
   } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
