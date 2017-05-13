@@ -88,6 +88,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     llvm::Value *result = CompileObject(Object(Qnil));
     if (!result) return false;
     stack.push_back(result);
+  } else if (name == "putself") {
+    CompilePutSelf(mod);
   } else if (name == "putobject") {
     llvm::Value *result = CompileObject(instruction[1]);
     if (!result) return false;
@@ -192,6 +194,13 @@ void NativeCompiler::CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int 
 
   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_funcall"), args, "funcall");
   stack.push_back(result);
+}
+
+void NativeCompiler::CompilePutSelf(llvm::Module *mod) {
+  for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
+    stack.push_back(&arg);
+    break; // workaround. find a better way
+  }
 }
 
 llvm::Value* NativeCompiler::CompileObject(const Object& object) {

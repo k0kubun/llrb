@@ -11,6 +11,10 @@ describe 'llrb::NativeCompiler' do
     test_compile { nil }
   end
 
+  specify 'putself' do
+    test_compile { print }
+  end
+
   specify 'putobject' do
     test_compile { true }
     test_compile { false }

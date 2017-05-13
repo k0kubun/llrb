@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-32/94 (34.0%)
+33/94 (35.1%)
 
 ### nop
 - [x] nop
@@ -70,7 +70,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ### put
 - [x] putnil
-- [ ] putself
+- [x] putself
 - [x] putobject (true, false, Fixnum, Integer, Symbol)
 - [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
