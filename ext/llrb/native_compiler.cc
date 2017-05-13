@@ -149,7 +149,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
 
 void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   std::vector<llvm::Value*> args = { builder.getInt64(num) };
-  for (int i = (int)stack.size() - num; i < num; i++) {
+  int size = (int)stack.size();
+  for (int i = size - num; i < size; i++) {
     args.push_back(stack[i]);
   }
   for (int i = 0; i < num; i++) stack.pop_back();

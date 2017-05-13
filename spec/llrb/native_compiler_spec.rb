@@ -88,6 +88,7 @@ describe 'llrb::NativeCompiler' do
   specify 'opt_ltlt' do
     test_compile { [] << [] }
     test_compile { [[], [1]] << [3, :hello] }
+    test_compile { [] << [nil, nil] }
   end
 
   specify 'opt_succ' do
