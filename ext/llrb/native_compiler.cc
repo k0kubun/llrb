@@ -73,10 +73,12 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
         llvm::IntegerType::get(context, 32)},
         true),
       llvm::Function::ExternalLinkage, "rb_funcall", mod);
-
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_ary_resurrect", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
@@ -96,6 +98,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileFuncall(mod, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer);
   } else if (name == "newarray") {
     CompileNewArray(mod, instruction[1].integer);
+  } else if (name == "duparray") {
+    CompileDupArray(mod, instruction);
   } else if (name == "opt_plus") {
     CompileFuncall(mod, builder.getInt64('+'), 1);
   } else if (name == "opt_minus") {
@@ -145,6 +149,13 @@ void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   for (int i = 0; i < num; i++) stack.pop_back();
 
   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_ary_new_from_args"), args, "newarray");
+  stack.push_back(result);
+}
+
+// NOTE: Can we use external pointer from compiled function?
+void NativeCompiler::CompileDupArray(llvm::Module* mod, const std::vector<Object>& instruction) {
+  std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
+  llvm::Value* result = builder.CreateCall(mod->getFunction("rb_ary_resurrect"), args, "duparray");
   stack.push_back(result);
 }
 

@@ -24,6 +24,11 @@ describe 'llrb::NativeCompiler' do
     test_compile { [[], nil, 1] }
   end
 
+  specify 'duparray' do
+    test_compile { [1, 2] }
+    test_compile { [:foo, :bar] }
+  end
+
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
     test_compile { [nil] + [nil] }

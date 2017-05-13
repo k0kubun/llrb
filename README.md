@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-19/88 (21.6%)
+20/88 (22.7%)
 
 ### nop
 - [x] nop
@@ -76,7 +76,7 @@ LLRB::JIT.preview(Hello, :world)
 - [ ] freezestring
 - [ ] toregexp
 - [x] newarray
-- [ ] duparray
+- [x] duparray
 - [ ] expandarray
 - [ ] concatarray
 - [ ] splatarray
