@@ -17,5 +17,12 @@ def JIT.dump(&block)
   preview(klass, :test)
 end
 
+def JIT.exec(&block)
+  klass = Class.new
+  klass.send(:define_singleton_method, :test, &block)
+  precompile(klass, :test)
+  klass.test
+end
+
 require 'pry'
 Pry.start

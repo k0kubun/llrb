@@ -84,6 +84,11 @@ describe 'llrb::NativeCompiler' do
     test_compile { 3 >= 2 }
   end
 
+  specify 'opt_ltlt' do
+    test_compile { [] << [] }
+    test_compile { [[], [1]] << [3, :hello] }
+  end
+
   specify 'opt_succ' do
     test_compile { 2.succ }
   end
