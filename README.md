@@ -45,14 +45,18 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-25/88 (28.4%)
+27/94 (28.7%)
 
 ### nop
 - [x] nop
 
 ### variable
 - [ ] getlocal
+- [ ] getlocal\_OP\_\_WC\_\_0
+- [ ] getlocal\_OP\_\_WC\_\_1
 - [ ] setlocal
+- [ ] setlocal\_OP\_\_WC\_\_0
+- [ ] setlocal\_OP\_\_WC\_\_1
 - [ ] getspecial
 - [ ] setspecial
 - [ ] getinstancevariable
@@ -68,6 +72,8 @@ LLRB::JIT.preview(Hello, :world)
 - [x] putnil
 - [ ] putself
 - [x] putobject (true, false, Fixnum, Integer, Symbol)
+- [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
+- [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
 - [ ] putspecialobject
 - [ ] putiseq
 - [ ] putstring
