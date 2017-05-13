@@ -129,6 +129,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileFuncall(mod, builder.getInt64(rb_intern(">=")), 1);
   } else if (name == "opt_ltlt") {
     CompileFuncall(mod, builder.getInt64(rb_intern("<<")), 1);
+  } else if (name == "opt_aref") {
+    CompileFuncall(mod, builder.getInt64(rb_intern("[]")), 1);
   } else if (name == "opt_succ") {
     CompileFuncall(mod, builder.getInt64(rb_intern("succ")), 0);
   } else if (name == "opt_not") {

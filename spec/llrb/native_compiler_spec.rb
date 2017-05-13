@@ -91,6 +91,11 @@ describe 'llrb::NativeCompiler' do
     test_compile { [] << [nil, nil] }
   end
 
+  specify 'opt_aref' do
+    test_compile { [1, 2, 3][1] }
+    test_compile { ([] << [[nil, false], [[], 3]][1][0])[0] }
+  end
+
   specify 'opt_succ' do
     test_compile { 2.succ }
   end

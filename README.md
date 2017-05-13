@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-21/88 (23.9%)
+22/88 (25.0%)
 
 ### nop
 - [x] nop
@@ -131,7 +131,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] opt\_gt
 - [x] opt\_ge
 - [x] opt\_ltlt
-- [ ] opt\_aref
+- [x] opt\_aref
 - [ ] opt\_aset
 - [ ] opt\_aset\_with
 - [ ] opt\_aref\_with
