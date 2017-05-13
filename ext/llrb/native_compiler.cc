@@ -1,4 +1,5 @@
 #include <memory>
+#include <algorithm>
 #include "iseq.h"
 #include "llrb.h"
 #include "native_compiler.h"
@@ -149,11 +150,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
 
 void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   std::vector<llvm::Value*> args = { builder.getInt64(num) };
-  int size = (int)stack.size();
-  for (int i = size - num; i < size; i++) {
-    args.push_back(stack[i]);
-  }
-  for (int i = 0; i < num; i++) stack.pop_back();
+  std::vector<llvm::Value*> rest = PopLast(num);
+  args.insert(args.end(), rest.begin(), rest.end());
 
   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_ary_new_from_args"), args, "newarray");
   stack.push_back(result);
@@ -167,12 +165,9 @@ void NativeCompiler::CompileDupArray(llvm::Module* mod, const std::vector<Object
 }
 
 void NativeCompiler::CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc) {
-  size_t last = stack.size() - 1;
-  std::vector<llvm::Value*> args = { stack[last-argc], op_sym, builder.getInt32(argc) };
-  for (int i = 0; i < argc; i++) {
-    args.push_back(stack[last-i]);
-  }
-  for (int i = 0; i <= argc; i++) stack.pop_back();
+  std::vector<llvm::Value*> rest = PopLast(argc);
+  std::vector<llvm::Value*> args = { PopBack(), op_sym, builder.getInt32(argc) };
+  args.insert(args.end(), rest.begin(), rest.end());
 
   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_funcall"), args, "funcall");
   stack.push_back(result);
@@ -193,6 +188,21 @@ llvm::Value* NativeCompiler::CompileObject(const Object& object) {
     fprintf(stderr, "unexpected object.klass at CompileObject: %s\n", object.klass.c_str());
     return nullptr;
   }
+}
+
+llvm::Value* NativeCompiler::PopBack() {
+  llvm::Value* ret = stack.back();
+  stack.pop_back();
+  return ret;
+}
+
+std::vector<llvm::Value*> NativeCompiler::PopLast(int num) {
+  std::vector<llvm::Value*> ret;
+  for (int i = 0; i < num; i++) {
+    ret.push_back(PopBack());
+  }
+  std::reverse(ret.begin(), ret.end());
+  return ret;
 }
 
 } // namespace llrb

@@ -32,6 +32,8 @@ namespace llrb {
     void CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
     void CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc);
     llvm::Value* CompileObject(const Object& object);
+    llvm::Value* PopBack();
+    std::vector<llvm::Value*> PopLast(int num);
   };
 }
 
