@@ -3,11 +3,8 @@
 #include "iseq.h"
 #include "llrb.h"
 #include "native_compiler.h"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshorten-64-to-32"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
-#pragma clang diagnostic pop
 
 namespace llrb {
 
