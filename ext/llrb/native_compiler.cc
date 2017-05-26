@@ -82,15 +82,11 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
   const std::string& name = instruction[0].symbol;
   if (name == "putnil") {
-    llvm::Value *result = CompileObject(Object(Qnil));
-    if (!result) return false;
-    stack.push_back(result);
+    stack.push_back(builder.getInt64(Qnil));
   } else if (name == "putself") {
     CompilePutSelf(mod);
   } else if (name == "putobject") {
-    llvm::Value *result = CompileObject(instruction[1]);
-    if (!result) return false;
-    stack.push_back(result);
+    stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putobject_OP_INT2FIX_O_0_C_") {
     stack.push_back(builder.getInt64(INT2FIX(0)));
   } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
@@ -199,23 +195,6 @@ void NativeCompiler::CompilePutSelf(llvm::Module *mod) {
   for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
     stack.push_back(&arg);
     break; // workaround. find a better way
-  }
-}
-
-llvm::Value* NativeCompiler::CompileObject(const Object& object) {
-  if (object.klass == "NilClass") {
-    return builder.getInt64(Qnil);
-  } else if (object.klass == "Fixnum" || object.klass == "Integer") {
-    return builder.getInt64(INT2FIX(object.integer));
-  } else if (object.klass == "Symbol") {
-    return builder.getInt64(object.raw);
-  } else if (object.klass == "TrueClass") {
-    return builder.getInt64(Qtrue);
-  } else if (object.klass == "FalseClass") {
-    return builder.getInt64(Qfalse);
-  } else {
-    fprintf(stderr, "unexpected object.klass at CompileObject: %s\n", object.klass.c_str());
-    return nullptr;
   }
 }
 
