@@ -22,6 +22,7 @@ describe 'llrb::NativeCompiler' do
     test_compile { 0 }
     test_compile { 1 }
     test_compile { :hello }
+    test_compile { (1..2) }
   end
 
   specify 'putstring' do
