@@ -83,6 +83,9 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_obj_as_string", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_str_freeze", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
@@ -104,6 +107,10 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   } else if (name == "tostring") {
     std::vector<llvm::Value*> args = { PopBack() };
     llvm::Value* result = builder.CreateCall(mod->getFunction("rb_obj_as_string"), args, "tostring");
+    stack.push_back(result);
+  } else if (name == "freezestring") { // TODO: check debug info
+    std::vector<llvm::Value*> args = { PopBack() };
+    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_freeze"), args, "freezestring");
     stack.push_back(result);
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;

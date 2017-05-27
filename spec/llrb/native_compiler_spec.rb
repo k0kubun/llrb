@@ -36,6 +36,10 @@ describe 'llrb::NativeCompiler' do
   #   test_compile { "h#{2}o" }
   # end
 
+  # specify 'freezestring' do
+  #   with frozen_string_literal: true, test "#{true}"
+  # end
+
   specify 'newarray' do
     test_compile { [] }
     test_compile { [[], nil, 1] }

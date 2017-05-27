@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-37/94 (39.3%)
+38/94 (40.4%)
 
 ### nop
 - [x] nop
@@ -79,7 +79,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] putstring
 - [ ] concatstrings
 - [x] tostring
-- [ ] freezestring
+- [x] freezestring
 - [ ] toregexp
 - [x] newarray
 - [x] duparray
