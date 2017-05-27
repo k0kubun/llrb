@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-35/94 (37.2%)
+36/94 (38.3%)
 
 ### nop
 - [x] nop
@@ -76,7 +76,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
 - [ ] putspecialobject
 - [ ] putiseq
-- [ ] putstring
+- [x] putstring
 - [ ] concatstrings
 - [ ] tostring
 - [ ] freezestring

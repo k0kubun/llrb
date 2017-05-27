@@ -24,6 +24,10 @@ describe 'llrb::NativeCompiler' do
     test_compile { :hello }
   end
 
+  specify 'putstring' do
+    test_compile { "hello" }
+  end
+
   specify 'newarray' do
     test_compile { [] }
     test_compile { [[], nil, 1] }

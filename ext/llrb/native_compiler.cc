@@ -77,6 +77,9 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_ary_resurrect", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_str_resurrect", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
@@ -91,6 +94,10 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     stack.push_back(builder.getInt64(INT2FIX(0)));
   } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
     stack.push_back(builder.getInt64(INT2FIX(1)));
+  } else if (name == "putstring") {
+    std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
+    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring");
+    stack.push_back(result);
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;
     Object mid = options["mid"];
@@ -175,7 +182,6 @@ void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   stack.push_back(result);
 }
 
-// NOTE: Can we use external pointer from compiled function?
 void NativeCompiler::CompileDupArray(llvm::Module* mod, const std::vector<Object>& instruction) {
   std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_ary_resurrect"), args, "duparray");
