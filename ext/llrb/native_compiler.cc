@@ -105,7 +105,7 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   } else if (name == "setn") {
     int last = (int)stack.size() - 1;
     stack[last - instruction[1].integer] = stack.back();
-  } else if (name == "opt_str_freeze") {
+  } else if (name == "opt_str_freeze" || name == "opt_str_uminus") {
     stack.push_back(builder.getInt64(instruction[1].raw)); // TODO: detect redefinition
   } else if (name == "opt_newarray_max") {
     CompileNewArray(mod, instruction[1].integer);

@@ -47,6 +47,13 @@ describe 'llrb::NativeCompiler' do
     test_compile { "bar".freeze.frozen? }
   end
 
+  if RUBY_VERSION >= "2.5.0"
+    specify 'opt_str_uminus' do
+      test_compile { -"foo" }
+      test_compile { (-"bar").frozen? }
+    end
+  end
+
   if RUBY_VERSION >= "2.4.0"
     specify 'opt_newarray_max' do
       test_compile { [[], [0]].max }
