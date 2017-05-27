@@ -28,6 +28,14 @@ describe 'llrb::NativeCompiler' do
     test_compile { "hello" }
   end
 
+  # specify 'concatstrings' do
+  #   test_compile { "h#{2}o" }
+  # end
+
+  # specify 'tostring' do
+  #   test_compile { "h#{2}o" }
+  # end
+
   specify 'newarray' do
     test_compile { [] }
     test_compile { [[], nil, 1] }

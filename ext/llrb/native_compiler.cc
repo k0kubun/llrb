@@ -80,6 +80,9 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_str_resurrect", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::Function::ExternalLinkage, "rb_obj_as_string", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
@@ -97,6 +100,10 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   } else if (name == "putstring") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
     llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring");
+    stack.push_back(result);
+  } else if (name == "tostring") {
+    std::vector<llvm::Value*> args = { PopBack() };
+    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_obj_as_string"), args, "tostring");
     stack.push_back(result);
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;
@@ -172,6 +179,15 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   }
   return true;
 }
+
+// void NativeCompiler::CompileConcatStrings(llvm::Module* mod, int num) {
+//   std::vector<llvm::Value*> args = { builder.getInt64(num) };
+//   std::vector<llvm::Value*> rest = PopLast(num);
+//   args.insert(args.end(), rest.begin(), rest.end());
+//
+//   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_concat_literals"), args, "concatstrings");
+//   stack.push_back(result);
+// }
 
 void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   std::vector<llvm::Value*> args = { builder.getInt64(num) };

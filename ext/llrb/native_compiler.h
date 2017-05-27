@@ -25,6 +25,7 @@ namespace llrb {
     llvm::Function* CompileIseq(llvm::Module *mod, const Iseq& iseq);
     void DeclareCRubyAPIs(llvm::Module *mod);
     bool CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction);
+    // void CompileConcatStrings(llvm::Module *mod, int num);
     void CompileNewArray(llvm::Module *mod, int num);
     void CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
     void CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc);
