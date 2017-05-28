@@ -51,6 +51,10 @@ describe 'llrb::NativeCompiler' do
     test_compile { [:foo, :bar] }
   end
 
+  specify 'splatarray' do
+    test_compile { [*(1..2)] }
+  end
+
   specify 'pop' do
     test_compile { [nil][0] = 1 }
   end

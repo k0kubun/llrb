@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-38/94 (40.4%)
+39/94 (41.5%)
 
 ### nop
 - [x] nop
@@ -85,7 +85,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] duparray
 - [ ] expandarray
 - [ ] concatarray
-- [ ] splatarray
+- [x] splatarray
 - [ ] newhash
 - [ ] newrange
 

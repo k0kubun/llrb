@@ -121,6 +121,8 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     CompileNewArray(mod, instruction[1].integer);
   } else if (name == "duparray") {
     CompileDupArray(mod, instruction);
+  } else if (name == "splatarray") { // TODO: implement full vm_splat_array
+    CompileFuncall(mod, builder.getInt64(rb_intern("to_a")), 0);
   } else if (name == "pop") {
     stack.pop_back();
   } else if (name == "setn") {
