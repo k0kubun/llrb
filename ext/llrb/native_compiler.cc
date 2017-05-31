@@ -114,20 +114,7 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
     stack.push_back(builder.getInt64(INT2FIX(1)));
   } else if (name == "putspecialobject") {
-    if (instruction[1].integer == 1) {
-      stack.push_back(builder.getInt64(rb_mLLRBFrozenCore));
-
-      // Workaround to set self for core#define_method
-      std::vector<llvm::Value*> args = {
-        builder.getInt64(rb_mLLRBFrozenCore),
-        builder.getInt64(rb_intern("__llrb_self__")),
-        &(*(mod->getFunction("precompiled_method")->arg_begin()))
-      };
-      builder.CreateCall(mod->getFunction("rb_ivar_set"), args, "specialobject_self");
-    } else {
-      fprintf(stderr, "unhandled putspecialconst!: %d\n", instruction[1].integer);
-      return false;
-    }
+    return CompilePutSpecialObject(mod, instruction[1].integer);
   } else if (name == "putiseq") {
     stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putstring") {
@@ -256,6 +243,24 @@ void NativeCompiler::CompilePutSelf(llvm::Module *mod) {
   for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
     stack.push_back(&arg);
     break; // workaround. find a better way
+  }
+}
+
+bool NativeCompiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
+  if (type == 1) {
+    // Workaround to set self for core#define_method
+    std::vector<llvm::Value*> args = {
+      builder.getInt64(rb_mLLRBFrozenCore),
+      builder.getInt64(rb_intern("__llrb_self__")),
+      &(*(mod->getFunction("precompiled_method")->arg_begin()))
+    };
+    builder.CreateCall(mod->getFunction("rb_ivar_set"), args, "specialobject_self");
+
+    stack.push_back(builder.getInt64(rb_mLLRBFrozenCore));
+    return true;
+  } else {
+    fprintf(stderr, "unhandled putspecialconst!: %d\n", type);
+    return false;
   }
 }
 
