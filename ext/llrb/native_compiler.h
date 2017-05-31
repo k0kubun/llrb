@@ -25,13 +25,12 @@ namespace llrb {
     uint64_t CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func);
     llvm::Function* CompileIseq(llvm::Module *mod, const Iseq& iseq);
     void DeclareCRubyAPIs(llvm::Module *mod);
-    bool CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction);
-    // void CompileConcatStrings(llvm::Module *mod, int num);
+    bool CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size);
     void CompileNewArray(llvm::Module *mod, int num);
     void CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
     void CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc);
-    void CompilePutSelf(llvm::Module *mod);
     bool CompilePutSpecialObject(llvm::Module *mod, int type);
+    llvm::Value* ArgumentAt(llvm::Module *mod, int index);
     llvm::Value* PopBack();
     std::vector<llvm::Value*> PopLast(int num);
   };

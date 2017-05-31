@@ -1,5 +1,5 @@
 describe 'llrb::NativeCompiler' do
-  def test_compile(&block)
+  def test_compile(*args, &block)
     ruby = Class.new
     ruby.send(:define_singleton_method, :test, &block)
 
@@ -7,7 +7,7 @@ describe 'llrb::NativeCompiler' do
     native.send(:define_singleton_method, :test, &block)
     expect(LLRB::JIT.precompile(native, :test)).to eq(true)
 
-    expect(native.test).to eq(ruby.test)
+    expect(native.test(*args)).to eq(ruby.test(*args))
   end
 
   specify 'putnil' do
@@ -45,15 +45,18 @@ describe 'llrb::NativeCompiler' do
     test_compile do
       def answer; 42; end
     end
+
+    test_compile do
+      def concatenate(hello, world)
+        hello + world
+      end
+      concatenate("hello", "world")
+    end
   end
 
   specify 'putstring' do
     test_compile { "hello" }
   end
-
-  # specify 'concatstrings' do
-  #   test_compile { "h#{2}o" }
-  # end
 
   # specify 'tostring' do
   #   test_compile { "h#{2}o" }
@@ -117,6 +120,9 @@ describe 'llrb::NativeCompiler' do
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
     test_compile { [nil] + [nil] }
+    test_compile(1, 2) do |a, b|
+      a + b
+    end
   end
 
   specify 'opt_minus' do
@@ -129,6 +135,10 @@ describe 'llrb::NativeCompiler' do
 
   specify 'opt_div' do
     test_compile { 3 / 2 / 1 }
+    test_compile { 1 + (3 - 4) * 5 / 2 }
+    test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
+      (a + b) * c ** d * e / b
+    end
   end
 
   specify 'opt_mod' do
@@ -212,44 +222,48 @@ describe 'llrb::NativeCompiler' do
     test_compile { 100.! }
   end
 
-  describe 'integration' do
-    it 'compiles calculation' do
-      test_compile { 1 + (3 - 4) * 5 / 2 }
+  it 'compiles arguments' do
+    klass = Class.new
+    klass.send(:define_singleton_method, :test) do |a, b, c|
+      (a + b) * c + a
     end
+    expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
 
-    it 'compiles instance method definition' do
-      klass = Class.new
-      klass.class_eval do
-        def test
-          def hello
-            'world'
-          end
+    expect(klass.test(2, 3, 7)).to eq((2 + 3) * 7 + 2)
+  end
+
+  it 'compiles instance method definition' do
+    klass = Class.new
+    klass.class_eval do
+      def test
+        def hello
+          'world'
         end
       end
-
-      object = klass.new
-      expect(LLRB::JIT.precompile(object, :test)).to eq(true)
-
-      expect { object.hello }.to raise_error(NoMethodError)
-      expect(object.test).to eq(:hello)
-      expect(object.hello).to eq('world')
     end
 
-    it 'compiles singleton method definition' do
-      klass = Class.new
-      klass.class_eval do
-        def self.test
-          def hello
-            'world'
-          end
+    object = klass.new
+    expect(LLRB::JIT.precompile(object, :test)).to eq(true)
+
+    expect { object.hello }.to raise_error(NoMethodError)
+    expect(object.test).to eq(:hello)
+    expect(object.hello).to eq('world')
+  end
+
+  it 'compiles singleton method definition' do
+    klass = Class.new
+    klass.class_eval do
+      def self.test
+        def hello
+          'world'
         end
       end
-
-      expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
-
-      expect { klass.hello }.to raise_error(NoMethodError)
-      expect(klass.test).to eq(:hello)
-      expect(klass.hello).to eq('world')
     end
+
+    expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
+
+    expect { klass.hello }.to raise_error(NoMethodError)
+    expect(klass.test).to eq(:hello)
+    expect(klass.hello).to eq('world')
   end
 end

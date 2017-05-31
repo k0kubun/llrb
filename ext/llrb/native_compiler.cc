@@ -38,8 +38,13 @@ uint64_t NativeCompiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod,
 
 llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
   DeclareCRubyAPIs(mod);
+
+  std::vector<llvm::Type*> arg_types = { llvm::IntegerType::get(context, 64) };
+  for (int i = 0; i < iseq.arg_size; i++) {
+    arg_types.push_back(llvm::IntegerType::get(context, 64));
+  }
   llvm::Function *func = llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64) }, false),
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), arg_types, false),
       llvm::Function::ExternalLinkage, "precompiled_method", mod);
 
   builder.SetInsertPoint(llvm::BasicBlock::Create(context, "entry", func));
@@ -47,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      bool compiled = CompileInstruction(mod, insn.array);
+      bool compiled = CompileInstruction(mod, insn.array, iseq.arg_size);
       if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
@@ -101,12 +106,14 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
       llvm::Function::ExternalLinkage, "rb_ivar_set", mod);
 }
 
-bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
+bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size) {
   const std::string& name = instruction[0].symbol;
-  if (name == "putnil") {
+  if (name == "getlocal_OP__WC__0") {
+    stack.push_back(ArgumentAt(mod, 3 + (arg_size - instruction[1].integer))); // XXX: `3` is okay?
+  } else if (name == "putnil") {
     stack.push_back(builder.getInt64(Qnil));
   } else if (name == "putself") {
-    CompilePutSelf(mod);
+    stack.push_back(ArgumentAt(mod, 0));
   } else if (name == "putobject") {
     stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putobject_OP_INT2FIX_O_0_C_") {
@@ -206,15 +213,6 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
   return true;
 }
 
-// void NativeCompiler::CompileConcatStrings(llvm::Module* mod, int num) {
-//   std::vector<llvm::Value*> args = { builder.getInt64(num) };
-//   std::vector<llvm::Value*> rest = PopLast(num);
-//   args.insert(args.end(), rest.begin(), rest.end());
-//
-//   llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_concat_literals"), args, "concatstrings");
-//   stack.push_back(result);
-// }
-
 void NativeCompiler::CompileNewArray(llvm::Module* mod, int num) {
   std::vector<llvm::Value*> args = { builder.getInt64(num) };
   std::vector<llvm::Value*> rest = PopLast(num);
@@ -239,20 +237,13 @@ void NativeCompiler::CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int 
   stack.push_back(result);
 }
 
-void NativeCompiler::CompilePutSelf(llvm::Module *mod) {
-  for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
-    stack.push_back(&arg);
-    break; // workaround. find a better way
-  }
-}
-
 bool NativeCompiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
   if (type == 1) {
     // Workaround to set self for core#define_method
     std::vector<llvm::Value*> args = {
       builder.getInt64(rb_mLLRBFrozenCore),
       builder.getInt64(rb_intern("__llrb_self__")),
-      &(*(mod->getFunction("precompiled_method")->arg_begin()))
+      ArgumentAt(mod, 0)
     };
     builder.CreateCall(mod->getFunction("rb_ivar_set"), args, "specialobject_self");
 
@@ -262,6 +253,17 @@ bool NativeCompiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
     fprintf(stderr, "unhandled putspecialconst!: %d\n", type);
     return false;
   }
+}
+
+llvm::Value* NativeCompiler::ArgumentAt(llvm::Module *mod, int index) {
+  int i = 0;
+  for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
+    if (i == index) {
+      return &arg;
+    }
+    i++;
+  }
+  return nullptr;
 }
 
 llvm::Value* NativeCompiler::PopBack() {
