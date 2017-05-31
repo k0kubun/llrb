@@ -18,6 +18,7 @@ namespace llrb {
 
    public:
     NativeCompiler() : builder(context) {}
+    uint64_t Compile(const Iseq& iseq);
     uint64_t Compile(const Iseq& iseq, bool dry_run);
 
    private:

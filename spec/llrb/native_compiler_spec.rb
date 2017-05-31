@@ -1,10 +1,13 @@
 describe 'llrb::NativeCompiler' do
   def test_compile(&block)
-    klass = Class.new
-    klass.send(:define_singleton_method, :test, &block)
-    result = klass.test
-    expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
-    expect(klass.test).to eq(result)
+    ruby = Class.new
+    ruby.send(:define_singleton_method, :test, &block)
+
+    native = Class.new
+    native.send(:define_singleton_method, :test, &block)
+    expect(LLRB::JIT.precompile(native, :test)).to eq(true)
+
+    expect(native.test).to eq(ruby.test)
   end
 
   specify 'putnil' do
@@ -19,10 +22,29 @@ describe 'llrb::NativeCompiler' do
     test_compile { true }
     test_compile { false }
     test_compile { 100 }
-    test_compile { 0 }
-    test_compile { 1 }
     test_compile { :hello }
     test_compile { (1..2) }
+  end
+
+  specify 'putobject_OP_INT2FIX_O_0_C_' do
+    test_compile { 0 }
+  end
+
+  specify 'putobject_OP_INT2FIX_O_1_C_' do
+    test_compile { 1 }
+  end
+
+  specify 'putspecialobject' do
+    test_compile do
+      def answer; 42; end
+      answer
+    end
+  end
+
+  specify 'putiseq' do
+    test_compile do
+      def answer; 42; end
+    end
   end
 
   specify 'putstring' do
@@ -191,8 +213,43 @@ describe 'llrb::NativeCompiler' do
   end
 
   describe 'integration' do
-    specify 'arithmetic' do
+    it 'compiles calculation' do
       test_compile { 1 + (3 - 4) * 5 / 2 }
+    end
+
+    it 'compiles instance method definition' do
+      klass = Class.new
+      klass.class_eval do
+        def test
+          def hello
+            'world'
+          end
+        end
+      end
+
+      object = klass.new
+      expect(LLRB::JIT.precompile(object, :test)).to eq(true)
+
+      expect { object.hello }.to raise_error(NoMethodError)
+      expect(object.test).to eq(:hello)
+      expect(object.hello).to eq('world')
+    end
+
+    it 'compiles singleton method definition' do
+      klass = Class.new
+      klass.class_eval do
+        def self.test
+          def hello
+            'world'
+          end
+        end
+      end
+
+      expect(LLRB::JIT.precompile(klass, :test)).to eq(true)
+
+      expect { klass.hello }.to raise_error(NoMethodError)
+      expect(klass.test).to eq(:hello)
+      expect(klass.hello).to eq('world')
     end
   end
 end

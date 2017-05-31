@@ -6,7 +6,13 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
 
+extern VALUE rb_mLLRBFrozenCore;
+
 namespace llrb {
+
+uint64_t NativeCompiler::Compile(const Iseq& iseq) {
+  return Compile(iseq, false);
+}
 
 uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llrb", context);
@@ -86,6 +92,13 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_str_freeze", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64)},
+        true),
+      llvm::Function::ExternalLinkage, "rb_ivar_set", mod);
 }
 
 bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction) {
@@ -100,6 +113,23 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Obj
     stack.push_back(builder.getInt64(INT2FIX(0)));
   } else if (name == "putobject_OP_INT2FIX_O_1_C_") {
     stack.push_back(builder.getInt64(INT2FIX(1)));
+  } else if (name == "putspecialobject") {
+    if (instruction[1].integer == 1) {
+      stack.push_back(builder.getInt64(rb_mLLRBFrozenCore));
+
+      // Workaround to set self for core#define_method
+      std::vector<llvm::Value*> args = {
+        builder.getInt64(rb_mLLRBFrozenCore),
+        builder.getInt64(rb_intern("__llrb_self__")),
+        &(*(mod->getFunction("precompiled_method")->arg_begin()))
+      };
+      builder.CreateCall(mod->getFunction("rb_ivar_set"), args, "specialobject_self");
+    } else {
+      fprintf(stderr, "unhandled putspecialconst!: %d\n", instruction[1].integer);
+      return false;
+    }
+  } else if (name == "putiseq") {
+    stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putstring") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
     llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring");

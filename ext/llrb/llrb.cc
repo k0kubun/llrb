@@ -3,8 +3,6 @@
 #include "native_compiler.h"
 #include "llvm/Support/TargetSelect.h"
 
-static llrb::NativeCompiler native_compiler;
-
 // LLRB::JIT.precompile_internal
 // @param  [Array]   iseq_array - result of RubyVM::InstructionSequence#to_a
 // @param  [Class]   klass      - class to define method
@@ -16,7 +14,7 @@ rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq, VALUE kla
 {
   Check_Type(ruby_iseq, T_ARRAY);
   llrb::Iseq iseq(ruby_iseq);
-  uint64_t func = native_compiler.Compile(iseq, RTEST(dry_run));
+  uint64_t func = llrb::NativeCompiler().Compile(iseq, RTEST(dry_run));
   if (RTEST(dry_run)) return Qfalse;
   if (!func) {
     fprintf(stderr, "Failed to create native function...\n");
@@ -29,6 +27,8 @@ rb_jit_precompile_internal(RB_UNUSED_VAR(VALUE self), VALUE ruby_iseq, VALUE kla
 }
 
 extern "C" {
+  extern void Init_llrb_frozen_core(VALUE rb_mLLRB);
+
   void
   Init_llrb(void)
   {
@@ -39,5 +39,7 @@ extern "C" {
     VALUE rb_mLLRB = rb_define_module("LLRB");
     VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
     rb_define_singleton_method(rb_mJIT, "precompile_internal", RUBY_METHOD_FUNC(rb_jit_precompile_internal), 5);
+
+    Init_llrb_frozen_core(rb_mLLRB);
   }
 }
