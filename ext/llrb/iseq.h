@@ -34,14 +34,11 @@ namespace llrb {
    public:
     std::vector<Object> bytecode;
     int arg_size;
+    int local_size;
 
     Iseq(VALUE ruby_obj):Object(ruby_obj) {
-      if (array[4].hash.count("arg_size") == 1) {
-        arg_size = array[4].hash["arg_size"].integer;
-      } else {
-        fprintf(stderr, "LLRB error: arg_size was not set...\n");
-        arg_size = 0;
-      }
+      arg_size = array[4].hash["arg_size"].integer;
+      local_size = array[4].hash["local_size"].integer;
       bytecode = array[13].array;
     };
   };

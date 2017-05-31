@@ -52,7 +52,7 @@ llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq)
 
   for (const Object& insn : iseq.bytecode) {
     if (insn.klass == "Array") {
-      bool compiled = CompileInstruction(mod, insn.array, iseq.arg_size);
+      bool compiled = CompileInstruction(mod, insn.array, iseq.arg_size, iseq.local_size);
       if (!compiled) return nullptr;
     } else if (insn.klass == "Symbol") {
       // label. ignored for now
@@ -106,10 +106,10 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
       llvm::Function::ExternalLinkage, "rb_ivar_set", mod);
 }
 
-bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size) {
+bool NativeCompiler::CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size, int local_size) {
   const std::string& name = instruction[0].symbol;
   if (name == "getlocal_OP__WC__0") {
-    stack.push_back(ArgumentAt(mod, 3 + (arg_size - instruction[1].integer))); // XXX: `3` is okay?
+    stack.push_back(ArgumentAt(mod, 3 - local_size + 2 * arg_size - instruction[1].integer)); // XXX: is this okay????
   } else if (name == "putnil") {
     stack.push_back(builder.getInt64(Qnil));
   } else if (name == "putself") {

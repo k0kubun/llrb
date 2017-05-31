@@ -25,7 +25,7 @@ namespace llrb {
     uint64_t CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func);
     llvm::Function* CompileIseq(llvm::Module *mod, const Iseq& iseq);
     void DeclareCRubyAPIs(llvm::Module *mod);
-    bool CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size);
+    bool CompileInstruction(llvm::Module *mod, const std::vector<Object>& instruction, int arg_size, int local_size);
     void CompileNewArray(llvm::Module *mod, int num);
     void CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
     void CompileFuncall(llvm::Module *mod, llvm::Value *op_sym, int argc);
