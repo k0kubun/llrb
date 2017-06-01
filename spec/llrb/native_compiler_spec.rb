@@ -7,7 +7,12 @@ describe 'llrb::NativeCompiler' do
     native.send(:define_singleton_method, :test, &block)
     expect(LLRB::JIT.precompile(native, :test)).to eq(true)
 
-    expect(native.test(*args)).to eq(ruby.test(*args))
+    begin
+      expect(native.test(*args)).to eq(ruby.test(*args))
+    rescue RSpec::Expectations::ExpectationNotMetError
+      LLRB::JIT.preview(ruby, :test)
+      raise
+    end
   end
 
   specify 'putnil' do
@@ -120,6 +125,7 @@ describe 'llrb::NativeCompiler' do
   specify 'opt_plus' do
     test_compile { 1 + 2 + 3 }
     test_compile { [nil] + [nil] }
+
     test_compile(1, 2) do |a, b|
       a + b
     end
@@ -220,6 +226,107 @@ describe 'llrb::NativeCompiler' do
     test_compile { true.! }
     test_compile { false.! }
     test_compile { 100.! }
+  end
+
+  specify 'jump' do
+    test_compile(false) do |a|
+      if a
+        true
+      else
+        false
+      end
+    end
+  end
+
+  specify 'branchunless' do
+    test_compile(3) do |a|
+      if a > 2
+        true
+      else
+        false
+      end
+    end
+
+    [
+      [true, false, false],
+      [false, true, false],
+      [false, false, true],
+      [false, false, false],
+    ].each do |args|
+      test_compile(*args) do |a, b, c|
+        if a
+          1
+        elsif b
+          2
+        elsif c
+          3
+        else
+          4
+        end
+      end
+    end
+
+    [
+      true,
+      false,
+    ].each do |arg|
+      test_compile(arg) do |a|
+        unless a
+          1
+        else
+          2
+        end
+      end
+    end
+
+    [
+      [1, nil],
+      [2, 1],
+      [2, nil],
+      [3, nil],
+      [4, 1],
+      [4, 2],
+      [4, nil],
+      [nil, nil],
+    ].each do |args|
+      test_compile(*args) do |a, b|
+        if a == 1
+          [1, nil]
+        elsif a == 2
+          if b == 1
+            [2, 1]
+          else
+            [2, nil]
+          end
+        elsif a == 3
+          [3, nil]
+        elsif a == 4
+          if b == 1
+            [4, 1]
+          elsif b == 2
+            [4, 2]
+          else
+            [4, nil]
+          end
+        else
+          [nil, nil]
+        end
+      end
+    end
+
+    test_compile(true, true, true, false) do |a, b, c, d|
+      if a
+        if b
+          if c
+            if d
+              1
+            else
+              2
+            end
+          end
+        end
+      end
+    end
   end
 
   it 'compiles arguments' do

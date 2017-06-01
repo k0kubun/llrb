@@ -1,5 +1,5 @@
-#ifndef LLRUBY_ISEQ_H
-#define LLRUBY_ISEQ_H
+#ifndef LLRB_ISEQ_H
+#define LLRB_ISEQ_H
 
 #include <cstdlib>
 #include <cstdio>
@@ -44,4 +44,4 @@ namespace llrb {
   };
 }
 
-#endif // LLRUBY_ISEQ_H
+#endif // LLRB_ISEQ_H

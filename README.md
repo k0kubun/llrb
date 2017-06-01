@@ -45,14 +45,14 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-41/94 (43.6%)
+44/94 (46.8%)
 
 ### nop
 - [x] nop
 
 ### variable
 - [ ] getlocal
-- [ ] getlocal\_OP\_\_WC\_\_0
+- [x] getlocal\_OP\_\_WC\_\_0
 - [ ] getlocal\_OP\_\_WC\_\_1
 - [ ] setlocal
 - [ ] setlocal\_OP\_\_WC\_\_0
@@ -154,9 +154,9 @@ LLRB::JIT.preview(Hello, :world)
 - [ ] throw
 
 ### jump
-- [ ] jump
+- [x] jump
 - [ ] branchif
-- [ ] branchunless
+- [x] branchunless
 - [ ] branchnil
 
 ### joke
