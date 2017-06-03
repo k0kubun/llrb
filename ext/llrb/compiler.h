@@ -11,13 +11,13 @@
 #include "llvm/IR/Value.h"
 
 namespace llrb {
-  class NativeCompiler {
+  class Compiler {
    private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
 
    public:
-    NativeCompiler() : builder(context) {}
+    Compiler() : builder(context) {}
     uint64_t Compile(const Iseq& iseq);
     uint64_t Compile(const Iseq& iseq, bool dry_run);
 

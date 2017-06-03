@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "iseq.h"
 #include "llrb.h"
-#include "native_compiler.h"
+#include "compiler.h"
 #include "parser.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
@@ -11,11 +11,11 @@ extern VALUE rb_mLLRBFrozenCore;
 
 namespace llrb {
 
-uint64_t NativeCompiler::Compile(const Iseq& iseq) {
+uint64_t Compiler::Compile(const Iseq& iseq) {
   return Compile(iseq, false);
 }
 
-uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
+uint64_t Compiler::Compile(const Iseq& iseq, bool dry_run) {
   std::unique_ptr<llvm::Module> mod = llvm::make_unique<llvm::Module>("llrb", context);
   llvm::Function *func = CompileIseq(mod.get(), iseq);
   if (!func) return 0;
@@ -28,7 +28,7 @@ uint64_t NativeCompiler::Compile(const Iseq& iseq, bool dry_run) {
   }
 }
 
-uint64_t NativeCompiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func) {
+uint64_t Compiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func) {
   llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(mod)).create();
   if (engine == NULL) {
     fprintf(stderr, "Failed to create ExecutionEngine...\n");
@@ -37,7 +37,7 @@ uint64_t NativeCompiler::CreateNativeFunction(std::unique_ptr<llvm::Module> mod,
   return engine->getFunctionAddress(func->getName());
 }
 
-llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
+llvm::Function* Compiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
   std::vector<Entry> parsed = Parser(iseq.bytecode).Parse();
   if (parsed.empty()) return nullptr;
   //Entry::Dump(parsed); // for debug
@@ -62,7 +62,7 @@ llvm::Function* NativeCompiler::CompileIseq(llvm::Module *mod, const Iseq& iseq)
   return func;
 }
 
-llvm::Value* NativeCompiler::CompileParsedBytecode(llvm::Module *mod, const std::vector<Entry>& parsed, int arg_size, int local_size) {
+llvm::Value* Compiler::CompileParsedBytecode(llvm::Module *mod, const std::vector<Entry>& parsed, int arg_size, int local_size) {
   std::vector<llvm::Value*> stack;
   for (const Entry& entry : parsed) {
     switch (entry.type) {
@@ -89,7 +89,7 @@ llvm::Value* NativeCompiler::CompileParsedBytecode(llvm::Module *mod, const std:
   }
 }
 
-void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
+void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
@@ -123,7 +123,7 @@ void NativeCompiler::DeclareCRubyAPIs(llvm::Module *mod) {
 
 // destructive for stack
 // TODO: Change to take Environment for locals: arg_size, local_size
-bool NativeCompiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& stack, const Entry& insn_entry, int arg_size, int local_size) {
+bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& stack, const Entry& insn_entry, int arg_size, int local_size) {
   const std::vector<Object>& instruction = insn_entry.insn;
   const std::string& name = instruction[0].symbol;
   if (name == "getlocal_OP__WC__0") {
@@ -236,20 +236,20 @@ bool NativeCompiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Val
   return stack.size() == 0 || stack.back() != nullptr;
 }
 
-llvm::Value* NativeCompiler::CompileNewArray(llvm::Module* mod, const std::vector<llvm::Value*>& objects) {
+llvm::Value* Compiler::CompileNewArray(llvm::Module* mod, const std::vector<llvm::Value*>& objects) {
   std::vector<llvm::Value*> args = { builder.getInt64(objects.size()) };
   args.insert(args.end(), objects.begin(), objects.end());
 
   return builder.CreateCall(mod->getFunction("rb_ary_new_from_args"), args, "newarray");
 }
 
-llvm::Value* NativeCompiler::CompileDupArray(llvm::Module* mod, const std::vector<Object>& instruction) {
+llvm::Value* Compiler::CompileDupArray(llvm::Module* mod, const std::vector<Object>& instruction) {
   std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
   return builder.CreateCall(mod->getFunction("rb_ary_resurrect"), args, "duparray");
 }
 
 // destructive for stack
-llvm::Value* NativeCompiler::CompileFuncall(llvm::Module *mod, std::vector<llvm::Value*>& stack, llvm::Value *op_sym, int argc) {
+llvm::Value* Compiler::CompileFuncall(llvm::Module *mod, std::vector<llvm::Value*>& stack, llvm::Value *op_sym, int argc) {
   std::vector<llvm::Value*> rest = PopLast(stack, argc);
   std::vector<llvm::Value*> args = { PopBack(stack), op_sym, builder.getInt32(argc) };
   args.insert(args.end(), rest.begin(), rest.end());
@@ -257,7 +257,7 @@ llvm::Value* NativeCompiler::CompileFuncall(llvm::Module *mod, std::vector<llvm:
   return builder.CreateCall(mod->getFunction("rb_funcall"), args, "funcall");
 }
 
-llvm::Value* NativeCompiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
+llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
   if (type == 1) {
     // Workaround to set self for core#define_method
     std::vector<llvm::Value*> args = {
@@ -275,7 +275,7 @@ llvm::Value* NativeCompiler::CompilePutSpecialObject(llvm::Module *mod, int type
 }
 
 // TODO: Change to take Environment for locals: arg_size, local_size
-llvm::Value* NativeCompiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond_obj, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size) {
+llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond_obj, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size) {
   llvm::Function* func = mod->getFunction("precompiled_method");
 
   llvm::BasicBlock *fallth_b = llvm::BasicBlock::Create(context, "fallthrough", func);
@@ -305,7 +305,7 @@ llvm::Value* NativeCompiler::CompileBranchUnless(llvm::Module *mod, llvm::Value 
   return phi;
 }
 
-llvm::Value* NativeCompiler::ArgumentAt(llvm::Module *mod, int index) {
+llvm::Value* Compiler::ArgumentAt(llvm::Module *mod, int index) {
   int i = 0;
   for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
     if (i == index) {
@@ -317,14 +317,14 @@ llvm::Value* NativeCompiler::ArgumentAt(llvm::Module *mod, int index) {
 }
 
 // destructive for stack
-llvm::Value* NativeCompiler::PopBack(std::vector<llvm::Value*>& stack) {
+llvm::Value* Compiler::PopBack(std::vector<llvm::Value*>& stack) {
   llvm::Value* ret = stack.back();
   stack.pop_back();
   return ret;
 }
 
 // destructive for stack
-std::vector<llvm::Value*> NativeCompiler::PopLast(std::vector<llvm::Value*>& stack, int num) {
+std::vector<llvm::Value*> Compiler::PopLast(std::vector<llvm::Value*>& stack, int num) {
   std::vector<llvm::Value*> ret;
   for (int i = 0; i < num; i++) {
     ret.push_back(PopBack(stack));

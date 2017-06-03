@@ -1,4 +1,4 @@
-describe 'llrb::NativeCompiler' do
+describe 'llrb::Compiler' do
   def test_compile(*args, &block)
     ruby = Class.new
     ruby.send(:define_singleton_method, :test, &block)
