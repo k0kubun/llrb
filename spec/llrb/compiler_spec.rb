@@ -277,6 +277,14 @@ describe 'llrb::Compiler' do
           2
         end
       end
+
+      test_compile(arg) do |a|
+        1 unless a
+      end
+
+      test_compile(arg) do |a|
+        1 if a
+      end
     end
 
     [
