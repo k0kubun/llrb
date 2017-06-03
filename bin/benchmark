@@ -4,15 +4,16 @@ require 'bundler/setup'
 require 'benchmark/ips'
 require 'llrb'
 
-script = File.read(ARGV.first || "#{__dir__}/scripts/arithmetic.rb")
+script = File.read(ARGV.first || "#{__dir__}/scripts/bm_app_fib.rb")
 
-klass = Class.new
-klass.instance_eval("def self.ruby; #{script}; end")
-klass.instance_eval("def self.native; #{script}; end")
-LLRB::JIT.precompile(klass, :native)
+ruby = Class.new
+ruby.instance_eval("def self.script; #{script}; end")
+native = Class.new
+native.instance_eval("def self.script; #{script}; end")
+LLRB::JIT.precompile(native, :script)
 
 Benchmark.ips do |x|
-  x.report('ruby')   { klass.ruby }
-  x.report('native') { klass.native }
+  x.report('ruby')   { ruby.script }
+  x.report('native') { native.script }
   x.compare!
 end

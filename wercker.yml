@@ -8,3 +8,6 @@ build:
     - script:
         name: rspec
         code: bundle exec rake spec
+    - script:
+        name: benchmark
+        code: bundle exec bin/benchmark bin/scripts/bm_app_fib.rb
