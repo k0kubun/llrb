@@ -373,4 +373,18 @@ describe 'llrb::Compiler' do
     expect(klass.test).to eq(:hello)
     expect(klass.hello).to eq('world')
   end
+
+  it 'compiles fibonacci' do
+    test_compile do
+      def fib n
+        if n < 3
+          1
+        else
+          fib(n-1) + fib(n-2)
+        end
+      end
+
+      fib(5)
+    end
+  end
 end
