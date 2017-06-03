@@ -2,6 +2,10 @@ require 'llrb/llrb'
 
 module LLRB
   module JIT
+    # Iseq array will be used on runtime but it can be GCed. This ivar prevents it.
+    # TODO: Find a way to do it from C++.
+    @gc_guarded = []
+
     # Precompile method to native code
     #
     # @param [Object] receiver - receiver of method to be compiled
@@ -12,7 +16,9 @@ module LLRB
       original = receiver.method(method_name)
       iseq = RubyVM::InstructionSequence.of(original)
       return false if iseq.nil?
-      precompile_internal(iseq.to_a, original.owner, original.original_name, original.arity, dry_run)
+      iseq_array = iseq.to_a
+      @gc_guarded.concat(iseq_array.last.select { |insn, _| insn == :putiseq }.map(&:last)) unless dry_run
+      precompile_internal(iseq_array, original.owner, original.original_name, original.arity, dry_run)
     end
 
     # Preview compiled method in LLVM IR
