@@ -246,6 +246,10 @@ describe 'llrb::Compiler' do
     test_compile { 100.! }
   end
 
+  specify 'opt_regexpmatch1' do
+    test_compile { /true/ =~ 'true' }
+  end
+
   specify 'jump' do
     test_compile(false) do |a|
       if a

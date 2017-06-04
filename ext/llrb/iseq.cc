@@ -35,17 +35,17 @@ void Object::SetTypeSpecificField() {
     case T_HASH:
       rb_hash_foreach(raw, (int (*)(...))object_set_hash_i, (VALUE)this);
       break;
-    case T_NIL:
-      break; // do nothing
     case T_TRUE:
     case T_FALSE:
       boolean = RTEST(raw);
       break;
+    case T_NIL:
+    case T_REGEXP:
     case T_STRUCT: // including Range
       break; // do nothing
     default:
       fprintf(stderr, "unexpected type is given in iseq.cc: %s (%d)\n", rb_obj_classname(raw), TYPE(raw));
-      exit(1); // Use Ruby's raise instead
+      rb_raise(rb_eRuntimeError, "unexpected type is given in iseq.cc");
   }
 }
 

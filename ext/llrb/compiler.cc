@@ -219,6 +219,9 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("succ")), 0));
   } else if (name == "opt_not") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64('!'), 0));
+  } else if (name == "opt_regexpmatch1") {
+    stack.push_back(builder.getInt64(instruction[1].raw));
+    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("=~")), 1));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
