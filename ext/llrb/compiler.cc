@@ -153,6 +153,14 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 64)},
           false),
         llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_setconstant") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
   } else if (name == "llrb_insn_splatarray") {
     func = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
@@ -179,9 +187,13 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     // do nothing
   } else if (name == "getlocal_OP__WC__0") {
     stack.push_back(ArgumentAt(mod, 3 - local_size + 2 * arg_size - instruction[1].integer)); // XXX: is this okay????
-  } else if (name == "getconstant") { // TODO: Handle Qnil properly
+  } else if (name == "getconstant") { // TODO: Handle current scope properly
     std::vector<llvm::Value*> args = { PopBack(stack), builder.getInt64(SYM2ID(instruction[1].raw)) };
     stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_getconstant"), args, "getconstant"));
+  } else if (name == "setconstant") { // TODO: Handle current scope properly
+    llvm::Value *cbase = PopBack(stack);
+    std::vector<llvm::Value*> args = { cbase, builder.getInt64(SYM2ID(instruction[1].raw)), PopBack(stack) };
+    builder.CreateCall(GetFunction(mod, "llrb_insn_setconstant"), args, "setconstant");
   } else if (name == "putnil") {
     stack.push_back(builder.getInt64(Qnil));
   } else if (name == "putself") {
@@ -218,6 +230,8 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileNewRange(mod, instruction, PopLast(stack, 2)));
   } else if (name == "pop") {
     stack.pop_back();
+  } else if (name == "dup") {
+    stack.push_back(stack.back());
   } else if (name == "swap") {
     llvm::Value *first = PopBack(stack);
     llvm::Value *second = PopBack(stack);

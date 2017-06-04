@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-56/94 (59.6%)
+58/94 (61.7%)
 
 ### nop
 - [x] nop
@@ -71,7 +71,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] getclassvariable
 - [ ] setclassvariable
 - [x] getconstant (current scope not handled)
-- [ ] setconstant
+- [x] setconstant (current scope not handled)
 - [ ] getglobal
 - [ ] setglobal
 
@@ -98,7 +98,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ### stack
 - [x] pop
-- [ ] dup
+- [x] dup
 - [ ] dupn
 - [x] swap
 - [ ] reverse

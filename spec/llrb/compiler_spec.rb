@@ -54,6 +54,12 @@ describe 'llrb::Compiler' do
     test_compile { RubyVM::InstructionSequence }
   end
 
+  specify 'setconstant' do
+    test_compile(Class.new) do |klass|
+      klass::X = true
+    end
+  end
+
   specify 'putnil' do
     test_compile { nil }
   end
@@ -147,6 +153,13 @@ describe 'llrb::Compiler' do
 
   specify 'pop' do
     test_compile { [nil][0] = 1 }
+    test_compile { def x; true; end; x }
+  end
+
+  specify 'dup' do
+    test_compile(Class.new) do |klass|
+      klass::X = true
+    end
   end
 
   specify 'swap' do
