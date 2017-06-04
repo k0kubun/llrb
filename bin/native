@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'llrb'
+
+script = File.read(ARGV.first || "#{__dir__}/scripts/bm_app_fib.rb")
+native = Class.new
+native.instance_eval("def self.script; #{script}; end")
+LLRB::JIT.preview(native, :script)
