@@ -105,6 +105,9 @@ void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
       llvm::Function::ExternalLinkage, "rb_ary_resurrect", mod);
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
+      llvm::Function::ExternalLinkage, "rb_str_resurrect", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
       llvm::Function::ExternalLinkage, "rb_obj_as_string", mod);
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
