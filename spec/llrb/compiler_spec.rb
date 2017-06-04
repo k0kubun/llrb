@@ -15,6 +15,24 @@ describe 'llrb::Compiler' do
     end
   end
 
+  # Don't use this method for iseq that can be generated from compiler
+  def eval_iseq(*iseq_bytecode)
+    klass = Class.new
+    klass.send(:define_singleton_method, :native) { nil }
+    original = klass.method(:native)
+
+    # Create valid iseq using actual iseq
+    iseq_array = RubyVM::InstructionSequence.of(original).to_a
+    index = iseq_array.last.index([:putnil])
+    iseq_array.last.delete([:putnil])
+    iseq_array.last.insert(index, *iseq_bytecode)
+
+    expect(
+      LLRB::JIT.send(:precompile_internal, iseq_array, original.owner, original.original_name, original.arity, false)
+    ).to eq(true)
+    klass.native
+  end
+
   specify 'putnil' do
     test_compile { nil }
   end
@@ -336,6 +354,20 @@ describe 'llrb::Compiler' do
         end
       end
     end
+  end
+
+  specify 'bitblt' do
+    result = eval_iseq(
+      [:bitblt],
+    )
+    expect(result).to eq("a bit of bacon, lettuce and tomato")
+  end
+
+  specify 'answer' do
+    result = eval_iseq(
+      [:answer],
+    )
+    expect(result).to eq(42)
   end
 
   it 'compiles arguments' do

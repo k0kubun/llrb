@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-44/94 (46.8%)
+45/94 (47.8%)
 
 ### nop
 - [x] nop
@@ -160,7 +160,7 @@ LLRB::JIT.preview(Hello, :world)
 - [ ] branchnil
 
 ### joke
-- [ ] bitblt
+- [x] bitblt
 - [x] answer
 
 ## License

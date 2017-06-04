@@ -101,24 +101,24 @@ void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
       llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
   llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
       llvm::Function::ExternalLinkage, "rb_ary_resurrect", mod);
   llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
-      llvm::Function::ExternalLinkage, "rb_str_resurrect", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
       llvm::Function::ExternalLinkage, "rb_obj_as_string", mod);
   llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
       llvm::Function::ExternalLinkage, "rb_str_freeze", mod);
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 64)},
-        true),
+        false),
       llvm::Function::ExternalLinkage, "rb_ivar_set", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
+      llvm::Function::ExternalLinkage, "llrb_insn_bitblt", mod);
 }
 
 // destructive for stack
@@ -227,6 +227,8 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     return false;
   } else if (name == "branchunless") {
     stack.push_back(CompileBranchUnless(mod, PopBack(stack), insn_entry.fallthrough, insn_entry.branched, arg_size, local_size));
+  } else if (name == "bitblt") {
+    stack.push_back(builder.CreateCall(mod->getFunction("llrb_insn_bitblt"), {}, "bitblt"));
   } else if (name == "answer") {
     stack.push_back(builder.getInt64(INT2FIX(42)));
   } else {
