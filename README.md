@@ -23,7 +23,7 @@ require 'llrb'
 
 class Hello
   def world
-     puts "Hello world!"
+    puts "Hello world!"
   end
 end
 
@@ -35,12 +35,19 @@ hello.world # Executed in native code
 ### Dumping LLVM IR
 
 ```rb
-LLRB::JIT.preview(Hello, :world)
-# ; ModuleID = 'llrb'
-#
-# define i64 @precompiled_method(i64) {
-#   ret i64 8
-# }
+LLRB::JIT.preview(hello, :world)
+; ModuleID = 'llrb'
+
+define i64 @precompiled_method(i64) {
+entry:
+  %putstring = call i64 @rb_str_resurrect(i64 94336633338360)
+  %funcall = call i64 (i64, i64, i32, ...) @rb_funcall(i64 %0, i64 15329, i32 1, i64 %putstring)
+  ret i64 %funcall
+}
+
+declare i64 @rb_str_resurrect(i64)
+
+declare i64 @rb_funcall(i64, i64, i32, ...)
 ```
 
 ## Supported Iseq instructions
