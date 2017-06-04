@@ -147,16 +147,13 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putstring") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
-    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring");
-    stack.push_back(result);
+    stack.push_back(builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring"));
   } else if (name == "tostring") {
     std::vector<llvm::Value*> args = { PopBack(stack) };
-    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_obj_as_string"), args, "tostring");
-    stack.push_back(result);
+    stack.push_back(builder.CreateCall(mod->getFunction("rb_obj_as_string"), args, "tostring"));
   } else if (name == "freezestring") { // TODO: check debug info
     std::vector<llvm::Value*> args = { PopBack(stack) };
-    llvm::Value* result = builder.CreateCall(mod->getFunction("rb_str_freeze"), args, "freezestring");
-    stack.push_back(result);
+    stack.push_back(builder.CreateCall(mod->getFunction("rb_str_freeze"), args, "freezestring"));
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;
     Object mid = options["mid"];
