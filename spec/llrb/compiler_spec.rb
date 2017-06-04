@@ -145,6 +145,14 @@ describe 'llrb::Compiler' do
     test_compile { [nil][0] = 1 }
   end
 
+  specify 'swap' do
+    test_compile { {}['true'] = true }
+  end
+
+  specify 'topn' do
+    test_compile { {}['true'] = true }
+  end
+
   specify 'setn' do
     test_compile { [nil][0] = 1 }
   end
@@ -254,6 +262,10 @@ describe 'llrb::Compiler' do
 
   specify 'opt_aset' do
     test_compile { [nil][0] = 1 }
+  end
+
+  specify 'opt_aset_with' do
+    test_compile { {}['true'] = true }
   end
 
   specify 'opt_aref_with' do

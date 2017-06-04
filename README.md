@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-50/94 (53.2%)
+53/94 (56.4%)
 
 ### nop
 - [x] nop
@@ -100,10 +100,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] pop
 - [ ] dup
 - [ ] dupn
-- [ ] swap
+- [x] swap
 - [ ] reverse
 - [ ] reput
-- [ ] topn
+- [x] topn
 - [x] setn
 - [ ] adjuststack
 
@@ -146,7 +146,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_ltlt
 - [x] opt\_aref
 - [x] opt\_aset
-- [ ] opt\_aset\_with
+- [x] opt\_aset\_with
 - [x] opt\_aref\_with
 - [x] opt\_length
 - [x] opt\_size

@@ -213,6 +213,14 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileNewRange(mod, instruction, PopLast(stack, 2)));
   } else if (name == "pop") {
     stack.pop_back();
+  } else if (name == "swap") {
+    llvm::Value *first = PopBack(stack);
+    llvm::Value *second = PopBack(stack);
+    stack.push_back(first);
+    stack.push_back(second);
+  } else if (name == "topn") {
+    int last = (int)stack.size() - 1;
+    stack.push_back(stack[last - instruction[1].integer]);
   } else if (name == "setn") {
     int last = (int)stack.size() - 1;
     stack[last - instruction[1].integer] = stack.back();
@@ -255,6 +263,11 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "opt_aref") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]")), 1));
   } else if (name == "opt_aset") {
+    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]=")), 2));
+  } else if (name == "opt_aset_with") {
+    llvm::Value *set_value = PopBack(stack);
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_resurrect"), { builder.getInt64(instruction[3].raw) }, "opt_aset_with"));
+    stack.push_back(set_value);
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]=")), 2));
   } else if (name == "opt_aref_with") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[3].raw) };
