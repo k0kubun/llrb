@@ -269,6 +269,7 @@ describe 'llrb::Compiler' do
     [
       true,
       false,
+      nil,
     ].each do |arg|
       test_compile(arg) do |a|
         unless a

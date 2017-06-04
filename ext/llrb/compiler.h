@@ -29,7 +29,8 @@ namespace llrb {
     llvm::Value* CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
     llvm::Value* CompileFuncall(llvm::Module *mod, std::vector<llvm::Value*>& stack, llvm::Value *op_sym, int argc); // destructive for stack
     llvm::Value* CompilePutSpecialObject(llvm::Module *mod, int type);
-    llvm::Value* CompileBranchUnless(llvm::Module *mod, llvm::Value *cond_obj, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size);
+    llvm::Value* CompileBranchUnless(llvm::Module *mod, llvm::Value *cond, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size);
+    llvm::Value* BuildRTEST(llvm::Value *value);
     void DeclareCRubyAPIs(llvm::Module *mod);
     uint64_t CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func);
     llvm::Value* ArgumentAt(llvm::Module *mod, int index);

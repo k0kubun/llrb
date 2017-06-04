@@ -275,15 +275,13 @@ llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
 }
 
 // TODO: Change to take Environment for locals: arg_size, local_size
-llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond_obj, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size) {
+llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size) {
   llvm::Function* func = mod->getFunction("precompiled_method");
 
   llvm::BasicBlock *fallth_b = llvm::BasicBlock::Create(context, "fallthrough", func);
   llvm::BasicBlock *branch_b = llvm::BasicBlock::Create(context, "branched");
   llvm::BasicBlock *merged_b = llvm::BasicBlock::Create(context, "merged");
-
-  llvm::Value *cond = builder.CreateICmpNE(cond_obj, builder.getInt64(Qfalse), "branchunless"); // TODO: Implement RTEST
-  builder.CreateCondBr(cond, fallth_b, branch_b);
+  builder.CreateCondBr(BuildRTEST(cond), fallth_b, branch_b);
 
   builder.SetInsertPoint(fallth_b);
   llvm::Value *fallth_result = CompileParsedBytecode(mod, fallthrough, arg_size, local_size);
@@ -303,6 +301,12 @@ llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond_
   phi->addIncoming(fallth_result, fallth_b);
   phi->addIncoming(branch_result, branch_b);
   return phi;
+}
+
+// In base 2, RTEST is: (v != Qfalse && v != Qnil) -> (v != 0000 && v != 0100) -> (v & 1011) != 0000 -> (v & ~Qnil) != 0
+llvm::Value* Compiler::BuildRTEST(llvm::Value *value) {
+  llvm::Value *masked = builder.CreateAnd(value, builder.getInt64(~Qnil));
+  return builder.CreateICmpNE(masked, builder.getInt64(0), "RTEST");
 }
 
 llvm::Value* Compiler::ArgumentAt(llvm::Module *mod, int index) {
