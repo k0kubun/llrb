@@ -256,6 +256,12 @@ describe 'llrb::Compiler' do
     test_compile { [nil][0] = 1 }
   end
 
+  specify 'opt_aref_with' do
+    test_compile(100) do |x|
+      { 'true' => x }['true']
+    end
+  end
+
   specify 'opt_length' do
     test_compile { [1, nil, false].length }
   end

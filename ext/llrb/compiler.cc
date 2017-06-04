@@ -256,6 +256,10 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]")), 1));
   } else if (name == "opt_aset") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]=")), 2));
+  } else if (name == "opt_aref_with") {
+    std::vector<llvm::Value*> args = { builder.getInt64(instruction[3].raw) };
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_resurrect"), args, "opt_aref_with"));
+    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("[]")), 1));
   } else if (name == "opt_length") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("length")), 0));
   } else if (name == "opt_size") {
