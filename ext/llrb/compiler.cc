@@ -327,7 +327,8 @@ llvm::Value* Compiler::CompileFuncall(llvm::Module *mod, std::vector<llvm::Value
 
 llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
   if (type == 1) {
-    // Workaround to set self for core#define_method
+    // Workaround to set self for core#define_method.
+    // FIXME: Obviously this isn't thread safe...
     std::vector<llvm::Value*> args = {
       builder.getInt64(rb_mLLRBFrozenCore),
       builder.getInt64(rb_intern("__llrb_self__")),
