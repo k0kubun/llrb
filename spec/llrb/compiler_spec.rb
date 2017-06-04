@@ -42,6 +42,14 @@ describe 'llrb::Compiler' do
     klass.native
   end
 
+  specify 'nop' do
+    result = eval_iseq(
+      [:putstring, "stack wasn't modified"],
+      [:nop],
+    )
+    expect(result).to eq("stack wasn't modified")
+  end
+
   specify 'putnil' do
     test_compile { nil }
   end
