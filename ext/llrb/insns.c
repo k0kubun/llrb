@@ -2,6 +2,15 @@
 
 #include "llrb.h"
 
+// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L180-L199
+VALUE llrb_insn_getconstant(VALUE orig_klass, ID id) {
+  // TODO: Handle Qnil and Qfalse properly
+  if (orig_klass == Qnil || orig_klass == Qfalse) {
+    orig_klass = rb_cObject; // force top level
+  }
+  return rb_const_get(orig_klass, id);
+}
+
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L515-L534
 VALUE llrb_insn_splatarray(VALUE ary, VALUE flag) {
   VALUE tmp = rb_check_convert_type(ary, T_ARRAY, "Array", "to_a");

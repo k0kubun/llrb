@@ -50,6 +50,10 @@ describe 'llrb::Compiler' do
     expect(result).to eq("stack wasn't modified")
   end
 
+  specify 'getconstant' do
+    test_compile { RubyVM::InstructionSequence }
+  end
+
   specify 'putnil' do
     test_compile { nil }
   end
@@ -184,6 +188,14 @@ describe 'llrb::Compiler' do
     test_compile { false || 2.even? }
     test_compile { [nil].push(3) }
     test_compile { [] + [nil].push(3) }
+  end
+
+  specify 'getinlinecache' do
+    test_compile { Struct }
+  end
+
+  specify 'setinlinecache' do
+    test_compile { Struct }
   end
 
   specify 'opt_plus' do

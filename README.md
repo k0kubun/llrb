@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-53/94 (56.4%)
+56/94 (59.6%)
 
 ### nop
 - [x] nop
@@ -70,7 +70,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setinstancevariable
 - [ ] getclassvariable
 - [ ] setclassvariable
-- [ ] getconstant
+- [x] getconstant (current scope not handled)
 - [ ] setconstant
 - [ ] getglobal
 - [ ] setglobal
@@ -128,8 +128,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_newarray\_max
 - [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
-- [ ] getinlinecache
-- [ ] setinlinecache
+- [x] getinlinecache
+- [x] setinlinecache (actually not set)
 - [ ] once
 - [ ] opt\_case\_dispatch
 - [x] opt\_plus

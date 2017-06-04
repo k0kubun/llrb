@@ -146,9 +146,12 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 64)},
           false),
         llvm::Function::ExternalLinkage, name, mod);
-  } else if (name == "llrb_insn_bitblt") {
+  } else if (name == "llrb_insn_getconstant") {
     func = llvm::Function::Create(
-        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
         llvm::Function::ExternalLinkage, name, mod);
   } else if (name == "llrb_insn_splatarray") {
     func = llvm::Function::Create(
@@ -156,6 +159,10 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 64),
           llvm::IntegerType::get(context, 64)},
           false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_bitblt") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
         llvm::Function::ExternalLinkage, name, mod);
   } else {
     rb_raise(rb_eRuntimeError, "'%s' is not defined in GetFunction", name.c_str()); // TODO: Define and use another error like CompileError
@@ -172,6 +179,9 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     // do nothing
   } else if (name == "getlocal_OP__WC__0") {
     stack.push_back(ArgumentAt(mod, 3 - local_size + 2 * arg_size - instruction[1].integer)); // XXX: is this okay????
+  } else if (name == "getconstant") { // TODO: Handle Qnil properly
+    std::vector<llvm::Value*> args = { PopBack(stack), builder.getInt64(SYM2ID(instruction[1].raw)) };
+    stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_getconstant"), args, "getconstant"));
   } else if (name == "putnil") {
     stack.push_back(builder.getInt64(Qnil));
   } else if (name == "putself") {
@@ -195,11 +205,6 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "freezestring") { // TODO: check debug info
     std::vector<llvm::Value*> args = { PopBack(stack) };
     stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_freeze"), args, "freezestring"));
-  } else if (name == "opt_send_without_block") {
-    std::map<std::string, Object> options = instruction[1].hash;
-    Object mid = options["mid"];
-    Object orig_argc = options["orig_argc"];
-    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer));
   } else if (name == "newarray") {
     stack.push_back(CompileNewArray(mod, PopLast(stack, instruction[1].integer)));
   } else if (name == "duparray") {
@@ -236,6 +241,15 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "opt_newarray_min") {
     stack.push_back(CompileNewArray(mod, PopLast(stack, instruction[1].integer)));
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("min")), 0));
+  } else if (name == "opt_send_without_block") {
+    std::map<std::string, Object> options = instruction[1].hash;
+    Object mid = options["mid"];
+    Object orig_argc = options["orig_argc"];
+    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern(mid.symbol.c_str())), orig_argc.integer));
+  } else if (name == "getinlinecache") {
+    stack.push_back(builder.getInt64(Qnil)); // TODO: introduce some optimization for constants
+  } else if (name == "setinlinecache") {
+    // noop // TODO: introduce some optimization for constants
   } else if (name == "opt_plus") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64('+'), 1));
   } else if (name == "opt_minus") {
