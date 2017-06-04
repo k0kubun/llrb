@@ -222,6 +222,8 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "opt_regexpmatch1") {
     stack.push_back(builder.getInt64(instruction[1].raw));
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("=~")), 1));
+  } else if (name == "opt_regexpmatch2") {
+    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("=~")), 1));
   } else if (name == "trace") {
     // ignored for now
   } else if (name == "leave") {
@@ -330,6 +332,9 @@ llvm::Value* Compiler::ArgumentAt(llvm::Module *mod, int index) {
 
 // destructive for stack
 llvm::Value* Compiler::PopBack(std::vector<llvm::Value*>& stack) {
+  if (stack.size() < 1) {
+    rb_raise(rb_eRuntimeError, "stack size underflow");
+  }
   llvm::Value* ret = stack.back();
   stack.pop_back();
   return ret;

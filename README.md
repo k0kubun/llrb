@@ -45,7 +45,7 @@ LLRB::JIT.preview(Hello, :world)
 
 ## Supported Iseq instructions
 
-46/94 (48.9%)
+47/94 (50.0%)
 
 ### nop
 - [x] nop
@@ -147,7 +147,7 @@ LLRB::JIT.preview(Hello, :world)
 - [x] opt\_succ
 - [x] opt\_not
 - [x] opt\_regexpmatch1
-- [ ] opt\_regexpmatch2
+- [x] opt\_regexpmatch2
 - [ ] opt\_call\_c\_function
 
 ### exception
