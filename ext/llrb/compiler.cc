@@ -42,7 +42,6 @@ llvm::Function* Compiler::CompileIseq(llvm::Module *mod, const Iseq& iseq) {
   if (parsed.empty()) return nullptr;
   //Entry::Dump(parsed); // for debug
 
-  DeclareCRubyAPIs(mod);
   std::vector<llvm::Type*> arg_types = { llvm::IntegerType::get(context, 64) };
   for (int i = 0; i < iseq.arg_size; i++) {
     arg_types.push_back(llvm::IntegerType::get(context, 64));
@@ -86,62 +85,82 @@ llvm::Value* Compiler::CompileParsedBytecode(llvm::Module *mod, const std::vecto
   }
 }
 
-void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 32)},
-        true),
-      llvm::Function::ExternalLinkage, "rb_funcall", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
-      llvm::Function::ExternalLinkage, "rb_ary_new_from_args", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
-      llvm::Function::ExternalLinkage, "rb_ary_resurrect", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
-      llvm::Function::ExternalLinkage, "rb_str_resurrect", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
-      llvm::Function::ExternalLinkage, "rb_obj_as_string", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
-      llvm::Function::ExternalLinkage, "rb_str_freeze", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
-      llvm::Function::ExternalLinkage, "rb_hash_new", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64)},
-        false),
-      llvm::Function::ExternalLinkage, "rb_hash_aset", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 32)},
-        false),
-      llvm::Function::ExternalLinkage, "rb_range_new", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64)},
-        false),
-      llvm::Function::ExternalLinkage, "rb_ivar_set", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
-      llvm::Function::ExternalLinkage, "llrb_insn_bitblt", mod);
-  llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
-        llvm::IntegerType::get(context, 64),
-        llvm::IntegerType::get(context, 64)},
-        false),
-      llvm::Function::ExternalLinkage, "llrb_insn_splatarray", mod);
+// This function checks null and prevents SEGV. Normally we can't use mod->getFunction with CreateCall casually.
+llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name) {
+  llvm::Function *func = mod->getFunction(name);
+  if (func) return func;
+
+  if (name == "rb_funcall") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 32)},
+          true),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_ary_new_from_args") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_ary_resurrect") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_str_resurrect") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_obj_as_string") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_hash_new") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_hash_aset") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_str_freeze") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_range_new") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 32)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_ivar_set") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_bitblt") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_splatarray") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
+  } else {
+    rb_raise(rb_eRuntimeError, "'%s' is not defined in GetFunction", name.c_str());
+  }
+  return func;
 }
 
 // destructive for stack
@@ -167,13 +186,13 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(builder.getInt64(instruction[1].raw));
   } else if (name == "putstring") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
-    stack.push_back(builder.CreateCall(mod->getFunction("rb_str_resurrect"), args, "putstring"));
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_resurrect"), args, "putstring"));
   } else if (name == "tostring") {
     std::vector<llvm::Value*> args = { PopBack(stack) };
-    stack.push_back(builder.CreateCall(mod->getFunction("rb_obj_as_string"), args, "tostring"));
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_obj_as_string"), args, "tostring"));
   } else if (name == "freezestring") { // TODO: check debug info
     std::vector<llvm::Value*> args = { PopBack(stack) };
-    stack.push_back(builder.CreateCall(mod->getFunction("rb_str_freeze"), args, "freezestring"));
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_freeze"), args, "freezestring"));
   } else if (name == "opt_send_without_block") {
     std::map<std::string, Object> options = instruction[1].hash;
     Object mid = options["mid"];
@@ -185,7 +204,7 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileDupArray(mod, instruction));
   } else if (name == "splatarray") {
     std::vector<llvm::Value*> args = { PopBack(stack), builder.getInt64(instruction[1].raw) };
-    stack.push_back(builder.CreateCall(mod->getFunction("llrb_insn_splatarray"), args, "splatarray"));
+    stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_splatarray"), args, "splatarray"));
   } else if (name == "newhash") {
     stack.push_back(CompileNewHash(mod, PopLast(stack, instruction[1].integer)));
   } else if (name == "newrange") {
@@ -258,7 +277,7 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "branchunless") {
     stack.push_back(CompileBranchUnless(mod, PopBack(stack), insn_entry.fallthrough, insn_entry.branched, arg_size, local_size));
   } else if (name == "bitblt") {
-    stack.push_back(builder.CreateCall(mod->getFunction("llrb_insn_bitblt"), {}, "bitblt"));
+    stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_bitblt"), {}, "bitblt"));
   } else if (name == "answer") {
     stack.push_back(builder.getInt64(INT2FIX(42)));
   } else {
@@ -272,19 +291,19 @@ llvm::Value* Compiler::CompileNewArray(llvm::Module* mod, const std::vector<llvm
   std::vector<llvm::Value*> args = { builder.getInt64(objects.size()) };
   args.insert(args.end(), objects.begin(), objects.end());
 
-  return builder.CreateCall(mod->getFunction("rb_ary_new_from_args"), args, "newarray");
+  return builder.CreateCall(GetFunction(mod, "rb_ary_new_from_args"), args, "newarray");
 }
 
 llvm::Value* Compiler::CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction) {
   std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
-  return builder.CreateCall(mod->getFunction("rb_ary_resurrect"), args, "duparray");
+  return builder.CreateCall(GetFunction(mod, "rb_ary_resurrect"), args, "duparray");
 }
 
 llvm::Value* Compiler::CompileNewHash(llvm::Module *mod, const std::vector<llvm::Value*>& objects) {
-  llvm::Value *result = builder.CreateCall(mod->getFunction("rb_hash_new"), {}, "newhash");
+  llvm::Value *result = builder.CreateCall(GetFunction(mod, "rb_hash_new"), {}, "newhash");
   for (size_t i = 0; i < objects.size() / 2; i++) {
     std::vector<llvm::Value*> args = { result, objects[i*2], objects[i*2+1] };
-    builder.CreateCall(mod->getFunction("rb_hash_aset"), args, "newhash");
+    builder.CreateCall(GetFunction(mod, "rb_hash_aset"), args, "newhash");
   }
   return result;
 }
@@ -294,7 +313,7 @@ llvm::Value* Compiler::CompileNewRange(llvm::Module *mod, const std::vector<Obje
   llvm::Value *high = objects[1];
   llvm::Value *flag = builder.getInt64(FIX2INT(instruction[1].raw));
   std::vector<llvm::Value*> args = { low, high, flag };
-  return builder.CreateCall(mod->getFunction("rb_range_new"), args, "newrange");
+  return builder.CreateCall(GetFunction(mod, "rb_range_new"), args, "newrange");
 }
 
 // destructive for stack
@@ -303,7 +322,7 @@ llvm::Value* Compiler::CompileFuncall(llvm::Module *mod, std::vector<llvm::Value
   std::vector<llvm::Value*> args = { PopBack(stack), op_sym, builder.getInt32(argc) };
   args.insert(args.end(), rest.begin(), rest.end());
 
-  return builder.CreateCall(mod->getFunction("rb_funcall"), args, "funcall");
+  return builder.CreateCall(GetFunction(mod, "rb_funcall"), args, "funcall");
 }
 
 llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
@@ -314,7 +333,7 @@ llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
       builder.getInt64(rb_intern("__llrb_self__")),
       ArgumentAt(mod, 0)
     };
-    builder.CreateCall(mod->getFunction("rb_ivar_set"), args, "specialobject_self");
+    builder.CreateCall(GetFunction(mod, "rb_ivar_set"), args, "specialobject_self");
 
     return builder.getInt64(rb_mLLRBFrozenCore);
   } else {
@@ -325,7 +344,7 @@ llvm::Value* Compiler::CompilePutSpecialObject(llvm::Module *mod, int type) {
 
 // TODO: Change to take Environment for locals: arg_size, local_size
 llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size) {
-  llvm::Function* func = mod->getFunction("precompiled_method");
+  llvm::Function* func = GetFunction(mod, "precompiled_method");
 
   llvm::BasicBlock *fallth_b = llvm::BasicBlock::Create(context, "fallthrough", func);
   llvm::BasicBlock *branch_b = llvm::BasicBlock::Create(context, "branched");
@@ -360,7 +379,7 @@ llvm::Value* Compiler::BuildRTEST(llvm::Value *value) {
 
 llvm::Value* Compiler::ArgumentAt(llvm::Module *mod, int index) {
   int i = 0;
-  for (llvm::Value &arg : mod->getFunction("precompiled_method")->args()) {
+  for (llvm::Value &arg : GetFunction(mod, "precompiled_method")->args()) {
     if (i == index) {
       return &arg;
     }

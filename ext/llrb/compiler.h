@@ -33,7 +33,7 @@ namespace llrb {
     llvm::Value* CompilePutSpecialObject(llvm::Module *mod, int type);
     llvm::Value* CompileBranchUnless(llvm::Module *mod, llvm::Value *cond, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size);
     llvm::Value* BuildRTEST(llvm::Value *value);
-    void DeclareCRubyAPIs(llvm::Module *mod);
+    llvm::Function* GetFunction(llvm::Module *mod, const std::string& name);
     uint64_t CreateNativeFunction(std::unique_ptr<llvm::Module> mod, llvm::Function *func);
     llvm::Value* ArgumentAt(llvm::Module *mod, int index);
     llvm::Value* PopBack(std::vector<llvm::Value*>& stack); // destructive for stack
