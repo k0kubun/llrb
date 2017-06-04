@@ -103,6 +103,16 @@ describe 'llrb::Compiler' do
     test_compile { [*(1..2)] }
   end
 
+  specify 'newhash' do
+    test_compile(1) do |a|
+      { a: a }
+    end
+
+    test_compile(1, 2) do |a, b|
+      { a: a, b: b }.to_a
+    end
+  end
+
   specify 'pop' do
     test_compile { [nil][0] = 1 }
   end

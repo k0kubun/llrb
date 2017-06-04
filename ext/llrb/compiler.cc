@@ -113,6 +113,16 @@ void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, false),
       llvm::Function::ExternalLinkage, "rb_str_freeze", mod);
   llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
+      llvm::Function::ExternalLinkage, "rb_hash_new", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64)},
+        false),
+      llvm::Function::ExternalLinkage, "rb_hash_aset", mod);
+  llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
         llvm::IntegerType::get(context, 64),
         llvm::IntegerType::get(context, 64),
@@ -165,6 +175,8 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileDupArray(mod, instruction));
   } else if (name == "splatarray") { // TODO: implement full vm_splat_array
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("to_a")), 0));
+  } else if (name == "newhash") {
+    stack.push_back(CompileNewHash(mod, PopLast(stack, instruction[1].integer)));
   } else if (name == "pop") {
     stack.pop_back();
   } else if (name == "setn") {
@@ -253,6 +265,15 @@ llvm::Value* Compiler::CompileNewArray(llvm::Module* mod, const std::vector<llvm
 llvm::Value* Compiler::CompileDupArray(llvm::Module* mod, const std::vector<Object>& instruction) {
   std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
   return builder.CreateCall(mod->getFunction("rb_ary_resurrect"), args, "duparray");
+}
+
+llvm::Value* Compiler::CompileNewHash(llvm::Module* mod, const std::vector<llvm::Value*>& objects) {
+  llvm::Value *result = builder.CreateCall(mod->getFunction("rb_hash_new"), {}, "newhash");
+  for (size_t i = 0; i < objects.size() / 2; i++) {
+    std::vector<llvm::Value*> args = { result, objects[i*2], objects[i*2+1] };
+    builder.CreateCall(mod->getFunction("rb_hash_aset"), args, "newhash");
+  }
+  return result;
 }
 
 // destructive for stack

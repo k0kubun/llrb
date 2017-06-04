@@ -27,6 +27,7 @@ namespace llrb {
     bool CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& stack, const Entry& insn_entry, int arg_size, int local_size); // destructive for stack
     llvm::Value* CompileNewArray(llvm::Module *mod, const std::vector<llvm::Value*>& objects);
     llvm::Value* CompileDupArray(llvm::Module *mod, const std::vector<Object>& instruction);
+    llvm::Value* CompileNewHash(llvm::Module *mod, const std::vector<llvm::Value*>& objects);
     llvm::Value* CompileFuncall(llvm::Module *mod, std::vector<llvm::Value*>& stack, llvm::Value *op_sym, int argc); // destructive for stack
     llvm::Value* CompilePutSpecialObject(llvm::Module *mod, int type);
     llvm::Value* CompileBranchUnless(llvm::Module *mod, llvm::Value *cond, const std::vector<Entry>& fallthrough, const std::vector<Entry>& branched, int arg_size, int local_size);
