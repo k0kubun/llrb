@@ -158,7 +158,7 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           false),
         llvm::Function::ExternalLinkage, name, mod);
   } else {
-    rb_raise(rb_eRuntimeError, "'%s' is not defined in GetFunction", name.c_str());
+    rb_raise(rb_eRuntimeError, "'%s' is not defined in GetFunction", name.c_str()); // TODO: Define and use another error like CompileError
   }
   return func;
 }
@@ -168,7 +168,9 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
 bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& stack, const Entry& insn_entry, int arg_size, int local_size) {
   const std::vector<Object>& instruction = insn_entry.insn;
   const std::string& name = instruction[0].symbol;
-  if (name == "getlocal_OP__WC__0") {
+  if (name == "nop") {
+    // do nothing
+  } else if (name == "getlocal_OP__WC__0") {
     stack.push_back(ArgumentAt(mod, 3 - local_size + 2 * arg_size - instruction[1].integer)); // XXX: is this okay????
   } else if (name == "putnil") {
     stack.push_back(builder.getInt64(Qnil));
@@ -214,6 +216,10 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "setn") {
     int last = (int)stack.size() - 1;
     stack[last - instruction[1].integer] = stack.back();
+  } else if (name == "trace") {
+    // ignored for now
+  } else if (name == "leave") {
+    // ignored for now
   } else if (name == "opt_str_freeze" || name == "opt_str_uminus") {
     stack.push_back(builder.getInt64(instruction[1].raw)); // TODO: detect redefinition
   } else if (name == "opt_newarray_max") {
@@ -265,12 +271,6 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("=~")), 1));
   } else if (name == "opt_regexpmatch2") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("=~")), 1));
-  } else if (name == "trace") {
-    // ignored for now
-  } else if (name == "leave") {
-    // ignored for now
-  } else if (name == "nop") {
-    // nop
   } else if (name == "jump") {
     fprintf(stderr, "parsed tree had jump instruction: %s\n", instruction[1].symbol.c_str());
     return false;
