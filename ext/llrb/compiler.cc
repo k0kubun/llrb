@@ -132,6 +132,12 @@ void Compiler::DeclareCRubyAPIs(llvm::Module *mod) {
   llvm::Function::Create(
       llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
       llvm::Function::ExternalLinkage, "llrb_insn_bitblt", mod);
+  llvm::Function::Create(
+      llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+        llvm::IntegerType::get(context, 64),
+        llvm::IntegerType::get(context, 64)},
+        false),
+      llvm::Function::ExternalLinkage, "llrb_insn_splatarray", mod);
 }
 
 // destructive for stack
@@ -173,8 +179,9 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     stack.push_back(CompileNewArray(mod, PopLast(stack, instruction[1].integer)));
   } else if (name == "duparray") {
     stack.push_back(CompileDupArray(mod, instruction));
-  } else if (name == "splatarray") { // TODO: implement full vm_splat_array
-    stack.push_back(CompileFuncall(mod, stack, builder.getInt64(rb_intern("to_a")), 0));
+  } else if (name == "splatarray") {
+    std::vector<llvm::Value*> args = { PopBack(stack), builder.getInt64(instruction[1].raw) };
+    stack.push_back(builder.CreateCall(mod->getFunction("llrb_insn_splatarray"), args, "splatarray"));
   } else if (name == "newhash") {
     stack.push_back(CompileNewHash(mod, PopLast(stack, instruction[1].integer)));
   } else if (name == "pop") {

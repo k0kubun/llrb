@@ -101,6 +101,7 @@ describe 'llrb::Compiler' do
 
   specify 'splatarray' do
     test_compile { [*(1..2)] }
+    test_compile { [*''] }
   end
 
   specify 'newhash' do
