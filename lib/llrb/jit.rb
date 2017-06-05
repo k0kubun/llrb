@@ -30,6 +30,7 @@ module LLRB
     end
 
     # defined in ext/llrb/llrb.cc
+    # If dry_run is true, iseq_array is only used.
     #
     # @param  [Array]   iseq_array - result of RubyVM::InstructionSequence#to_a
     # @param  [Class]   klass      - class to define method

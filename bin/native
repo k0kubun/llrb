@@ -3,7 +3,24 @@
 require 'bundler/setup'
 require 'llrb'
 
+module RecursiveIseqFinder
+  def self.find(iseq_array, &block)
+    yield(iseq_array)
+    iseq_array.last.each do |insn, arg, _|
+      if insn == :putiseq
+        find(arg, &block)
+      end
+    end
+  end
+end
+
 script = File.read(ARGV.first || "#{__dir__}/scripts/bm_app_fib.rb")
 native = Class.new
 native.instance_eval("def self.script; #{script}; end")
-LLRB::JIT.preview(native, :script)
+
+iseq_array = RubyVM::InstructionSequence.of(native.method(:script)).to_a
+RecursiveIseqFinder.find(iseq_array) do |array|
+  puts "[#{array[5]}]#{'-' * 80}"
+  LLRB::JIT.send(:precompile_internal, iseq_array, nil, nil, nil, true)
+  puts
+end
