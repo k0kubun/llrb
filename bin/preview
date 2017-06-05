@@ -21,6 +21,6 @@ native.instance_eval("def self.script; #{script}; end")
 iseq_array = RubyVM::InstructionSequence.of(native.method(:script)).to_a
 RecursiveIseqFinder.find(iseq_array) do |array|
   puts "[#{array[5]}]#{'-' * 80}"
-  LLRB::JIT.send(:precompile_internal, iseq_array, nil, nil, nil, true)
+  LLRB::JIT.send(:precompile_internal, array, nil, nil, nil, true)
   puts
 end
