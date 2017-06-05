@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'llrb'
+
+script = File.read(ARGV.first)
+native = Class.new
+native.instance_eval("def self.script; #{script}; end")
+LLRB::JIT.precompile(native, :script)
+
+native.script
