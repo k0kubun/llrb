@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# sudo perf record /home/k0kubun/.rbenv/versions/2.4.1/bin/ruby bin/llrb bin/scripts/bm_app_fib.rb
 
 require 'bundler/setup'
 require 'llrb'
