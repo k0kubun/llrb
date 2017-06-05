@@ -417,7 +417,7 @@ llvm::Value* Compiler::CompileBranchUnless(llvm::Module *mod, llvm::Value *cond,
   return phi;
 }
 
-// In base 2, RTEST is: (v != Qfalse && v != Qnil) -> (v != 0000 && v != 0100) -> (v & 1011) != 0000 -> (v & ~Qnil) != 0
+// In base 2, RTEST is: (v != Qfalse && v != Qnil) -> (v != 0000 && v != 1000) -> (v & 0111) != 0000 -> (v & ~Qnil) != 0
 llvm::Value* Compiler::BuildRTEST(llvm::Value *value) {
   llvm::Value *masked = builder.CreateAnd(value, builder.getInt64(~Qnil));
   return builder.CreateICmpNE(masked, builder.getInt64(0), "RTEST");
