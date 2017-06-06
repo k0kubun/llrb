@@ -1,6 +1,6 @@
 // Functions in this file will be called by compiled native code.
 
-#include "llrb.h"
+#include "ruby24/vm_core.h"
 
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L180-L199
 VALUE llrb_insn_getconstant(VALUE orig_klass, ID id) {
@@ -30,6 +30,13 @@ VALUE llrb_insn_splatarray(VALUE ary, VALUE flag) {
     tmp = rb_ary_dup(tmp);
   }
   return tmp;
+}
+
+VALUE llrb_insn_opt_plus(VALUE lhs, VALUE rhs) {
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_PLUS, INTEGER_REDEFINED_OP_FLAG)) {
+    return LONG2NUM(FIX2LONG(lhs) + FIX2LONG(rhs));
+  }
+  return rb_funcall(lhs, '+', 1, rhs);
 }
 
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2157-L2169

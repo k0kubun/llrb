@@ -172,4 +172,4 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+Ruby License
