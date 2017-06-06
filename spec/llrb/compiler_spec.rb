@@ -17,7 +17,7 @@ describe 'llrb::Compiler' do
     end
 
     begin
-      expect(native.test(*args)).to eq(ruby.test(*args))
+      expect(native.test(*args.map(&:dup))).to eq(ruby.test(*args.map(&:dup)))
     rescue RSpec::Expectations::ExpectationNotMetError
       LLRB::JIT.preview(ruby, :test)
       raise
