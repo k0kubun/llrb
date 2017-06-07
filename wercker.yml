@@ -9,5 +9,8 @@ build:
         name: rspec
         code: bundle exec rake spec
     - script:
-        name: benchmark
+        name: benchmark:bm_app_fib
         code: bundle exec bin/benchmark bin/scripts/bm_app_fib.rb
+    - script:
+        name: benchmark:llrb_funcall
+        code: bundle exec bin/benchmark bin/scripts/llrb_funcall.rb
