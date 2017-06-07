@@ -175,6 +175,13 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 64)},
           false),
         llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_opt_minus") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
   } else if (name == "llrb_insn_bitblt") {
     func = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {}, false),
@@ -276,7 +283,9 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     args.push_back(PopBack(stack));
     stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_opt_plus"), args, "opt_plus"));
   } else if (name == "opt_minus") {
-    stack.push_back(CompileFuncall(mod, stack, builder.getInt64('-'), 1));
+    llvm::Value* rhs = PopBack(stack);
+    std::vector<llvm::Value*> args = { PopBack(stack), rhs };
+    stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_opt_minus"), args, "opt_minus"));
   } else if (name == "opt_mult") {
     stack.push_back(CompileFuncall(mod, stack, builder.getInt64('*'), 1));
   } else if (name == "opt_div") {
