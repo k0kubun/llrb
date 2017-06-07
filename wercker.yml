@@ -1,4 +1,4 @@
-box: k0kubun/llvm38-ruby
+box: k0kubun/llvm38-ruby24
 build:
   steps:
     - bundle-install
