@@ -1,4 +1,4 @@
-FROM k0kubun/llvm38-ruby:latest
+FROM k0kubun/llvm38-ruby24:latest
 MAINTAINER Takashi Kokubun <takashikkbn@gmail.com>
 
 RUN mkdir -p /tmp/lib/llrb
