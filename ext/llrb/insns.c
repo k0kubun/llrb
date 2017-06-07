@@ -46,6 +46,19 @@ VALUE llrb_insn_opt_minus(VALUE lhs, VALUE rhs) {
   return rb_funcall(lhs, '-', 1, rhs);
 }
 
+VALUE llrb_insn_opt_lt(VALUE lhs, VALUE rhs) {
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_MINUS, INTEGER_REDEFINED_OP_FLAG)) {
+    SIGNED_VALUE a = lhs, b = rhs;
+
+    if (a < b) {
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
+  }
+  return rb_funcall(lhs, '<', 1, rhs);
+}
+
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2157-L2169
 VALUE llrb_insn_bitblt() {
   return rb_str_new2("a bit of bacon, lettuce and tomato");
