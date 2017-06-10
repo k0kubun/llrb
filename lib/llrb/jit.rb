@@ -21,6 +21,16 @@ module LLRB
       precompile_internal(iseq_array, original.owner, original.original_name, original.arity, dry_run)
     end
 
+    def self.precompile_all(recv)
+      owned_methods = recv.methods.select do |m|
+        recv.method(m).owner == recv.class
+      end
+      owned_methods.each do |m|
+        precompile(recv, m)
+      end
+      recv
+    end
+
     # Preview compiled method in LLVM IR
     #
     # @param [Object] receiver - receiver of method to be compiled
