@@ -18,7 +18,13 @@ module LLRB
       return false if iseq.nil?
       iseq_array = iseq.to_a
       @gc_guarded.concat(iseq_array.last.select { |insn, _| insn == :putiseq }.map(&:last)) unless dry_run
-      precompile_internal(iseq_array, original.owner, original.original_name, original.arity, dry_run)
+      precompile_internal(iseq_array, original.owner, original.original_name, original.arity, dry_run).tap do |succeeded|
+        unless succeeded
+          $stderr.puts "  => #{original.owner}##{method_name}"
+          require 'pry'
+          Pry::ColorPrinter.pp(iseq_array)
+        end
+      end
     end
 
     def self.precompile_all(recv)
