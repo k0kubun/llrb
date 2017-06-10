@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <cassert>
 #include "parser.h"
+#include "raised_assert.h"
 
 namespace llrb {
 
@@ -14,7 +14,7 @@ std::vector<Entry> Parser::Parse() {
     if (entry.type == ENTRY_INSN && entry.insn[0].symbol == "branchunless") {
       int branched_first = FindLabelIndex(entry.insn[1].symbol);
       int branched_last  = FindBranchEnd(branched_first, i);
-      assert((branched_first >= 0) && (branched_last >= 0));
+      raised_assert((branched_first >= 0) && (branched_last >= 0), "negative branched indices");
 
       entry.fallthrough = ParseSlice(i + 1, branched_first - 1);
       entry.branched    = ParseSlice(branched_first, branched_last);
@@ -29,9 +29,10 @@ std::vector<Entry> Parser::Parse() {
 
 int Parser::FindBranchEnd(int branch_start, int min_index) {
   const Object& jump_or_br = bytecode[branch_start - 1];
-  assert(jump_or_br.klass == "Array" &&
+  raised_assert(jump_or_br.klass == "Array" &&
       (jump_or_br.array[0].symbol == "jump"
-       || jump_or_br.array[0].symbol == "branchunless"));
+       || jump_or_br.array[0].symbol == "branchunless"),
+      "unexpected branch end");
 
   // pass min_index to prevent detecting loop
   return std::max(
@@ -90,10 +91,11 @@ std::vector<Entry> Parser::ParseSlice(int from_index, int to_index) {
   }
 
   std::vector<Entry> ret = Parser(slice).Parse();
+  raised_assert(ret.size() > 0, "No entries are sliced at ParseSlice!");
   if (ret.back().type == ENTRY_INSN && ret.back().insn[0].symbol == "jump") {
     ret.pop_back(); // trim last jump after parse
   }
-  assert(ret.size() > 0);
+  raised_assert(ret.size() > 0, "No entries are returned at ParseSlice!");
   return ret;
 }
 
