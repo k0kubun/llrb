@@ -80,8 +80,7 @@ llvm::Value* Compiler::CompileParsedBytecode(llvm::Module *mod, const std::vecto
   if (stack.size() == 1) {
     return stack.back();
   } else {
-    fprintf(stderr, "unexpected stack size at CompileParsedBytecode: %d\n", (int)stack.size());
-    return nullptr;
+    rb_raise(rb_eRuntimeError, "unexpected stack size at CompileParsedBytecode: %d\n", (int)stack.size());
   }
 }
 
@@ -375,8 +374,7 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "answer") {
     stack.push_back(builder.getInt64(INT2FIX(42)));
   } else {
-    fprintf(stderr, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
-    return false;
+    rb_raise(rb_eRuntimeError, "unexpected instruction at CompileInstruction: %s\n", name.c_str());
   }
   return stack.size() == 0 || stack.back() != nullptr;
 }
