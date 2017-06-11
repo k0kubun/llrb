@@ -1,9 +1,11 @@
 #include "llvm-c/ExecutionEngine.h"
+#include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
 #include "ruby.h"
 #include "compiler.h"
 
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
+static const char *llrb_funcname = "llrb_exec";
 
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
@@ -12,6 +14,8 @@ const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 static VALUE
 rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv)
 {
+  LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
+  LLVMDumpModule(mod);
   return Qtrue;
 }
 
@@ -25,7 +29,8 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv)
 static VALUE
 rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv, VALUE klass, VALUE name, VALUE arity)
 {
-  uint64_t func = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw));
+  LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
+  uint64_t func = llrb_create_native_func(mod, llrb_funcname);
   if (!func) {
     fprintf(stderr, "Failed to create native function...\n");
     return Qfalse;

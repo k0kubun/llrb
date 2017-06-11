@@ -9,6 +9,7 @@
 #pragma GCC diagnostic pop
 #include "cruby/method.h"
 
-uint64_t llrb_compile_iseq(const rb_iseq_t *iseq);
+uint64_t llrb_create_native_func(LLVMModuleRef mod, const char *funcname);
+LLVMModuleRef llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname);
 
 #endif // LLRB_COMPILER_H

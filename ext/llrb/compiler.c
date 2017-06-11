@@ -5,18 +5,8 @@
 #include "compiler.h"
 
 uint64_t
-llrb_compile_iseq(const rb_iseq_t *iseq)
+llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
 {
-  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
-  LLVMTypeRef arg_types[] = { LLVMInt64Type() };
-  LLVMValueRef func = LLVMAddFunction(mod, "llrb_exec", LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
-
-  LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
-  LLVMBuilderRef builder = LLVMCreateBuilder();
-  LLVMPositionBuilderAtEnd(builder, block);
-
-  LLVMBuildRet(builder, LLVMConstInt(LLVMInt64Type(), Qnil, false));
-
   LLVMExecutionEngineRef engine;
   char *error;
   if (LLVMCreateJITCompilerForModule(&engine, mod, 0, &error) != 0) {
@@ -28,6 +18,20 @@ llrb_compile_iseq(const rb_iseq_t *iseq)
       return 0;
     }
   }
+  return LLVMGetFunctionAddress(engine, funcname);
+}
 
-  return LLVMGetFunctionAddress(engine, "llrb_exec");
+LLVMModuleRef
+llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
+{
+  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
+  LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+  LLVMValueRef func = LLVMAddFunction(mod, funcname, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+
+  LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
+  LLVMBuilderRef builder = LLVMCreateBuilder();
+  LLVMPositionBuilderAtEnd(builder, block);
+
+  LLVMBuildRet(builder, LLVMConstInt(LLVMInt64Type(), Qnil, false));
+  return mod;
 }
