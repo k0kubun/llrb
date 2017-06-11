@@ -108,13 +108,13 @@ describe 'llrb::Compiler' do
     test_compile { "hello" }
   end
 
-  # specify 'tostring' do
-  #   test_compile { "h#{2}o" }
-  # end
+  specify 'concatstrings' do
+    test_compile { "a#{}b" }
+  end
 
-  # specify 'freezestring' do
-  #   with frozen_string_literal: true, test "#{true}"
-  # end
+  specify 'tostring' do
+    test_compile { "h#{2}o" }
+  end
 
   specify 'newarray' do
     test_compile { [] }

@@ -161,6 +161,10 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 64)},
           false),
         llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "llrb_insn_concatstrings") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), { llvm::IntegerType::get(context, 64)}, true),
+        llvm::Function::ExternalLinkage, name, mod);
   } else if (name == "llrb_insn_splatarray") {
     func = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
@@ -232,6 +236,11 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
   } else if (name == "putstring") {
     std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].raw) };
     stack.push_back(builder.CreateCall(GetFunction(mod, "rb_str_resurrect"), args, "putstring"));
+  } else if (name == "concatstrings") {
+    std::vector<llvm::Value*> args = { builder.getInt64(instruction[1].integer) };
+    std::vector<llvm::Value*> rest = PopLast(stack, instruction[1].integer);
+    args.insert(args.end(), rest.begin(), rest.end());
+    stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_concatstrings"), args, "concatstrings"));
   } else if (name == "tostring") {
     std::vector<llvm::Value*> args = { PopBack(stack) };
     stack.push_back(builder.CreateCall(GetFunction(mod, "rb_obj_as_string"), args, "tostring"));
