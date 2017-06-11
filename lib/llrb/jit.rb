@@ -27,6 +27,8 @@ module LLRB
       end
     rescue RuntimeError # TODO: Don't use runtime error in compiler
       $stderr.puts "  => #{original.owner}##{method_name}"
+      require 'pry'
+      Pry::ColorPrinter.pp(iseq_array)
       raise
     end
 
