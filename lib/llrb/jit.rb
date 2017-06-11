@@ -32,7 +32,7 @@ module LLRB
         recv.method(m).owner == recv.class
       end
       owned_methods.each do |m|
-        precompile(recv, m)
+        return recv unless precompile(recv, m)
       end
       recv
     end
