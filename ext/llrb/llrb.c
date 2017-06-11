@@ -1,6 +1,7 @@
-#include "llrb.h"
+#include "llvm-c/ExecutionEngine.h"
+#include "llvm-c/Target.h"
+#include "ruby.h"
 #include "compiler.h"
-#include "codegen.h"
 
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
@@ -35,7 +36,11 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv, VALUE kl
 void
 Init_llrb(void)
 {
-  Init_codegen();
+  // Required to generate native code.
+  LLVMInitializeNativeTarget();
+  LLVMInitializeNativeAsmPrinter();
+  LLVMInitializeNativeAsmParser();
+  LLVMLinkInMCJIT();
 
   VALUE rb_mLLRB = rb_define_module("LLRB");
   VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
