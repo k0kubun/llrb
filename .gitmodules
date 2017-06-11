@@ -1,4 +1,4 @@
 [submodule "ext/llrb/cruby"]
 	path = ext/llrb/cruby
-	url = git@github.com:k0kubun/llrb-ruby.git
+	url = https://github.com/k0kubun/ruby.git
 	shallow = true
