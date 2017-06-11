@@ -54,4 +54,6 @@ Init_llrb(void)
   VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
   rb_define_singleton_method(rb_mJIT, "preview_iseq", RUBY_METHOD_FUNC(rb_jit_preview_iseq), 2);
   rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 5);
+
+  Init_compiler(rb_mJIT);
 }

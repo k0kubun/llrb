@@ -30,7 +30,7 @@ $CFLAGS = "#{$CFLAGS} -Wall -W #{`llvm-config --cflags`.rstrip}"
 #RbConfig::MAKEFILE_CONFIG['LDSHARED']
 $LDFLAGS  = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine native`}"
 
-# To include ccan/*, add ext/llrb/cruby under include path
-$INCFLAGS = "#{$INCFLAGS} -I$(srcdir)/cruby"
+# To include ccan/*, add ext/llrb/cruby under include path. And "dynamic" dir has CRuby's dynamic headers.
+$INCFLAGS = "#{$INCFLAGS} -I$(srcdir)/cruby -I$(srcdir)/dynamic"
 
 create_makefile('llrb/llrb')
