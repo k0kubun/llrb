@@ -1,3 +1,3 @@
-require "mkmf"
+require 'mkmf'
 
-create_makefile("llrb/llrb")
+create_makefile('llrb/llrb')

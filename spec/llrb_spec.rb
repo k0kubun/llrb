@@ -1,11 +1,7 @@
-require "spec_helper"
+require 'spec_helper'
 
-RSpec.describe Llrb do
-  it "has a version number" do
-    expect(Llrb::VERSION).not_to be nil
-  end
-
-  it "does something useful" do
-    expect(false).to eq(true)
+RSpec.describe LLRB do
+  it 'has a version number' do
+    expect(LLRB::VERSION).not_to eq(nil)
   end
 end
