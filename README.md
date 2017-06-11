@@ -58,22 +58,22 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] nop
 
 ### variable
-- [ ] getlocal
-- [ ] getlocal\_OP\_\_WC\_\_0
-- [ ] getlocal\_OP\_\_WC\_\_1
-- [ ] setlocal
-- [ ] setlocal\_OP\_\_WC\_\_0
-- [ ] setlocal\_OP\_\_WC\_\_1
-- [ ] getspecial
-- [ ] setspecial
+- [ ] getlocal (!)
+- [ ] getlocal\_OP\_\_WC\_\_0 (!)
+- [ ] getlocal\_OP\_\_WC\_\_1 (!)
+- [ ] setlocal (!)
+- [ ] setlocal\_OP\_\_WC\_\_0 (!)
+- [ ] setlocal\_OP\_\_WC\_\_1 (!)
+- [ ] getspecial (!)
+- [ ] setspecial (!)
 - [ ] getinstancevariable
 - [ ] setinstancevariable
-- [ ] getclassvariable
-- [ ] setclassvariable
-- [ ] getconstant (current scope not handled)
-- [ ] setconstant (current scope not handled)
-- [ ] getglobal
-- [ ] setglobal
+- [ ] getclassvariable (!)
+- [ ] setclassvariable (!)
+- [ ] getconstant (!)
+- [ ] setconstant (!)
+- [ ] getglobal (!)
+- [ ] setglobal (!)
 
 ### put
 - [ ] putnil
@@ -81,7 +81,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] putobject
 - [ ] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [ ] putobject\_OP\_INT2FIX\_O\_1\_C\_
-- [ ] putspecialobject (vmcore)
+- [ ] putspecialobject
 - [ ] putiseq
 - [ ] putstring
 - [ ] concatstrings
@@ -108,19 +108,19 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] adjuststack
 
 ### setting
-- [ ] defined
-- [ ] checkmatch
-- [ ] checkkeyword
-- [ ] trace
+- [ ] defined (!)
+- [ ] checkmatch (!)
+- [ ] checkkeyword (!)
+- [ ] trace (!)
 
 ### class/module
-- [ ] defineclass
+- [ ] defineclass (!)
 
 ### method/iterator
-- [ ] send
-- [ ] invokesuper
-- [ ] invokeblock
-- [ ] leave
+- [ ] send (!)
+- [ ] invokesuper (!)
+- [ ] invokeblock (!)
+- [ ] leave (!)
 
 ### optimize
 - [ ] opt\_str\_freeze
@@ -130,8 +130,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_send\_without\_block
 - [ ] getinlinecache
 - [ ] setinlinecache (actually not set)
-- [ ] once
-- [ ] opt\_case\_dispatch
+- [ ] once (!)
+- [ ] opt\_case\_dispatch (!)
 - [ ] opt\_plus
 - [ ] opt\_minus
 - [ ] opt\_mult
@@ -158,13 +158,13 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_call\_c\_function
 
 ### exception
-- [ ] throw
+- [ ] throw (!)
 
 ### jump
-- [ ] jump
-- [ ] branchif
-- [ ] branchunless
-- [ ] branchnil
+- [ ] jump (!)
+- [ ] branchif (!)
+- [ ] branchunless (!)
+- [ ] branchnil (!)
 
 ### joke
 - [ ] bitblt
