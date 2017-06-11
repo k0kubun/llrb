@@ -24,6 +24,15 @@ describe 'llrb::Compiler' do
     end
   end
 
+  # for debug
+  def preview_compile(*args, &block)
+    native = Class.new
+    native.send(:define_singleton_method, :test, &block)
+    iseq_array = RubyVM::InstructionSequence.of(native.method(:test)).to_a
+    Pry::ColorPrinter.pp(iseq_array)
+    LLRB::JIT.preview(native, :test)
+  end
+
   # Don't use this method for iseq that can be generated from compiler
   def eval_iseq(*iseq_bytecode)
     klass = Class.new
@@ -48,6 +57,10 @@ describe 'llrb::Compiler' do
       [:nop],
     )
     expect(result).to eq("stack wasn't modified")
+  end
+
+  specify 'getlocal_OP__WC__0' do
+    test_compile(1) { |a| a }
   end
 
   specify 'getconstant' do
