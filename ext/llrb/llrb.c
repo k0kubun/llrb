@@ -1,5 +1,6 @@
 #include "llrb.h"
 #include "compiler.h"
+#include "codegen.h"
 
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
@@ -34,6 +35,8 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv, VALUE kl
 void
 Init_llrb(void)
 {
+  Init_codegen();
+
   VALUE rb_mLLRB = rb_define_module("LLRB");
   VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
   rb_define_singleton_method(rb_mJIT, "preview_iseq", RUBY_METHOD_FUNC(rb_jit_preview_iseq), 2);
