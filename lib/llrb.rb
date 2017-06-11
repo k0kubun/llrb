@@ -1,2 +1,2 @@
 require 'llrb/version'
-require 'llrb/llrb'
+require 'llrb/jit'
