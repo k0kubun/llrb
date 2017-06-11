@@ -138,6 +138,13 @@ llvm::Function* Compiler::GetFunction(llvm::Module *mod, const std::string& name
           llvm::IntegerType::get(context, 32)},
           false),
         llvm::Function::ExternalLinkage, name, mod);
+  } else if (name == "rb_ivar_get") {
+    func = llvm::Function::Create(
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
+          llvm::IntegerType::get(context, 64),
+          llvm::IntegerType::get(context, 64)},
+          false),
+        llvm::Function::ExternalLinkage, name, mod);
   } else if (name == "rb_ivar_set") {
     func = llvm::Function::Create(
         llvm::FunctionType::get(llvm::Type::getInt64Ty(context), {
@@ -212,6 +219,12 @@ bool Compiler::CompileInstruction(llvm::Module *mod, std::vector<llvm::Value*>& 
     // do nothing
   } else if (name == "getlocal_OP__WC__0") {
     stack.push_back(ArgumentAt(mod, 3 - local_size + 2 * arg_size - instruction[1].integer)); // XXX: is this okay????
+  } else if (name == "getinstancevariable") { // TODO: Implement inline cache counterpart
+    std::vector<llvm::Value*> args = { ArgumentAt(mod, 0), builder.getInt64(SYM2ID(instruction[1].raw)) };
+    stack.push_back(builder.CreateCall(GetFunction(mod, "rb_ivar_get"), args, "getinstancevariable"));
+  } else if (name == "setinstancevariable") { // TODO: Implement inline cache counterpart
+    std::vector<llvm::Value*> args = { ArgumentAt(mod, 0), builder.getInt64(SYM2ID(instruction[1].raw)), PopBack(stack) };
+    builder.CreateCall(GetFunction(mod, "rb_ivar_set"), args, "setinstancevariable");
   } else if (name == "getconstant") { // TODO: Handle current scope properly
     std::vector<llvm::Value*> args = { PopBack(stack), builder.getInt64(SYM2ID(instruction[1].raw)) };
     stack.push_back(builder.CreateCall(GetFunction(mod, "llrb_insn_getconstant"), args, "getconstant"));

@@ -63,6 +63,14 @@ describe 'llrb::Compiler' do
     test_compile(1) { |a| a }
   end
 
+  specify 'getinstancevariable' do
+    test_compile { @a = 1; @a }
+  end
+
+  specify 'setinstancevariable' do
+    test_compile { @a = 2 }
+  end
+
   specify 'getconstant' do
     test_compile { RubyVM::InstructionSequence }
   end
