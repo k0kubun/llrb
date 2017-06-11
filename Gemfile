@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  if RUBY_VERSION >= "2.4.0"
+  if RUBY_VERSION >= "2.4.0" && ENV.key?('WERCKER_STEP_NAME').!
     gem 'pry', git: 'https://github.com/pry/pry'
   else
     gem 'pry'
