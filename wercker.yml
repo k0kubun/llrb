@@ -3,6 +3,9 @@ build:
   steps:
     - bundle-install
     - script:
+        name: clone cruby
+        code: git submodule init && git submodule update
+    - script:
         name: compile
         code: bundle exec rake compile
     - script:
