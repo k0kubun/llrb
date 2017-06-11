@@ -6,11 +6,11 @@ RSpec.describe LLRB::JIT do
         100
       end
 
-      # expect {
+      expect {
         LLRB::JIT.compile(klass, :hello)
-      # }.to change {
-      #   klass.method(:hello).hash
-      # }
+      }.to change {
+        klass.method(:hello).hash
+      }
       klass.hello
     end
 
@@ -21,12 +21,12 @@ RSpec.describe LLRB::JIT do
       end
       object = klass.new
 
-      # expect {
+      expect {
         LLRB::JIT.compile(object, :hello)
-      # }.to change {
-      #   object.method(:hello).hash
-      # }
-      # object.hello
+      }.to change {
+        object.method(:hello).hash
+      }
+      object.hello
     end
 
     it 'is callable multiple times' do
@@ -34,9 +34,8 @@ RSpec.describe LLRB::JIT do
       def klass.hello
         100
       end
-      LLRB::JIT.compile(klass, :hello)
-      #expect(LLRB::JIT.precompile(klass, :hello)).to eq(true)
-      #expect(LLRB::JIT.precompile(klass, :hello)).to eq(false)
+      expect(LLRB::JIT.compile(klass, :hello)).to eq(true)
+      expect(LLRB::JIT.compile(klass, :hello)).to eq(false)
     end
   end
 end

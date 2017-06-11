@@ -9,10 +9,10 @@ static const char *llrb_funcname = "llrb_exec";
 
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
-// @param  [Object]  recv  - method receiver
+// @param  [Object]  recv  - method receiver (not used for now)
 // @return [Boolean] return true if compiled
 static VALUE
-rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv)
+rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE recv))
 {
   LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
   LLVMDumpModule(mod);
@@ -21,13 +21,13 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv)
 
 // LLRB::JIT.compile_iseq
 // @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
-// @param  [Object]  recv   - method receiver
+// @param  [Object]  recv   - method receiver (not used for now)
 // @param  [Class]   klass  - method class
 // @param  [Symbol]  name   - method name to define
 // @param  [Integer] arity  - method arity
 // @return [Boolean] return true if compiled
 static VALUE
-rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv, VALUE klass, VALUE name, VALUE arity)
+rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE recv), VALUE klass, VALUE name, VALUE arity)
 {
   LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
@@ -35,6 +35,9 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE recv, VALUE kl
     fprintf(stderr, "Failed to create native function...\n");
     return Qfalse;
   }
+
+  VALUE name_str = rb_convert_type(name, T_STRING, "String", "to_s");
+  rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), FIX2INT(arity));
   return Qtrue;
 }
 
