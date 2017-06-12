@@ -18,7 +18,7 @@ struct llrb_cfstack {
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
   struct llrb_cfstack stack;
-  const rb_iseq_t *iseq;
+  const struct rb_iseq_constant_body *body;
   const char *funcname;
   LLVMBuilderRef builder;
   LLVMModuleRef mod;
@@ -95,8 +95,8 @@ llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands
     case YARVINSN_nop:
       break; // do nothing
     case YARVINSN_getlocal_OP__WC__0: {
-      unsigned local_size = c->iseq->body->local_table_size;
-      unsigned arg_size   = c->iseq->body->param.size;
+      unsigned local_size = c->body->local_table_size;
+      unsigned arg_size   = c->body->param.size;
       llrb_stack_push(&c->stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
       break;
     }
@@ -118,7 +118,7 @@ llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands
       LLVMBuildRet(c->builder, llrb_stack_pop(&c->stack));
       break;
     default:
-      llrb_disasm_insns(c->iseq->body);
+      llrb_disasm_insns(c->body);
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
@@ -133,7 +133,7 @@ llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const char *fu
       .size = 0,
       .max  = iseq->body->stack_max
     },
-    .iseq = iseq,
+    .body = iseq->body,
     .funcname = funcname,
     .builder = builder,
     .mod = mod
