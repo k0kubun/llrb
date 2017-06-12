@@ -22,6 +22,8 @@ struct llrb_compiler {
   const char *funcname;
   LLVMBuilderRef builder;
   LLVMModuleRef mod;
+  VALUE block_by_start;
+  VALUE block_end_by_start;
 };
 
 static LLVMValueRef
@@ -63,8 +65,8 @@ static VALUE
 llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
   // Rule 1
-  VALUE positions = rb_ary_new_capa(1);
-  rb_ary_push(positions, INT2FIX(0));
+  VALUE starts = rb_ary_new_capa(1);
+  rb_ary_push(starts, INT2FIX(0));
 
   for (unsigned int i = 0; i < body->iseq_size;) {
     int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
@@ -74,7 +76,7 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
       VALUE op = body->iseq_encoded[i+j];
       switch (insn_op_type(insn, j-1)) {
         case TS_OFFSET:
-          rb_ary_push(positions, INT2FIX((int)(i+insn_len(insn)+op)));
+          rb_ary_push(starts, INT2FIX((int)(i+insn_len(insn)+op)));
           break;
       }
     }
@@ -84,13 +86,15 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
       case YARVINSN_jump:
       case YARVINSN_branchif:
       case YARVINSN_branchunless:
-        rb_ary_push(positions, INT2FIX(i+insn_len(insn)));
+        rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
         break;
     }
 
     i += insn_len(insn);
   }
-  return rb_funcall(rb_ary_sort_bang(positions), rb_intern("uniq!"), 0);
+  starts = rb_ary_sort_bang(starts);
+  rb_funcall(starts, rb_intern("uniq!"), 0);
+  return starts;
 }
 
 // Given llrb_basic_block_starts result like [0, 2, 8, 9], it returns a Hash
@@ -225,6 +229,19 @@ llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
   return LLVMGetFunctionAddress(engine, funcname);
 }
 
+static void
+llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start, unsigned int end)
+{
+  LLVMBasicBlockRef block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(start));
+  LLVMPositionBuilderAtEnd(c->builder, block);
+
+  for (unsigned int i = start; i <= end;) {
+    int insn = rb_vm_insn_addr2insn((void *)c->body->iseq_encoded[i]);
+    llrb_compile_insn(c, insn, c->body->iseq_encoded + (i+1));
+    i += insn_len(insn);
+  }
+}
+
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
@@ -235,10 +252,6 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
       LLVMFunctionType(LLVMInt64Type(), arg_types, iseq->body->param.size+1, false));
 
-  LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
-  LLVMBuilderRef builder = LLVMCreateBuilder();
-  LLVMPositionBuilderAtEnd(builder, block);
-
   struct llrb_compiler compiler = (struct llrb_compiler){
     .stack = (struct llrb_cfstack){
       .body = ALLOC_N(LLVMValueRef, iseq->body->stack_max),
@@ -247,15 +260,16 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
     },
     .body = iseq->body,
     .funcname = funcname,
-    .builder = builder,
-    .mod = mod
+    .builder = LLVMCreateBuilder(),
+    .mod = mod,
+    .block_by_start = llrb_basic_block_by_start(iseq->body, func),
+    .block_end_by_start = llrb_basic_block_end_by_start(iseq->body)
   };
 
-  for (unsigned int i = 0; i < iseq->body->iseq_size;) {
-    int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
-    llrb_compile_insn(&compiler, insn, iseq->body->iseq_encoded + (i+1));
-    i += insn_len(insn);
-  }
+  VALUE block_end = rb_hash_aref(compiler.block_end_by_start, INT2FIX(0));
+  llrb_compile_basic_block(&compiler, 0, FIX2INT(block_end));
+
+  //LLVMDumpModule(mod);
   return mod;
 }
 
