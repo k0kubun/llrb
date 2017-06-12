@@ -59,8 +59,8 @@ int rb_vm_insn_addr2insn(const void *addr);
 //   Rule 1: 0 is always included
 //   Rule 2: All TS_OFFSET numers are included
 //   Rule 3: Positions immediately after jump, branchif and branchunless are included
-VALUE
-llrb_basic_block_positions(const struct rb_iseq_constant_body *body)
+static VALUE
+llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
   // Rule 1
   VALUE positions = rb_ary_new_capa(1);
@@ -93,6 +93,47 @@ llrb_basic_block_positions(const struct rb_iseq_constant_body *body)
   return rb_funcall(rb_ary_sort_bang(positions), rb_intern("uniq!"), 0);
 }
 
+// Given llrb_basic_block_starts result like [0, 2, 8, 9], it returns a Hash
+// whose value specifies basic block ends like { 0 => 1, 2 => 7, 8 => 8, 9 => 10 }.
+static VALUE
+llrb_basic_block_end_by_start(const struct rb_iseq_constant_body *body)
+{
+  VALUE end_by_start = rb_hash_new();
+  VALUE starts = llrb_basic_block_starts(body); // TODO: free? And it's duplicated with llrb_basic_block_by_start.
+
+  for (long i = 0; i < RARRAY_LEN(starts); i++) {
+    VALUE start = RARRAY_AREF(starts, i);
+
+    if (i == RARRAY_LEN(starts)-1) {
+      rb_hash_aset(end_by_start, start, INT2FIX(body->iseq_size-1)); // This assumes the end is always "leave". Is it true?
+    } else {
+      VALUE next_start = RARRAY_AREF(starts, i+1);
+      rb_hash_aset(end_by_start, start, INT2FIX(FIX2INT(next_start)-1));
+    }
+  }
+  return end_by_start;
+}
+
+// Given basic block starts like [0, 2, 8], it returns a Hash like
+// { 0 => label_0 BasicBlock, 2 => label_2 BasicBlock, 8 => label_8 BasicBlock }.
+//
+// Those blocks are appended to a given func.
+// This hash and its blocks are necessary to be built first for forwared reference.
+static VALUE
+llrb_basic_block_by_start(const struct rb_iseq_constant_body *body, LLVMValueRef func)
+{
+  VALUE block_by_start = rb_hash_new();
+  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
+
+  for (long i = 0; i < RARRAY_LEN(starts); i++) {
+    VALUE start = RARRAY_AREF(starts, i);
+    VALUE label = rb_str_new_cstr("label_"); // TODO: free?
+    rb_str_catf(label, "%d", FIX2INT(start));
+    rb_hash_aset(block_by_start, start, (VALUE)LLVMAppendBasicBlock(func, RSTRING_PTR(label)));
+  }
+  return block_by_start;
+}
+
 static void
 llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 {
@@ -118,8 +159,10 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
     fprintf(stderr, "\n");
     i += insn_len(insn);
   }
-  VALUE positions = llrb_basic_block_positions(body);
-  fprintf(stderr, "\nbasic block positions: %s\n\n", RSTRING_PTR(rb_inspect(positions)));
+  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
+  VALUE end_by_start = llrb_basic_block_end_by_start(body); // TODO: free?
+  fprintf(stderr, "\nbasic block starts: %s\n", RSTRING_PTR(rb_inspect(starts)));
+  fprintf(stderr, "basic block ends by starts: %s\n\n", RSTRING_PTR(rb_inspect(end_by_start)));
 }
 
 LLVMValueRef
@@ -165,28 +208,6 @@ llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands
   }
 }
 
-static void
-llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const char *funcname, const rb_iseq_t *iseq)
-{
-  struct llrb_compiler compiler = (struct llrb_compiler){
-    .stack = (struct llrb_cfstack){
-      .body = ALLOC_N(LLVMValueRef, iseq->body->stack_max),
-      .size = 0,
-      .max  = iseq->body->stack_max
-    },
-    .body = iseq->body,
-    .funcname = funcname,
-    .builder = builder,
-    .mod = mod
-  };
-
-  for (unsigned int i = 0; i < iseq->body->iseq_size;) {
-    int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
-    llrb_compile_insn(&compiler, insn, iseq->body->iseq_encoded + (i+1));
-    i += insn_len(insn);
-  }
-}
-
 uint64_t
 llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
 {
@@ -218,7 +239,23 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   LLVMBuilderRef builder = LLVMCreateBuilder();
   LLVMPositionBuilderAtEnd(builder, block);
 
-  llrb_compile_iseq_body(mod, builder, funcname, iseq);
+  struct llrb_compiler compiler = (struct llrb_compiler){
+    .stack = (struct llrb_cfstack){
+      .body = ALLOC_N(LLVMValueRef, iseq->body->stack_max),
+      .size = 0,
+      .max  = iseq->body->stack_max
+    },
+    .body = iseq->body,
+    .funcname = funcname,
+    .builder = builder,
+    .mod = mod
+  };
+
+  for (unsigned int i = 0; i < iseq->body->iseq_size;) {
+    int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
+    llrb_compile_insn(&compiler, insn, iseq->body->iseq_encoded + (i+1));
+    i += insn_len(insn);
+  }
   return mod;
 }
 
