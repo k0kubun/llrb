@@ -12,18 +12,26 @@ static VALUE rb_eCompileError;
 struct llrb_cfstack {
   unsigned int size;
   unsigned int max;
-  VALUE *body;
+  LLVMValueRef *body;
 };
 
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
   struct llrb_cfstack stack;
   const rb_iseq_t *iseq;
+  const char *funcname;
   LLVMBuilderRef builder;
+  LLVMModuleRef mod;
 };
 
+static LLVMValueRef
+llvm_value(VALUE value)
+{
+  return LLVMConstInt(LLVMInt64Type(), value, false);
+}
+
 static void
-llrb_stack_push(struct llrb_cfstack *stack, VALUE value)
+llrb_stack_push(struct llrb_cfstack *stack, LLVMValueRef value)
 {
   if (stack->size >= stack->max) {
     rb_raise(rb_eCompileError, "LLRB's internal stack overflow: max=%d, next size=%d", stack->max, stack->size+1);
@@ -32,7 +40,7 @@ llrb_stack_push(struct llrb_cfstack *stack, VALUE value)
   stack->size++;
 }
 
-static VALUE
+static LLVMValueRef
 llrb_stack_pop(struct llrb_cfstack *stack)
 {
   if (stack->size <= 0) {
@@ -81,28 +89,41 @@ llrb_dump_insns(const struct rb_iseq_constant_body *body)
   fprintf(stderr, "\n");
 }
 
+LLVMValueRef
+llrb_argument_at(struct llrb_compiler *c, unsigned index)
+{
+  LLVMValueRef func = LLVMGetNamedFunction(c->mod, c->funcname);
+  return LLVMGetParam(func, index);
+}
+
 static void
-llrb_compile_insn(struct llrb_compiler *c, LLVMModuleRef mod, const int insn, const VALUE *operands)
+llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands)
 {
   switch (insn) {
     case YARVINSN_nop:
       break; // do nothing
+    case YARVINSN_getlocal_OP__WC__0: {
+      unsigned local_size = c->iseq->body->local_table_size;
+      unsigned arg_size   = c->iseq->body->param.size;
+      llrb_stack_push(&c->stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
+      break;
+    }
     case YARVINSN_trace:
       break; // TODO: implement
     case YARVINSN_putobject:
-      llrb_stack_push(&c->stack, operands[0]);
+      llrb_stack_push(&c->stack, llvm_value(operands[0]));
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
-      llrb_stack_push(&c->stack, INT2FIX(0));
+      llrb_stack_push(&c->stack, llvm_value(INT2FIX(0)));
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_1_C_:
-      llrb_stack_push(&c->stack, INT2FIX(1));
+      llrb_stack_push(&c->stack, llvm_value(INT2FIX(1)));
       break;
     case YARVINSN_leave:
       if (c->stack.size != 1) {
         rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", c->stack.size);
       }
-      LLVMBuildRet(c->builder, LLVMConstInt(LLVMInt64Type(), llrb_stack_pop(&c->stack), false));
+      LLVMBuildRet(c->builder, llrb_stack_pop(&c->stack));
       break;
     default:
       llrb_dump_insns(c->iseq->body);
@@ -112,21 +133,23 @@ llrb_compile_insn(struct llrb_compiler *c, LLVMModuleRef mod, const int insn, co
 }
 
 static void
-llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const rb_iseq_t *iseq)
+llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const char *funcname, const rb_iseq_t *iseq)
 {
   struct llrb_compiler compiler = (struct llrb_compiler){
     .stack = (struct llrb_cfstack){
-      .body = ALLOC_N(VALUE, iseq->body->stack_max),
+      .body = ALLOC_N(LLVMValueRef, iseq->body->stack_max),
       .size = 0,
       .max  = iseq->body->stack_max
     },
     .iseq = iseq,
-    .builder = builder
+    .funcname = funcname,
+    .builder = builder,
+    .mod = mod
   };
 
   for (unsigned int i = 0; i < iseq->body->iseq_size;) {
     int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
-    llrb_compile_insn(&compiler, mod, insn, iseq->body->iseq_encoded + (i+1));
+    llrb_compile_insn(&compiler, insn, iseq->body->iseq_encoded + (i+1));
     i += insn_len(insn);
   }
 }
@@ -152,14 +175,17 @@ LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
   LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
-  LLVMTypeRef arg_types[] = { LLVMInt64Type() };
-  LLVMValueRef func = LLVMAddFunction(mod, funcname, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+
+  LLVMTypeRef *arg_types = ALLOC_N(LLVMTypeRef, iseq->body->param.size+1);
+  for (unsigned i = 0; i <= iseq->body->param.size; i++) arg_types[i] = LLVMInt64Type();
+  LLVMValueRef func = LLVMAddFunction(mod, funcname,
+      LLVMFunctionType(LLVMInt64Type(), arg_types, iseq->body->param.size+1, false));
 
   LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
   LLVMBuilderRef builder = LLVMCreateBuilder();
   LLVMPositionBuilderAtEnd(builder, block);
 
-  llrb_compile_iseq_body(mod, builder, iseq);
+  llrb_compile_iseq_body(mod, builder, funcname, iseq);
   return mod;
 }
 

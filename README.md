@@ -52,14 +52,14 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-4/94 (4.2%)
+5/94 (5.3%)
 
 ### nop
 - [ ] nop
 
 ### variable
 - [ ] getlocal (!)
-- [ ] getlocal\_OP\_\_WC\_\_0 (!)
+- [x] getlocal\_OP\_\_WC\_\_0
 - [ ] getlocal\_OP\_\_WC\_\_1 (!)
 - [ ] setlocal (!)
 - [ ] setlocal\_OP\_\_WC\_\_0 (!)
@@ -111,7 +111,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] defined (!)
 - [ ] checkmatch (!)
 - [ ] checkkeyword (!)
-- [ ] trace (!)
+- [ ] trace
 
 ### class/module
 - [ ] defineclass (!)

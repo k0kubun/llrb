@@ -12,6 +12,10 @@ RSpec.describe 'llrb::Compiler' do
     expect(native.test(*args.map(&:dup))).to eq(ruby.test(*args.map(&:dup)))
   end
 
+  specify 'getlocal_OP__WC__0' do
+    test_compile(1) { |a| a }
+  end
+
   specify 'putobject' do
     test_compile { true }
     test_compile { false }
