@@ -53,6 +53,46 @@ llrb_stack_pop(struct llrb_cfstack *stack)
 // Don't use `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
 int rb_vm_insn_addr2insn(const void *addr);
 
+// Return sorted unique Ruby array of BasicBlock start positions like [0, 2, 8].
+//
+// It's constructed in the following rule.
+//   Rule 1: 0 is always included
+//   Rule 2: All TS_OFFSET numers are included
+//   Rule 3: Positions immediately after jump, branchif and branchunless are included
+VALUE
+llrb_basic_block_positions(const struct rb_iseq_constant_body *body)
+{
+  // Rule 1
+  VALUE positions = rb_ary_new_capa(1);
+  rb_ary_push(positions, INT2FIX(0));
+
+  for (unsigned int i = 0; i < body->iseq_size;) {
+    int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
+
+    // Rule 2
+    for (int j = 1; j < insn_len(insn); j++) {
+      VALUE op = body->iseq_encoded[i+j];
+      switch (insn_op_type(insn, j-1)) {
+        case TS_OFFSET:
+          rb_ary_push(positions, INT2FIX((int)(i+insn_len(insn)+op)));
+          break;
+      }
+    }
+
+    // Rule 3
+    switch (insn) {
+      case YARVINSN_jump:
+      case YARVINSN_branchif:
+      case YARVINSN_branchunless:
+        rb_ary_push(positions, INT2FIX(i+insn_len(insn)));
+        break;
+    }
+
+    i += insn_len(insn);
+  }
+  return rb_funcall(rb_ary_sort_bang(positions), rb_intern("uniq!"), 0);
+}
+
 static void
 llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 {
@@ -78,7 +118,8 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
     fprintf(stderr, "\n");
     i += insn_len(insn);
   }
-  fprintf(stderr, "\n");
+  VALUE positions = llrb_basic_block_positions(body);
+  fprintf(stderr, "\nbasic block positions: %s\n\n", RSTRING_PTR(rb_inspect(positions)));
 }
 
 LLVMValueRef

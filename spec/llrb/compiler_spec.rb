@@ -33,6 +33,7 @@ RSpec.describe 'llrb::Compiler' do
   end
 
   specify 'jump' do
-    # test_compile(true) { |a| 1 if a }
+    #test_compile(true) { |a| 1 if a }
+    #test_compile(true) { while 1+1; end }
   end
 end
