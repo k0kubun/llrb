@@ -67,8 +67,13 @@ llrb_dump_insns(const struct rb_iseq_constant_body *body)
     fprintf(stderr, "%s: %d [%s]\n", insn_name(insn), insn_len(insn)-1, insn_op_types(insn));
 
     for (int j = 1; j < insn_len(insn); j++) {
-      if (insn_op_type(insn, j-1) == 'V') {
-        fprintf(stderr, "  %s\n", RSTRING_PTR(rb_inspect(body->iseq_encoded[i+j])));
+      switch (insn_op_type(insn, j-1)) {
+        case 'V':
+          fprintf(stderr, "  %s\n", RSTRING_PTR(rb_inspect(body->iseq_encoded[i+j])));
+          break;
+        case 'N':
+          fprintf(stderr, "  %ld\n", (rb_num_t)body->iseq_encoded[i+j]);
+          break;
       }
     }
     i += insn_len(insn);
