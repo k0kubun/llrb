@@ -50,21 +50,8 @@ llrb_stack_pop(struct llrb_cfstack *stack)
   return stack->body[stack->size];
 }
 
-// I don't use `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
-// https://github.com/ruby/ruby/blob/v2_4_1/compile.c#L695-L707
-static int
-rb_vm_insn_addr2insn(const void *addr)
-{
-  int insn;
-  const void * const *table = rb_vm_get_insns_address_table();
-
-  for (insn = 0; insn < VM_INSTRUCTION_SIZE; insn++) {
-    if (table[insn] == addr) {
-      return insn;
-    }
-  }
-  rb_bug("rb_vm_insn_addr2insn (llrb): invalid insn address: %p", addr);
-}
+// Don't use `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
+int rb_vm_insn_addr2insn(const void *addr);
 
 static void
 llrb_dump_insns(const struct rb_iseq_constant_body *body)
