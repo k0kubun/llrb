@@ -31,4 +31,8 @@ RSpec.describe 'llrb::Compiler' do
   specify 'putobject_OP_INT2FIX_O_1_C_' do
     test_compile { 1 }
   end
+
+  specify 'jump' do
+    # test_compile(true) { |a| 1 if a }
+  end
 end

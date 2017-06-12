@@ -54,23 +54,28 @@ llrb_stack_pop(struct llrb_cfstack *stack)
 int rb_vm_insn_addr2insn(const void *addr);
 
 static void
-llrb_dump_insns(const struct rb_iseq_constant_body *body)
+llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 {
-  fprintf(stderr, "[insns dump]\n");
+  fprintf(stderr, "\n== disasm: LLRB ================================\n");
   for (unsigned int i = 0; i < body->iseq_size;) {
     int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
-    fprintf(stderr, "%s: %d [%s]\n", insn_name(insn), insn_len(insn)-1, insn_op_types(insn));
+    fprintf(stderr, "%04d %-27s [%-4s] ", i, insn_name(insn), insn_op_types(insn));
 
     for (int j = 1; j < insn_len(insn); j++) {
+      VALUE op = body->iseq_encoded[i+j];
       switch (insn_op_type(insn, j-1)) {
-        case 'V':
-          fprintf(stderr, "  %s\n", RSTRING_PTR(rb_inspect(body->iseq_encoded[i+j])));
+        case TS_VALUE:
+          fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
           break;
-        case 'N':
-          fprintf(stderr, "  %ld\n", (rb_num_t)body->iseq_encoded[i+j]);
+        case TS_NUM:
+          fprintf(stderr, "%-4ld ", (rb_num_t)op);
+          break;
+        case TS_OFFSET:
+          fprintf(stderr, "%"PRIdVALUE" ", (VALUE)(i + j + op + 1));
           break;
       }
     }
+    fprintf(stderr, "\n");
     i += insn_len(insn);
   }
   fprintf(stderr, "\n");
@@ -113,7 +118,7 @@ llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands
       LLVMBuildRet(c->builder, llrb_stack_pop(&c->stack));
       break;
     default:
-      llrb_dump_insns(c->iseq->body);
+      llrb_disasm_insns(c->iseq->body);
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
