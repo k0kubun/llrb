@@ -17,7 +17,6 @@ struct llrb_cfstack {
 
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
-  struct llrb_cfstack stack;
   const struct rb_iseq_constant_body *body;
   const char *funcname;
   LLVMBuilderRef builder;
@@ -99,6 +98,8 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 
 // Given llrb_basic_block_starts result like [0, 2, 8, 9], it returns a Hash
 // whose value specifies basic block ends like { 0 => 1, 2 => 7, 8 => 8, 9 => 10 }.
+//
+// TODO: Note that sometimes "end" points to actual end's operands. This may hit a bug... So fix it later for safety.
 static VALUE
 llrb_basic_block_end_by_start(const struct rb_iseq_constant_body *body)
 {
@@ -177,7 +178,7 @@ llrb_argument_at(struct llrb_compiler *c, unsigned index)
 }
 
 static void
-llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands)
+llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const int insn, const VALUE *operands)
 {
   switch (insn) {
     case YARVINSN_nop:
@@ -185,25 +186,25 @@ llrb_compile_insn(struct llrb_compiler *c, const int insn, const VALUE *operands
     case YARVINSN_getlocal_OP__WC__0: {
       unsigned local_size = c->body->local_table_size;
       unsigned arg_size   = c->body->param.size;
-      llrb_stack_push(&c->stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
+      llrb_stack_push(stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
       break;
     }
     case YARVINSN_trace:
       break; // TODO: implement
     case YARVINSN_putobject:
-      llrb_stack_push(&c->stack, llvm_value(operands[0]));
+      llrb_stack_push(stack, llvm_value(operands[0]));
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
-      llrb_stack_push(&c->stack, llvm_value(INT2FIX(0)));
+      llrb_stack_push(stack, llvm_value(INT2FIX(0)));
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_1_C_:
-      llrb_stack_push(&c->stack, llvm_value(INT2FIX(1)));
+      llrb_stack_push(stack, llvm_value(INT2FIX(1)));
       break;
     case YARVINSN_leave:
-      if (c->stack.size != 1) {
-        rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", c->stack.size);
+      if (stack->size != 1) {
+        rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", stack->size);
       }
-      LLVMBuildRet(c->builder, llrb_stack_pop(&c->stack));
+      LLVMBuildRet(c->builder, llrb_stack_pop(stack));
       break;
     default:
       llrb_disasm_insns(c->body);
@@ -235,9 +236,15 @@ llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start, unsigned i
   LLVMBasicBlockRef block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(start));
   LLVMPositionBuilderAtEnd(c->builder, block);
 
+  struct llrb_cfstack stack = (struct llrb_cfstack){
+    .body = ALLOC_N(LLVMValueRef, c->body->stack_max),
+    .size = 0,
+    .max  = c->body->stack_max
+  };
+
   for (unsigned int i = start; i <= end;) {
     int insn = rb_vm_insn_addr2insn((void *)c->body->iseq_encoded[i]);
-    llrb_compile_insn(c, insn, c->body->iseq_encoded + (i+1));
+    llrb_compile_insn(c, &stack, insn, c->body->iseq_encoded + (i+1));
     i += insn_len(insn);
   }
 }
@@ -253,11 +260,6 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
       LLVMFunctionType(LLVMInt64Type(), arg_types, iseq->body->param.size+1, false));
 
   struct llrb_compiler compiler = (struct llrb_compiler){
-    .stack = (struct llrb_cfstack){
-      .body = ALLOC_N(LLVMValueRef, iseq->body->stack_max),
-      .size = 0,
-      .max  = iseq->body->stack_max
-    },
     .body = iseq->body,
     .funcname = funcname,
     .builder = LLVMCreateBuilder(),
