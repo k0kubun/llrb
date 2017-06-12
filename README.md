@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-5/94 (5.3%)
+8/94 (8.5%)
 
 ### nop
 - [ ] nop
@@ -76,7 +76,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setglobal (!)
 
 ### put
-- [ ] putnil
+- [x] putnil
 - [ ] putself
 - [x] putobject
 - [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
@@ -161,9 +161,9 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] throw (!)
 
 ### jump
-- [ ] jump (!)
+- [x] jump
 - [ ] branchif (!)
-- [ ] branchunless (!)
+- [x] branchunless
 - [ ] branchnil (!)
 
 ### joke

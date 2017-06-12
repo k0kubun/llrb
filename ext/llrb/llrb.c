@@ -7,6 +7,23 @@
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 static const char *llrb_funcname = "llrb_exec";
 
+uint64_t
+llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
+{
+  LLVMExecutionEngineRef engine;
+  char *error;
+  if (LLVMCreateJITCompilerForModule(&engine, mod, 0, &error) != 0) {
+    fprintf(stderr, "Failed to create JIT compiler...\n");
+
+    if (error) {
+      fprintf(stderr, "LLVMCreateJITCompilerForModule: %s\n", error);
+      LLVMDisposeMessage(error);
+      return 0;
+    }
+  }
+  return LLVMGetFunctionAddress(engine, funcname);
+}
+
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
 // @param  [Object]  recv  - method receiver (not used for now)
