@@ -13,6 +13,10 @@ RSpec.describe 'llrb::Compiler' do
   end
 
   specify 'putobject' do
-    # test_compile { 100 }
+    test_compile { true }
+    test_compile { false }
+    test_compile { 100 }
+    test_compile { :hello }
+    test_compile { (1..2) }
   end
 end

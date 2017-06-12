@@ -78,7 +78,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 ### put
 - [ ] putnil
 - [ ] putself
-- [ ] putobject
+- [x] putobject
 - [ ] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [ ] putobject\_OP\_INT2FIX\_O\_1\_C\_
 - [ ] putspecialobject
