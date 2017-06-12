@@ -94,7 +94,11 @@ llrb_compile_insn(struct llrb_compiler *c, LLVMModuleRef mod, const int insn, co
       llrb_stack_push(&c->stack, INT2FIX(1));
       break;
     case YARVINSN_leave:
-      break; // TODO: implement
+      if (c->stack.size != 1) {
+        rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", c->stack.size);
+      }
+      LLVMBuildRet(c->builder, LLVMConstInt(LLVMInt64Type(), llrb_stack_pop(&c->stack), false));
+      break;
     default:
       llrb_dump_insns(c->iseq->body);
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
@@ -102,7 +106,7 @@ llrb_compile_insn(struct llrb_compiler *c, LLVMModuleRef mod, const int insn, co
   }
 }
 
-static VALUE
+static void
 llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const rb_iseq_t *iseq)
 {
   struct llrb_compiler compiler = (struct llrb_compiler){
@@ -120,11 +124,6 @@ llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const rb_iseq_
     llrb_compile_insn(&compiler, mod, insn, iseq->body->iseq_encoded + (i+1));
     i += insn_len(insn);
   }
-
-  if (compiler.stack.size != 1) {
-    rb_raise(rb_eCompileError, "unexpected stack size at end of llrb_compile_iseq_body: %d", compiler.stack.size);
-  }
-  return llrb_stack_pop(&compiler.stack);
 }
 
 uint64_t
@@ -155,8 +154,7 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   LLVMBuilderRef builder = LLVMCreateBuilder();
   LLVMPositionBuilderAtEnd(builder, block);
 
-  VALUE result = llrb_compile_iseq_body(mod, builder, iseq);
-  LLVMBuildRet(builder, LLVMConstInt(LLVMInt64Type(), result, false));
+  llrb_compile_iseq_body(mod, builder, iseq);
   return mod;
 }
 
