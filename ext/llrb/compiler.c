@@ -8,6 +8,7 @@
 
 static VALUE rb_eCompileError;
 
+// I don't use `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
 // https://github.com/ruby/ruby/blob/v2_4_1/compile.c#L695-L707
 static int
 rb_vm_insn_addr2insn(const void *addr)
