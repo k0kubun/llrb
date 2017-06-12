@@ -15,6 +15,13 @@ struct llrb_cfstack {
   VALUE *body;
 };
 
+// Store compiler's internal state and shared variables
+struct llrb_compiler {
+  struct llrb_cfstack stack;
+  const rb_iseq_t *iseq;
+  LLVMBuilderRef builder;
+};
+
 static void
 llrb_stack_push(struct llrb_cfstack *stack, VALUE value)
 {
@@ -70,7 +77,7 @@ llrb_dump_insns(const struct rb_iseq_constant_body *body)
 }
 
 static void
-llrb_compile_insn(LLVMModuleRef mod, struct llrb_cfstack *stack, const struct rb_iseq_constant_body *body, const int insn, const VALUE *operands)
+llrb_compile_insn(struct llrb_compiler *c, LLVMModuleRef mod, const int insn, const VALUE *operands)
 {
   switch (insn) {
     case YARVINSN_nop:
@@ -78,42 +85,46 @@ llrb_compile_insn(LLVMModuleRef mod, struct llrb_cfstack *stack, const struct rb
     case YARVINSN_trace:
       break; // TODO: implement
     case YARVINSN_putobject:
-      llrb_stack_push(stack, operands[0]);
+      llrb_stack_push(&c->stack, operands[0]);
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
-      llrb_stack_push(stack, INT2FIX(0));
+      llrb_stack_push(&c->stack, INT2FIX(0));
       break;
     case YARVINSN_putobject_OP_INT2FIX_O_1_C_:
-      llrb_stack_push(stack, INT2FIX(1));
+      llrb_stack_push(&c->stack, INT2FIX(1));
       break;
     case YARVINSN_leave:
       break; // TODO: implement
     default:
-      llrb_dump_insns(body);
+      llrb_dump_insns(c->iseq->body);
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
 }
 
 static VALUE
-llrb_compile_iseq_body(LLVMModuleRef mod, const struct rb_iseq_constant_body *body)
+llrb_compile_iseq_body(LLVMModuleRef mod, LLVMBuilderRef builder, const rb_iseq_t *iseq)
 {
-  struct llrb_cfstack stack = (struct llrb_cfstack){
-    .body = ALLOC_N(VALUE, body->stack_max),
-    .size = 0,
-    .max  = body->stack_max
+  struct llrb_compiler compiler = (struct llrb_compiler){
+    .stack = (struct llrb_cfstack){
+      .body = ALLOC_N(VALUE, iseq->body->stack_max),
+      .size = 0,
+      .max  = iseq->body->stack_max
+    },
+    .iseq = iseq,
+    .builder = builder
   };
 
-  for (unsigned int i = 0; i < body->iseq_size;) {
-    int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
-    llrb_compile_insn(mod, &stack, body, insn, body->iseq_encoded + (i+1));
+  for (unsigned int i = 0; i < iseq->body->iseq_size;) {
+    int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
+    llrb_compile_insn(&compiler, mod, insn, iseq->body->iseq_encoded + (i+1));
     i += insn_len(insn);
   }
 
-  if (stack.size != 1) {
-    rb_raise(rb_eCompileError, "unexpected stack size at end of llrb_compile_iseq_body: %d", stack.size);
+  if (compiler.stack.size != 1) {
+    rb_raise(rb_eCompileError, "unexpected stack size at end of llrb_compile_iseq_body: %d", compiler.stack.size);
   }
-  return llrb_stack_pop(&stack);
+  return llrb_stack_pop(&compiler.stack);
 }
 
 uint64_t
@@ -144,7 +155,7 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   LLVMBuilderRef builder = LLVMCreateBuilder();
   LLVMPositionBuilderAtEnd(builder, block);
 
-  VALUE result = llrb_compile_iseq_body(mod, iseq->body);
+  VALUE result = llrb_compile_iseq_body(mod, builder, iseq);
   LLVMBuildRet(builder, LLVMConstInt(LLVMInt64Type(), result, false));
   return mod;
 }
