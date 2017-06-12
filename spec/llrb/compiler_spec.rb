@@ -19,4 +19,12 @@ RSpec.describe 'llrb::Compiler' do
     test_compile { :hello }
     test_compile { (1..2) }
   end
+
+  specify 'putobject_OP_INT2FIX_O_0_C_' do
+    test_compile { 0 }
+  end
+
+  specify 'putobject_OP_INT2FIX_O_1_C_' do
+    test_compile { 1 }
+  end
 end

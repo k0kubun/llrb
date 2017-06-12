@@ -80,6 +80,12 @@ llrb_compile_insn(LLVMModuleRef mod, struct llrb_cfstack *stack, const struct rb
     case YARVINSN_putobject:
       llrb_stack_push(stack, operands[0]);
       break;
+    case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
+      llrb_stack_push(stack, INT2FIX(0));
+      break;
+    case YARVINSN_putobject_OP_INT2FIX_O_1_C_:
+      llrb_stack_push(stack, INT2FIX(1));
+      break;
     case YARVINSN_leave:
       break; // TODO: implement
     default:
