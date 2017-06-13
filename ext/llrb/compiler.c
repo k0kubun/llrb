@@ -321,7 +321,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     case YARVINSN_opt_plus:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
       break;
-    //case YARVINSN_opt_minus:
+    case YARVINSN_opt_minus:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '-', 1));
+      break;
     //case YARVINSN_opt_mult:
     //case YARVINSN_opt_div:
     //case YARVINSN_opt_mod:

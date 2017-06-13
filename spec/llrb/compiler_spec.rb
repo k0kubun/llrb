@@ -1,6 +1,6 @@
 require 'pry'
 
-RSpec.describe 'llrb::Compiler' do
+RSpec.describe 'llrb_compile_iseq' do
   def test_compile(*args, &block)
     ruby = Class.new
     ruby.send(:define_singleton_method, :test, &block)
@@ -103,7 +103,10 @@ RSpec.describe 'llrb::Compiler' do
     test_compile(1, 2) { |a, b| a+b }
   end
 
-  # specify 'opt_minus' do
+  specify 'opt_minus' do
+    test_compile(2, 1) { |a, b| a-b }
+  end
+
   # specify 'opt_mult' do
   # specify 'opt_div' do
   # specify 'opt_mod' do

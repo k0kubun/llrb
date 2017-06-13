@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-8/94 (8.5%)
+10/94 (10.6%)
 
 ### nop
 - [ ] nop
@@ -132,8 +132,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setinlinecache (actually not set)
 - [ ] once (!)
 - [ ] opt\_case\_dispatch (!)
-- [ ] opt\_plus
-- [ ] opt\_minus
+- [x] opt\_plus
+- [x] opt\_minus
 - [ ] opt\_mult
 - [ ] opt\_div
 - [ ] opt\_mod
