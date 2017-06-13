@@ -98,7 +98,11 @@ RSpec.describe 'llrb::Compiler' do
   # specify 'setinlinecache' do
   # specify 'once' do
   # specify 'opt_case_dispatch' do
-  # specify 'opt_plus' do
+
+  specify 'opt_plus' do
+    test_compile(1, 2) { |a, b| a+b }
+  end
+
   # specify 'opt_minus' do
   # specify 'opt_mult' do
   # specify 'opt_div' do

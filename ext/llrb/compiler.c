@@ -185,6 +185,36 @@ llrb_build_rtest(LLVMBuilderRef builder, LLVMValueRef value)
   return LLVMBuildICmp(builder, LLVMIntNE, masked, llvm_value(0), "RTEST");
 }
 
+static LLVMValueRef
+llrb_get_function(LLVMModuleRef mod, const char *name)
+{
+  LLVMValueRef func = LLVMGetNamedFunction(mod, "rb_funcall");
+  if (func) return func;
+
+  if (!strcmp(name, "rb_funcall")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, "rb_funcall", LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
+  } else {
+    rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
+  }
+}
+
+static LLVMValueRef
+llrb_compile_funcall(struct llrb_compiler *c, struct llrb_cfstack *stack, ID mid, int argc)
+{
+  LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3+argc); // 3 is recv, mid, n
+
+  for (int i = argc-1; 0 <= i; i--) {
+    args[3+i] = llrb_stack_pop(stack); // 3 is recv, mid, n
+  }
+  args[0] = llrb_stack_pop(stack);
+  args[1] = llvm_value(mid);
+  args[2] = LLVMConstInt(LLVMInt32Type(), argc, false);
+
+  return LLVMBuildCall(c->builder, func, args, 3+argc, "rb_funcall");
+}
+
 static void llrb_compile_phi_block(struct llrb_compiler *c, unsigned int start, LLVMValueRef *incoming_values, LLVMBasicBlockRef *incoming_blocks, unsigned count);
 static LLVMValueRef llrb_compile_branch_block(struct llrb_compiler *c, unsigned int start, unsigned int *jump_dest);
 static void llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start);
@@ -279,6 +309,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
         rb_raise(rb_eCompileError, "branch_dest_dest (%d) != fallthrough_dest (%d)", branch_dest_dest, fallthrough_dest);
       }
 
+      // FIXME: pass stack to phi block
       llrb_compile_phi_block(c, fallthrough_dest, results, blocks, 2);
       break;
     }
@@ -287,7 +318,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_setinlinecache:
     //case YARVINSN_once:
     //case YARVINSN_opt_case_dispatch:
-    //case YARVINSN_opt_plus:
+    case YARVINSN_opt_plus:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
+      break;
     //case YARVINSN_opt_minus:
     //case YARVINSN_opt_mult:
     //case YARVINSN_opt_div:
