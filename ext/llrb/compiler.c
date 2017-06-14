@@ -21,6 +21,8 @@ struct llrb_compiler {
   const char *funcname;
   LLVMBuilderRef builder;
   LLVMModuleRef mod;
+
+  // TODO: Create struct for following fields
   VALUE block_by_start;
   VALUE block_end_by_start;
   VALUE incoming_values_by_start;
@@ -231,12 +233,13 @@ llrb_compile_funcall(struct llrb_compiler *c, struct llrb_cfstack *stack, ID mid
   return LLVMBuildCall(c->builder, func, args, 3+argc, "rb_funcall");
 }
 
-static void llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start, bool create_br);
+static void llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, unsigned int start);
 
-// @return true if jumped in this insn, and in that case create_br is ignored.
+// @return true if jumped in this insn, and in that case br won't be created.
 static bool
 llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const unsigned int pos, const int insn, const VALUE *operands)
 {
+  //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d before %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   switch (insn) {
     //case YARVINSN_nop:
     //case YARVINSN_getlocal:
@@ -326,8 +329,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block, branch_dest_block);
 
-      llrb_compile_basic_block(c, fallthrough, true); // COMPILE FALLTHROUGH FIRST!!!!
-      llrb_compile_basic_block(c, branch_dest, true); // because this line will continue to compile next block and it should wait the other branch.
+      llrb_compile_basic_block(c, 0, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
+      llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
       return true;
     }
     //case YARVINSN_branchnil:
@@ -387,20 +390,23 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
+  //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d after %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   return false;
 }
 
 static void
-llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start, bool create_br)
+llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, unsigned int start)
 {
   LLVMBasicBlockRef block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(start));
   LLVMPositionBuilderAtEnd(c->builder, block);
 
-  struct llrb_cfstack stack = (struct llrb_cfstack){
-    .body = ALLOC_N(LLVMValueRef, c->body->stack_max),
-    .size = 0,
-    .max  = c->body->stack_max
-  };
+  // Use previous stack or create new one
+  if (stack == 0) {
+    stack = ALLOC_N(struct llrb_cfstack, 1);
+    stack->body = ALLOC_N(LLVMValueRef, c->body->stack_max);
+    stack->size = 0;
+    stack->max  = c->body->stack_max;
+  }
 
   // If incoming blocks and values exist, build phi node and push it to stack.
   VALUE incoming_values = rb_hash_aref(c->incoming_values_by_start, INT2FIX(start));
@@ -419,29 +425,29 @@ llrb_compile_basic_block(struct llrb_compiler *c, unsigned int start, bool creat
 
     LLVMValueRef phi = LLVMBuildPhi(c->builder, LLVMInt64Type(), "llrb_compile_basic_block");
     LLVMAddIncoming(phi, values, blocks, len);
-    llrb_stack_push(&stack, phi);
+    llrb_stack_push(stack, phi);
   }
 
   VALUE block_end = rb_hash_aref(c->block_end_by_start, INT2FIX(start));
   for (unsigned int i = start; i <= (unsigned int)FIX2INT(block_end);) {
     int insn = rb_vm_insn_addr2insn((void *)c->body->iseq_encoded[i]);
-    bool jumped = llrb_compile_insn(c, &stack, i, insn, c->body->iseq_encoded + (i+1));
+    bool jumped = llrb_compile_insn(c, stack, i, insn, c->body->iseq_encoded + (i+1));
     i += insn_len(insn);
 
-    // When reached block end, create_br is true and not jumped, create br to next block.
-    if ((unsigned int)FIX2INT(block_end) < i && create_br && !jumped) {
+    // After reached block end, if not jumped and next block exists, create br to next block.
+    LLVMBasicBlockRef next_block;
+    if ((unsigned int)FIX2INT(block_end) < i && !jumped &&
+        (VALUE)(next_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(i))) != Qnil) {
       // Push block for phi
       rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(i)), (VALUE)block);
 
       // Push value for phi
-      LLVMValueRef result = llrb_stack_pop(&stack);
+      LLVMValueRef result = llrb_stack_pop(stack);
       rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(i)), (VALUE)result);
 
-      LLVMBasicBlockRef next_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(i));
       LLVMBuildBr(c->builder, next_block);
 
-      // TODO: Pass previous stack?
-      llrb_compile_basic_block(c, i, false);
+      llrb_compile_basic_block(c, stack, i);
     }
   }
 }
@@ -468,7 +474,7 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   };
 
   //llrb_disasm_insns(iseq->body);
-  llrb_compile_basic_block(&compiler, 0, false);
+  llrb_compile_basic_block(&compiler, 0, 0);
   //LLVMDumpModule(mod);
   return mod;
 }

@@ -188,6 +188,38 @@ RSpec.describe 'llrb_compile_iseq' do
       end
     end
 
+    test_compile(false) do |a|
+      1 + if a
+            2
+          else
+            3
+          end + 4
+    end
+
+    test_compile(false, true) do |a, b|
+      unless a
+        if b
+          7
+        end + 9
+      end
+    end
+
+    test_compile(false, true, false) do |a, b, c|
+      1 + if a
+            2 + if b
+                  3
+                else
+                  4
+                end + 5
+          else
+            6 + unless c
+                  7
+                else
+                  8
+                end + 9
+          end + 10
+    end
+
     #test_compile(true) do |a|
     #  raise 'unreachable' until a
     #end
