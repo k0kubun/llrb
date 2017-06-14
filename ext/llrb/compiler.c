@@ -63,7 +63,7 @@ int rb_vm_insn_addr2insn(const void *addr);
 // It's constructed in the following rule.
 //   Rule 1: 0 is always included
 //   Rule 2: All TS_OFFSET numers are included
-//   Rule 3: Positions immediately after jump, branchif and branchunless are included
+//   Rule 3: Positions immediately after jump, branchnil, branchif and branchunless are included
 static VALUE
 llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
@@ -89,6 +89,7 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
       case YARVINSN_jump:
       case YARVINSN_branchif:
       case YARVINSN_branchunless:
+      case YARVINSN_branchnil:
         rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
         break;
     }
@@ -276,7 +277,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_newhash:
     //case YARVINSN_newrange:
     //case YARVINSN_pop:
-    //case YARVINSN_dup:
+    case YARVINSN_dup: {
+      LLVMValueRef value = llrb_stack_pop(stack);
+      llrb_stack_push(stack, value);
+      llrb_stack_push(stack, value);
+      break;
+    }
     //case YARVINSN_dupn:
     //case YARVINSN_swap:
     //case YARVINSN_reverse:
@@ -333,7 +339,27 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
       return true;
     }
-    //case YARVINSN_branchnil:
+    case YARVINSN_branchnil: {
+      unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
+      unsigned fallthrough = pos + (unsigned)insn_len(insn);
+      LLVMBasicBlockRef branch_dest_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(branch_dest));
+      LLVMBasicBlockRef fallthrough_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(fallthrough));
+
+      LLVMValueRef cond = llrb_stack_pop(stack);
+      LLVMBuildCondBr(c->builder,
+          LLVMBuildICmp(c->builder, LLVMIntNE, cond, llvm_value(Qnil), "NIL_P"),
+          fallthrough_block, branch_dest_block);
+
+      // Push block for phi
+      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+
+      // Push value for phi
+      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llvm_value(Qnil));
+
+      //fprintf(stderr, "[DEBUG] branchnil llrb_compile_basic_block by %04d after %s (stack size: %d)\n", pos, insn_name(insn), stack->size);
+      llrb_compile_basic_block(c, stack, fallthrough);
+      return true;
+    }
     //case YARVINSN_getinlinecache:
     //case YARVINSN_setinlinecache:
     //case YARVINSN_once:
@@ -426,6 +452,8 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, un
     LLVMValueRef phi = LLVMBuildPhi(c->builder, LLVMInt64Type(), "llrb_compile_basic_block");
     LLVMAddIncoming(phi, values, blocks, len);
     llrb_stack_push(stack, phi);
+  //} else {
+  //  fprintf(stderr, "---skip--- (start = %d, val len = %ld, blo len = %ld)\n", start, len, RARRAY_LEN(incoming_blocks));
   }
 
   VALUE block_end = rb_hash_aref(c->block_end_by_start, INT2FIX(start));

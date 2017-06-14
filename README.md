@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-11/94 (11.7%)
+12/94 (12.8%)
 
 ### nop
 - [ ] nop
@@ -81,7 +81,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] putobject
 - [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
-- [ ] putspecialobject
+- [ ] putspecialobject (!)
 - [ ] putiseq
 - [ ] putstring
 - [ ] concatstrings
@@ -164,7 +164,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] jump
 - [ ] branchif (!)
 - [x] branchunless
-- [ ] branchnil (!)
+- [x] branchnil
 
 ### joke
 - [ ] bitblt

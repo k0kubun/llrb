@@ -55,7 +55,12 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'newhash' do
   # specify 'newrange' do
   # specify 'pop' do
-  # specify 'dup' do
+
+  specify 'dup' do
+    test_compile(1) { |a| a&.+(2) }
+    test_compile(nil) { |a| a&.+(2) }
+  end
+
   # specify 'dupn' do
   # specify 'swap' do
   # specify 'reverse' do
@@ -87,7 +92,9 @@ RSpec.describe 'llrb_compile_iseq' do
     #test_compile(true) { while 1+1; end }
   end
 
-  # specify 'branchif' do
+  specify 'branchif' do
+    test_compile(1) { |a| a&.+(2) }
+  end
 
   specify 'branchunless' do
     test_compile(true) do |a|
