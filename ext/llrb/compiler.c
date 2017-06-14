@@ -276,7 +276,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_splatarray:
     //case YARVINSN_newhash:
     //case YARVINSN_newrange:
-    //case YARVINSN_pop:
+    case YARVINSN_pop:
+      llrb_stack_pop(stack);
+      break;
     case YARVINSN_dup: {
       LLVMValueRef value = llrb_stack_pop(stack);
       llrb_stack_push(stack, value);
@@ -325,7 +327,26 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMBuildBr(c->builder, next_block);
       return true;
     }
-    //case YARVINSN_branchif:
+    case YARVINSN_branchif: {
+      unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
+      unsigned fallthrough = pos + (unsigned)insn_len(insn);
+      LLVMBasicBlockRef branch_dest_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(branch_dest));
+      LLVMBasicBlockRef fallthrough_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(fallthrough));
+
+      LLVMValueRef cond = llrb_stack_pop(stack);
+      LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
+
+      // Push block for phi
+      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+
+      // Push value for phi
+      LLVMValueRef stack_top = llrb_stack_pop(stack);
+      llrb_stack_push(stack, stack_top); // TODO: refactor lator
+      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)stack_top);
+
+      llrb_compile_basic_block(c, stack, fallthrough);
+      return true;
+    }
     case YARVINSN_branchunless: {
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
@@ -452,8 +473,6 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, un
     LLVMValueRef phi = LLVMBuildPhi(c->builder, LLVMInt64Type(), "llrb_compile_basic_block");
     LLVMAddIncoming(phi, values, blocks, len);
     llrb_stack_push(stack, phi);
-  //} else {
-  //  fprintf(stderr, "---skip--- (start = %d, val len = %ld, blo len = %ld)\n", start, len, RARRAY_LEN(incoming_blocks));
   }
 
   VALUE block_end = rb_hash_aref(c->block_end_by_start, INT2FIX(start));
@@ -474,7 +493,6 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, un
       rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(i)), (VALUE)result);
 
       LLVMBuildBr(c->builder, next_block);
-
       llrb_compile_basic_block(c, stack, i);
     }
   }

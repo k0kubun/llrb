@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-12/94 (12.8%)
+15/94 (16.0%)
 
 ### nop
 - [ ] nop
@@ -97,8 +97,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] newrange
 
 ### stack
-- [ ] pop
-- [ ] dup
+- [x] pop
+- [x] dup
 - [ ] dupn
 - [ ] swap
 - [ ] reverse
@@ -128,8 +128,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_newarray\_max
 - [ ] opt\_newarray\_min
 - [ ] opt\_send\_without\_block
-- [ ] getinlinecache
-- [ ] setinlinecache (actually not set)
+- [ ] getinlinecache (!)
+- [ ] setinlinecache (!)
 - [ ] once (!)
 - [ ] opt\_case\_dispatch (!)
 - [x] opt\_plus
@@ -162,7 +162,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ### jump
 - [x] jump
-- [ ] branchif (!)
+- [x] branchif
 - [x] branchunless
 - [x] branchnil
 

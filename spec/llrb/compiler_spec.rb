@@ -12,6 +12,14 @@ RSpec.describe 'llrb_compile_iseq' do
     expect(native.test(*args.map(&:dup))).to eq(ruby.test(*args.map(&:dup)))
   end
 
+  def test_error(error, *args, &block)
+    native = Class.new
+    native.send(:define_singleton_method, :test, &block)
+
+    expect(LLRB::JIT.compile(native, :test)).to eq(true)
+    expect { native.test(*args.map(&:dup)) }.to raise_error(error)
+  end
+
   # specify 'nop' do
   # specify 'getlocal' do
   # specify 'setlocal' do
@@ -54,11 +62,13 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'splatarray' do
   # specify 'newhash' do
   # specify 'newrange' do
-  # specify 'pop' do
+
+  specify 'pop' do
+    test_compile(false, 1) { |a, b| a || b }
+  end
 
   specify 'dup' do
     test_compile(1) { |a| a&.+(2) }
-    test_compile(nil) { |a| a&.+(2) }
   end
 
   # specify 'dupn' do
@@ -93,7 +103,8 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'branchif' do
-    test_compile(1) { |a| a&.+(2) }
+    test_compile(false, 1) { |a, b| a || b }
+    test_compile(1, 2) { |a, b| a || b }
   end
 
   specify 'branchunless' do
@@ -232,7 +243,13 @@ RSpec.describe 'llrb_compile_iseq' do
     #end
   end
 
-  # specify 'branchnil' do
+  specify 'branchnil' do
+    test_compile(1) { |a| a&.+(2) }
+    test_compile(nil) { |a| a&.+(2) }
+    test_compile(1) { |a| 2 + a&.+(3) + 4 }
+    test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
+  end
+
   # specify 'getinlinecache' do
   # specify 'setinlinecache' do
   # specify 'once' do
