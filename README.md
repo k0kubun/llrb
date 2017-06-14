@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-10/94 (10.6%)
+11/94 (11.7%)
 
 ### nop
 - [ ] nop
@@ -137,7 +137,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_mult
 - [ ] opt\_div
 - [ ] opt\_mod
-- [ ] opt\_eq
+- [x] opt\_eq
 - [ ] opt\_neq
 - [ ] opt\_lt
 - [ ] opt\_le
