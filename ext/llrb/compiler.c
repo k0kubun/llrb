@@ -351,10 +351,10 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
         rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(dest)), (VALUE)LLVMGetInsertBlock(c->builder));
         rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(dest)), (VALUE)llrb_stack_pop(stack));
       } else {
+
         LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
         values[0] = llrb_stack_pop(stack);
-        LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
-        blocks[0] = LLVMGetInsertBlock(c->builder);
+        LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
         LLVMAddIncoming(phi, values, blocks, 1);
       }
 
@@ -383,12 +383,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
         } else {
           LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
           values[0] = llrb_stack_pop(&copied_stack);
-          LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
-          blocks[0] = LLVMGetInsertBlock(c->builder);
+          LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
           LLVMAddIncoming(phi, values, blocks, 1);
         }
       }
 
+      // No stack size check?
       // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
       if (branch_dest > pos) {
         LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(branch_dest));
@@ -399,8 +399,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
         } else {
           LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
           values[0] = llrb_stack_pop(stack);
-          LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
-          blocks[0] = LLVMGetInsertBlock(c->builder);
+          LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
           LLVMAddIncoming(phi, values, blocks, 1);
         }
       }
@@ -437,11 +436,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
           LLVMBuildICmp(c->builder, LLVMIntNE, cond, llvm_value(Qnil), "NIL_P"),
           fallthrough_block, branch_dest_block);
 
-      // Push block for phi
-      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
-
-      // Push value for phi
-      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llvm_value(Qnil));
+      LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(branch_dest));
+      if (NIL_P((VALUE)phi)) {
+        // Push block/value for phi
+        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llvm_value(Qnil));
+      } else {
+        LLVMValueRef values[] = { llvm_value(Qnil) };
+        LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
+        LLVMAddIncoming(phi, values, blocks, 1);
+      }
 
       //fprintf(stderr, "[DEBUG] branchnil llrb_compile_basic_block by %04d after %s (stack size: %d)\n", pos, insn_name(insn), stack->size);
       llrb_compile_basic_block(c, stack, fallthrough);
@@ -564,12 +568,16 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, un
   if (!jumped && (VALUE)(next_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(pos))) != Qnil) {
     // Create phi only when stack has value.
     if (stack->size > 0) {
-      // Push block for phi
-      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(pos)), (VALUE)block);
-
-      // Push value for phi
-      LLVMValueRef result = llrb_stack_pop(stack);
-      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(pos)), (VALUE)result);
+      LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(pos));
+      if (NIL_P((VALUE)phi)) {
+        // Push block/value for phi
+        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(pos)), (VALUE)block);
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(pos)), (VALUE)llrb_stack_pop(stack));
+      } else {
+        LLVMValueRef values[] = { llrb_stack_pop(stack) };
+        LLVMBasicBlockRef blocks[] = { block };
+        LLVMAddIncoming(phi, values, blocks, 1);
+      }
     }
 
     LLVMBuildBr(c->builder, next_block);
