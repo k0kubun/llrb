@@ -28,6 +28,7 @@ struct llrb_compiler {
   VALUE incoming_values_by_start;
   VALUE incoming_blocks_by_start;
   VALUE compiled_by_start;
+  VALUE phi_by_start;
 };
 
 static LLVMValueRef
@@ -215,7 +216,7 @@ llrb_build_rtest(LLVMBuilderRef builder, LLVMValueRef value)
 static LLVMValueRef
 llrb_get_function(LLVMModuleRef mod, const char *name)
 {
-  LLVMValueRef func = LLVMGetNamedFunction(mod, "rb_funcall");
+  LLVMValueRef func = LLVMGetNamedFunction(mod, name);
   if (func) return func;
 
   if (!strcmp(name, "rb_funcall")) {
@@ -344,12 +345,18 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
         return true;
       }
 
-      // Push block for phi
-      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(dest)), (VALUE)LLVMGetInsertBlock(c->builder));
-
-      // Push value for phi
-      LLVMValueRef result = llrb_stack_pop(stack);
-      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(dest)), (VALUE)result);
+      LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(dest));
+      if (NIL_P((VALUE)phi)) {
+        // Push block/value for phi
+        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(dest)), (VALUE)llrb_stack_pop(stack));
+      } else {
+        LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
+        values[0] = llrb_stack_pop(stack);
+        LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
+        blocks[0] = LLVMGetInsertBlock(c->builder);
+        LLVMAddIncoming(phi, values, blocks, 1);
+      }
 
       LLVMBuildBr(c->builder, next_block);
       return true;
@@ -368,16 +375,34 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
 
       if (copied_stack.size > 0) {
-        // Push block/value for phi
-        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(fallthrough)), (VALUE)LLVMGetInsertBlock(c->builder));
-        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(fallthrough)), (VALUE)llrb_stack_pop(&copied_stack));
+        LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(fallthrough));
+        if (NIL_P((VALUE)phi)) {
+          // Push block/value for phi
+          rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(fallthrough)), (VALUE)LLVMGetInsertBlock(c->builder));
+          rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(fallthrough)), (VALUE)llrb_stack_pop(&copied_stack));
+        } else {
+          LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
+          values[0] = llrb_stack_pop(&copied_stack);
+          LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
+          blocks[0] = LLVMGetInsertBlock(c->builder);
+          LLVMAddIncoming(phi, values, blocks, 1);
+        }
       }
 
       // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
       if (branch_dest > pos) {
-        // Push block/value for phi
-        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
-        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llrb_stack_pop(stack));
+        LLVMValueRef phi = (LLVMValueRef)rb_hash_aref(c->phi_by_start, INT2FIX(branch_dest));
+        if (NIL_P((VALUE)phi)) {
+          // Push block/value for phi
+          rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+          rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llrb_stack_pop(stack));
+        } else {
+          LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
+          values[0] = llrb_stack_pop(stack);
+          LLVMBasicBlockRef *blocks = ALLOC_N(LLVMBasicBlockRef, 1);
+          blocks[0] = LLVMGetInsertBlock(c->builder);
+          LLVMAddIncoming(phi, values, blocks, 1);
+        }
       }
 
       llrb_compile_basic_block(c, &copied_stack, fallthrough);
@@ -521,6 +546,7 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_cfstack *stack, un
     LLVMValueRef phi = LLVMBuildPhi(c->builder, LLVMInt64Type(), "llrb_compile_basic_block");
     LLVMAddIncoming(phi, values, blocks, len);
     llrb_stack_push(stack, phi);
+    rb_hash_aset(c->phi_by_start, INT2FIX(start), (VALUE)phi);
   }
 
   // Compile instructions in this basic block
@@ -570,9 +596,11 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
     .block_end_by_start = llrb_basic_block_end_by_start(iseq->body), // TODO: free?
     .incoming_values_by_start = llrb_build_array_by_start(iseq->body), // TODO: free?
     .incoming_blocks_by_start = llrb_build_array_by_start(iseq->body), // TODO: free?
-    .compiled_by_start = rb_hash_new() // TODO: free?
+    .compiled_by_start = rb_hash_new(), // TODO: free?
+    .phi_by_start = rb_hash_new() // TODO: free?
   };
   rb_gc_register_mark_object(compiler.compiled_by_start); // TODO: unmark?
+  rb_gc_register_mark_object(compiler.phi_by_start); // TODO: unmark?
 
   //llrb_disasm_insns(iseq->body);
   llrb_compile_basic_block(&compiler, 0, 0);

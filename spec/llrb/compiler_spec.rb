@@ -99,31 +99,29 @@ RSpec.describe 'llrb_compile_iseq' do
              end
     end
 
-    #test_compile(3, 2) do |a, b|
-    #  1000 + case a
-    #         when 1
-    #           100
-    #         when 2
-    #           200
-    #         when 3
-    #         end
-    #end
+    test_compile(3) do |a|
+      case a
+      when 1
+        100
+      when 3
+      end
+    end
 
-    #test_compile(3, 2) do |a, b|
-    #  1000 + case a
-    #         when 1
-    #           100
-    #         when 2
-    #           200
-    #         when 3
-    #           300 + case b
-    #                 when 4
-    #                   400
-    #                 else
-    #                   500
-    #                 end + 600
-    #         end + 700
-    #end
+    test_compile(3, 2) do |a, b|
+      1000 + case a
+             when 1
+               100
+             when 2
+               200
+             when 3
+               300 + case b
+                     when 4
+                       400
+                     else
+                       500
+                     end + 600
+             end + 700
+    end
   end
 
   # specify 'checkkeyword' do
