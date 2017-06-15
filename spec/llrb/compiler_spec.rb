@@ -99,7 +99,7 @@ RSpec.describe 'llrb_compile_iseq' do
 
   specify 'jump' do
     test_compile(true) { |a| 1 if a }
-    #test_compile(true) { while 1+1; end }
+    test_compile(nil) { |a| while a; end }
   end
 
   specify 'branchif' do

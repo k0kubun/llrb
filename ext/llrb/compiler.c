@@ -315,15 +315,23 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       return true;
     //case YARVINSN_throw:
     case YARVINSN_jump: {
-      // Push block for phi
       unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
+      LLVMBasicBlockRef next_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(dest));
+
+      // If stack is empty, don't create phi.
+      if (stack->size == 0) {
+        LLVMBuildBr(c->builder, next_block);
+        llrb_compile_basic_block(c, 0, dest);
+        return true;
+      }
+
+      // Push block for phi
       rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(dest)), (VALUE)LLVMGetInsertBlock(c->builder));
 
       // Push value for phi
       LLVMValueRef result = llrb_stack_pop(stack);
       rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(dest)), (VALUE)result);
 
-      LLVMBasicBlockRef next_block = (LLVMBasicBlockRef)rb_hash_aref(c->block_by_start, INT2FIX(dest));
       LLVMBuildBr(c->builder, next_block);
       return true;
     }
@@ -336,13 +344,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
 
-      // Push block for phi
-      rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
+      // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
+      if (branch_dest > pos) {
+        // Push block for phi
+        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
 
-      // Push value for phi
-      LLVMValueRef stack_top = llrb_stack_pop(stack);
-      llrb_stack_push(stack, stack_top); // TODO: refactor lator
-      rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)stack_top);
+        // Push value for phi
+        LLVMValueRef stack_top = llrb_stack_pop(stack);
+        llrb_stack_push(stack, stack_top); // TODO: refactor lator
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)stack_top);
+      }
 
       llrb_compile_basic_block(c, stack, fallthrough);
       return true;
