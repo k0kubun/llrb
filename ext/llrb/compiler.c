@@ -363,22 +363,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
 
-      // maybe this needs to be pushed as phi
       struct llrb_cfstack copied_stack = (struct llrb_cfstack){ .size = stack->size, .max = stack->max };
       copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
-      for (unsigned int i = 0; i < stack->size; i++) {
-        copied_stack.body[i] = stack->body[i];
+      for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
+
+      if (copied_stack.size > 0) {
+        // Push block/value for phi
+        rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(fallthrough)), (VALUE)LLVMGetInsertBlock(c->builder));
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(fallthrough)), (VALUE)llrb_stack_pop(&copied_stack));
       }
 
       // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
       if (branch_dest > pos) {
-        // Push block for phi
+        // Push block/value for phi
         rb_ary_push(rb_hash_aref(c->incoming_blocks_by_start, INT2FIX(branch_dest)), (VALUE)LLVMGetInsertBlock(c->builder));
-
-        // Push value for phi
-        LLVMValueRef stack_top = llrb_stack_pop(stack);
-        //llrb_stack_push(stack, stack_top); // TODO: refactor lator
-        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)stack_top);
+        rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)llrb_stack_pop(stack));
       }
 
       llrb_compile_basic_block(c, &copied_stack, fallthrough);
@@ -394,7 +393,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block, branch_dest_block);
 
-      llrb_compile_basic_block(c, 0, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
+      struct llrb_cfstack copied_stack = (struct llrb_cfstack){ .size = stack->size, .max = stack->max };
+      copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
+      for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
+
+      llrb_compile_basic_block(c, &copied_stack, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
       llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
       return true;
     }
