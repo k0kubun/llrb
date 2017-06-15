@@ -64,7 +64,7 @@ int rb_vm_insn_addr2insn(const void *addr);
 // It's constructed in the following rule.
 //   Rule 1: 0 is always included
 //   Rule 2: All TS_OFFSET numers are included
-//   Rule 3: Positions immediately after jump, branchnil, branchif and branchunless are included
+//   Rule 3: Positions immediately after jump instructions (jump, branchnil, branchif, branchunless, opt_case_dispatch, leave) are included
 static VALUE
 llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
@@ -91,7 +91,10 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
       case YARVINSN_branchif:
       case YARVINSN_branchunless:
       case YARVINSN_branchnil:
-        rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
+      case YARVINSN_opt_case_dispatch:
+        if (i+insn_len(insn) < body->iseq_size) {
+          rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
+        }
         break;
     }
 
@@ -213,7 +216,10 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
 
   if (!strcmp(name, "rb_funcall")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
-    return LLVMAddFunction(mod, "rb_funcall", LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
+  } else if (!strcmp(name, "llrb_insn_checkmatch")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
@@ -294,7 +300,15 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_setn:
     //case YARVINSN_adjuststack:
     //case YARVINSN_defined:
-    //case YARVINSN_checkmatch:
+    case YARVINSN_checkmatch: {
+      LLVMValueRef func = llrb_get_function(c->mod, "llrb_insn_checkmatch");
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
+      args[1] = llrb_stack_pop(stack);
+      args[0] = llrb_stack_pop(stack);
+      args[2] = LLVMConstInt(LLVMInt64Type(), operands[0], false);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 3, "checkmatch"));
+      break;
+    }
     //case YARVINSN_checkkeyword:
     case YARVINSN_trace:
       break; // TODO: implement
@@ -397,7 +411,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_getinlinecache:
     //case YARVINSN_setinlinecache:
     //case YARVINSN_once:
-    //case YARVINSN_opt_case_dispatch:
+    case YARVINSN_opt_case_dispatch:
+      llrb_stack_pop(stack); // TODO: implement
+      break;
     case YARVINSN_opt_plus:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
       break;

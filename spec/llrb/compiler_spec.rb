@@ -79,7 +79,16 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'setn' do
   # specify 'adjuststack' do
   # specify 'defined' do
-  # specify 'checkmatch' do
+
+  specify 'checkmatch' do
+    test_compile(1) do |a|
+      case a
+      when 1
+        2
+      end
+    end
+  end
+
   # specify 'checkkeyword' do
   # specify 'trace' do
   # specify 'defineclass' do
@@ -257,7 +266,15 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'getinlinecache' do
   # specify 'setinlinecache' do
   # specify 'once' do
-  # specify 'opt_case_dispatch' do
+
+  specify 'opt_case_dispatch' do
+    test_compile(1) do |a|
+      case a
+      when 1
+        2
+      end
+    end
+  end
 
   specify 'opt_plus' do
     test_compile(1, 2) { |a, b| a+b }
