@@ -238,8 +238,9 @@ RSpec.describe 'llrb_compile_iseq' do
           end + 10
     end
 
+    test_compile(true) { |a| until a; end }
     #test_compile(true) do |a|
-    #  raise 'unreachable' until a
+    #  1+1 until a
     #end
   end
 
