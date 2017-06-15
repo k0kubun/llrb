@@ -128,10 +128,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_newarray\_max
 - [ ] opt\_newarray\_min
 - [ ] opt\_send\_without\_block
-- [ ] getinlinecache (!)
-- [ ] setinlinecache (!)
+- [ ] getinlinecache
+- [ ] setinlinecache
 - [ ] once (!)
-- [ ] opt\_case\_dispatch (!)
+- [ ] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
 - [ ] opt\_mult

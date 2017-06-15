@@ -165,8 +165,13 @@ llrb_build_array_by_start(const struct rb_iseq_constant_body *body)
 static void
 llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 {
-  fprintf(stderr, "\n== disasm: LLRB ================================\n");
+  fprintf(stderr, "\n== disasm: LLRB ================================");
+  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
   for (unsigned int i = 0; i < body->iseq_size;) {
+    if (RTEST(rb_ary_includes(starts, INT2FIX(i)))) {
+      fprintf(stderr, "\n");
+    }
+
     int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
     fprintf(stderr, "%04d %-27s [%-4s] ", i, insn_name(insn), insn_op_types(insn));
 
@@ -187,7 +192,6 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
     fprintf(stderr, "\n");
     i += insn_len(insn);
   }
-  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
   VALUE end_by_start = llrb_basic_block_end_by_start(body); // TODO: free?
   fprintf(stderr, "\nbasic block starts: %s\n", RSTRING_PTR(rb_inspect(starts)));
   fprintf(stderr, "basic block ends by starts: %s\n\n", RSTRING_PTR(rb_inspect(end_by_start)));
@@ -359,6 +363,13 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
 
+      // maybe this needs to be pushed as phi
+      struct llrb_cfstack copied_stack = (struct llrb_cfstack){ .size = stack->size, .max = stack->max };
+      copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
+      for (unsigned int i = 0; i < stack->size; i++) {
+        copied_stack.body[i] = stack->body[i];
+      }
+
       // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
       if (branch_dest > pos) {
         // Push block for phi
@@ -366,12 +377,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
 
         // Push value for phi
         LLVMValueRef stack_top = llrb_stack_pop(stack);
-        llrb_stack_push(stack, stack_top); // TODO: refactor lator
+        //llrb_stack_push(stack, stack_top); // TODO: refactor lator
         rb_ary_push(rb_hash_aref(c->incoming_values_by_start, INT2FIX(branch_dest)), (VALUE)stack_top);
       }
 
-      llrb_compile_basic_block(c, stack, fallthrough);
-      llrb_compile_basic_block(c, 0, branch_dest);
+      llrb_compile_basic_block(c, &copied_stack, fallthrough);
+      llrb_compile_basic_block(c, stack, branch_dest);
       return true;
     }
     case YARVINSN_branchunless: {
@@ -411,7 +422,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_getinlinecache:
     //case YARVINSN_setinlinecache:
     //case YARVINSN_once:
-    case YARVINSN_opt_case_dispatch:
+    case YARVINSN_opt_case_dispatch: // Use `switch` instruction
       llrb_stack_pop(stack); // TODO: implement
       break;
     case YARVINSN_opt_plus:
