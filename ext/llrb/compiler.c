@@ -369,13 +369,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block, branch_dest_block);
 
-      struct llrb_cfstack copied_stack = (struct llrb_cfstack){ .size = stack->size, .max = stack->max };
-      copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
-      for (unsigned int i = 0; i < stack->size; i++) {
-        copied_stack.body[i] = stack->body[i];
-      }
-
-      llrb_compile_basic_block(c, &copied_stack, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
+      llrb_compile_basic_block(c, 0, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
       llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
       return true;
     }
