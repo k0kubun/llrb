@@ -357,6 +357,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       }
 
       llrb_compile_basic_block(c, stack, fallthrough);
+      llrb_compile_basic_block(c, 0, branch_dest);
       return true;
     }
     case YARVINSN_branchunless: {
