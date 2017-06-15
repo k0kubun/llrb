@@ -239,9 +239,9 @@ RSpec.describe 'llrb_compile_iseq' do
     end
 
     test_compile(true) { |a| until a; end }
-    #test_compile(true) do |a|
-    #  1+1 until a
-    #end
+    test_compile(true) do |a|
+      1+1 until a
+    end
   end
 
   specify 'branchnil' do
