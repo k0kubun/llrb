@@ -233,6 +233,53 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "rb_ary_new_from_args")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
+  } else if (!strcmp(name, "rb_ary_resurrect")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+  } else if (!strcmp(name, "rb_str_resurrect")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+  } else if (!strcmp(name, "rb_obj_as_string")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+  } else if (!strcmp(name, "rb_hash_new")) {
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), 0, 0, false));
+  } else if (!strcmp(name, "rb_hash_aset")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "rb_str_freeze")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+  } else if (!strcmp(name, "rb_range_new")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt32Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "rb_ivar_get")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "rb_ivar_set")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "llrb_insn_getconstant")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_setconstant")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "llrb_insn_concatstrings")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
+  } else if (!strcmp(name, "llrb_insn_splatarray")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_opt_plus")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_opt_minus")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_opt_lt")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
