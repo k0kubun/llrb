@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-16/92
+18/92
 
 ### nop
 - [ ] nop
@@ -130,7 +130,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_send\_without\_block
 - [ ] getinlinecache
 - [ ] setinlinecache
-- [ ] once
+- [!] once
 - [ ] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
@@ -155,7 +155,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] opt\_not
 - [ ] opt\_regexpmatch1
 - [ ] opt\_regexpmatch2
-- [ ] opt\_call\_c\_function
+- [!] opt\_call\_c\_function
 
 ### exception
 - [ ] throw (!)
