@@ -341,8 +341,6 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'opt_regexpmatch1' do
   # specify 'opt_regexpmatch2' do
   # specify 'opt_call_c_function' do
-  # specify 'bitblt' do
-  # specify 'answer' do
 
   specify 'getlocal_OP__WC__0' do
     test_compile(1) { |a| a }

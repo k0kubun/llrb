@@ -487,8 +487,6 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_opt_regexpmatch1:
     //case YARVINSN_opt_regexpmatch2:
     //case YARVINSN_opt_call_c_function:
-    //case YARVINSN_bitblt:
-    //case YARVINSN_answer:
     case YARVINSN_getlocal_OP__WC__0: {
       unsigned local_size = c->body->local_table_size;
       unsigned arg_size   = c->body->param.size;
