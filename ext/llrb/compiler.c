@@ -348,7 +348,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, num+1, "newarray"));
       break;
     }
-    //case YARVINSN_duparray:
+    case YARVINSN_duparray: {
+      LLVMValueRef args[] = { llvm_value(operands[0]) };
+      LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_resurrect");
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 1, "duparray"));
+      break;
+    }
     //case YARVINSN_expandarray:
     //case YARVINSN_concatarray:
     //case YARVINSN_splatarray:

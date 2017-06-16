@@ -61,7 +61,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [[], nil, 1] }
   end
 
-  # specify 'duparray' do
+  specify 'duparray' do
+    test_compile { [1, 2] }
+    test_compile { [:foo, :bar] }
+  end
+
   # specify 'expandarray' do
   # specify 'concatarray' do
   # specify 'splatarray' do
