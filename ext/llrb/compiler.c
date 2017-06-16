@@ -390,7 +390,15 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
       break; // TODO: implement
     //case YARVINSN_defineclass:
     //case YARVINSN_send:
-    //case YARVINSN_opt_str_freeze:
+    case YARVINSN_opt_str_freeze: {
+      LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
+      args[0] = llvm_value(operands[0]);
+      args[1] = llvm_value(rb_intern("freeze"));
+      args[2] = LLVMConstInt(LLVMInt32Type(), 0, true);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 3, "opt_str_freeze"));
+      break;
+    }
     //case YARVINSN_opt_newarray_max:
     //case YARVINSN_opt_newarray_min:
     //case YARVINSN_opt_send_without_block:

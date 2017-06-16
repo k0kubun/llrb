@@ -137,7 +137,11 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'trace' do
   # specify 'defineclass' do
   # specify 'send' do
-  # specify 'opt_str_freeze' do
+
+  specify 'opt_str_freeze' do
+    test_compile { "foo".freeze }
+    #test_compile { "bar".freeze.frozen? }
+  end
 
   #specify 'opt_newarray_max' do
   #  test_compile { [[], [0]].max }
