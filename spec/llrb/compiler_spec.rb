@@ -55,7 +55,12 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'tostring' do
   # specify 'freezestring' do
   # specify 'toregexp' do
-  # specify 'newarray' do
+
+  specify 'newarray' do
+    test_compile { [] }
+    test_compile { [[], nil, 1] }
+  end
+
   # specify 'duparray' do
   # specify 'expandarray' do
   # specify 'concatarray' do
@@ -129,8 +134,15 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'defineclass' do
   # specify 'send' do
   # specify 'opt_str_freeze' do
-  # specify 'opt_newarray_max' do
-  # specify 'opt_newarray_min' do
+
+  #specify 'opt_newarray_max' do
+  #  test_compile { [[], [0]].max }
+  #end
+
+  #specify 'opt_newarray_min' do
+  #  test_compile { [[], [0]].min }
+  #end
+
   # specify 'opt_send_without_block' do
   # specify 'invokesuper' do
   # specify 'invokeblock' do

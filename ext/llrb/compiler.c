@@ -180,6 +180,11 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
       VALUE op = body->iseq_encoded[i+j];
       switch (insn_op_type(insn, j-1)) {
         case TS_VALUE:
+          if (BUILTIN_TYPE(op) == T_STRING) {
+            op = rb_str_resurrect(op);
+          } else if (BUILTIN_TYPE(op) == T_ARRAY) {
+            op = rb_ary_resurrect(op);
+          }
           fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
           break;
         case TS_NUM:
@@ -225,6 +230,9 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_checkmatch")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "rb_ary_new_from_args")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
@@ -281,7 +289,18 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     //case YARVINSN_tostring:
     //case YARVINSN_freezestring:
     //case YARVINSN_toregexp:
-    //case YARVINSN_newarray:
+    case YARVINSN_newarray: {
+      long num = (long)operands[0];
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, num+1);
+      args[0] = LLVMConstInt(LLVMInt64Type(), num, true); // TODO: support 32bit
+      for (long i = num; 1 <= i; i--) {
+        args[i] = llrb_stack_pop(stack);
+      }
+
+      LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_new_from_args");
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, num+1, "newarray"));
+      break;
+    }
     //case YARVINSN_duparray:
     //case YARVINSN_expandarray:
     //case YARVINSN_concatarray:
