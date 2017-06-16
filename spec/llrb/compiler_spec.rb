@@ -345,9 +345,22 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(2, 1) { |a, b| a-b }
   end
 
-  # specify 'opt_mult' do
-  # specify 'opt_div' do
-  # specify 'opt_mod' do
+  specify 'opt_mult' do
+    test_compile { 3 * 2 * 1 }
+  end
+
+  specify 'opt_div' do
+    test_compile { 3 / 2 / 1 }
+    test_compile { 1 + (3 - 4) * 5 / 2 }
+    test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
+      (a + b) * c ** d * e / b
+    end
+  end
+
+  specify 'opt_mod' do
+    test_compile { 3 % 2 % 1 }
+  end
+
   # specify 'opt_eq' do
   # specify 'opt_neq' do
   # specify 'opt_lt' do

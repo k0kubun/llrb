@@ -547,9 +547,15 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     case YARVINSN_opt_minus:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, '-', 1));
       break;
-    //case YARVINSN_opt_mult:
-    //case YARVINSN_opt_div:
-    //case YARVINSN_opt_mod:
+    case YARVINSN_opt_mult:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '*', 1));
+      break;
+    case YARVINSN_opt_div:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '/', 1));
+      break;
+    case YARVINSN_opt_mod:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '%', 1));
+      break;
     case YARVINSN_opt_eq:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=="), 1));
       break;
