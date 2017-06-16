@@ -151,7 +151,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #  test_compile { [[], [0]].min }
   #end
 
-  # specify 'opt_send_without_block' do
+  specify 'opt_send_without_block' do
+    test_compile { 2 ** 3 }
+    test_compile { false || 2.even? }
+    test_compile { [nil].push(3) }
+    test_compile { [] + [nil].push(3) }
+  end
+
   # specify 'invokesuper' do
   # specify 'invokeblock' do
 

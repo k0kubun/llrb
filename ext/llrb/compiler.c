@@ -182,10 +182,11 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
         case TS_VALUE:
           if (BUILTIN_TYPE(op) == T_STRING) {
             op = rb_str_resurrect(op);
+            fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
           } else if (BUILTIN_TYPE(op) == T_ARRAY) {
             op = rb_ary_resurrect(op);
+            fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
           }
-          fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
           break;
         case TS_NUM:
           fprintf(stderr, "%-4ld ", (rb_num_t)op);
@@ -401,7 +402,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_cfstack *stack, const uns
     }
     //case YARVINSN_opt_newarray_max:
     //case YARVINSN_opt_newarray_min:
-    //case YARVINSN_opt_send_without_block:
+    case YARVINSN_opt_send_without_block: {
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, ci->mid, ci->orig_argc));
+      break;
+    }
     //case YARVINSN_invokesuper:
     //case YARVINSN_invokeblock:
     case YARVINSN_leave:
