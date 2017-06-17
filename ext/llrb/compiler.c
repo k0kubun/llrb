@@ -670,11 +670,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 4, "opt_aref_with"));
       break;
     }
-    //case YARVINSN_opt_length:
-    //case YARVINSN_opt_size:
-    //case YARVINSN_opt_empty_p:
-    //case YARVINSN_opt_succ:
-    //case YARVINSN_opt_not:
+    case YARVINSN_opt_length:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("length"), 0));
+      break;
+    case YARVINSN_opt_size:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("size"), 0));
+      break;
+    case YARVINSN_opt_empty_p:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("empty?"), 0));
+      break;
+    case YARVINSN_opt_succ:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("succ"), 0));
+      break;
+    case YARVINSN_opt_not:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '!', 0));
+      break;
     //case YARVINSN_opt_regexpmatch1:
     //case YARVINSN_opt_regexpmatch2:
     //case YARVINSN_opt_call_c_function:

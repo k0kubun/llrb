@@ -451,11 +451,34 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'opt_length' do
-  # specify 'opt_size' do
-  # specify 'opt_empty_p' do
-  # specify 'opt_succ' do
-  # specify 'opt_not' do
+  specify 'opt_length' do
+    test_compile { [1, nil, false].length }
+  end
+
+  specify 'opt_size' do
+    test_compile { [1, nil, false].size }
+  end
+
+  specify 'opt_empty_p' do
+    test_compile { [].empty? }
+    test_compile { [1].empty? }
+  end
+
+  specify 'opt_succ' do
+    test_compile { 2.succ }
+  end
+
+  specify 'opt_not' do
+    test_compile { !nil }
+    test_compile { !true }
+    test_compile { !false }
+    test_compile { !100 }
+    test_compile { nil.! }
+    test_compile { true.! }
+    test_compile { false.! }
+    test_compile { 100.! }
+  end
+
   # specify 'opt_regexpmatch1' do
   # specify 'opt_regexpmatch2' do
   # specify 'opt_call_c_function' do
