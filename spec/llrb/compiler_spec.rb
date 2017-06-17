@@ -151,7 +151,12 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [nil][0] = 1 }
   end
 
-  # specify 'adjuststack' do
+  specify 'adjuststack' do
+    test_compile([true]) do |x|
+      x[0] ||= nil
+      x[0]
+    end
+  end
 
   specify 'defined' do
     test_compile { defined?(a) }

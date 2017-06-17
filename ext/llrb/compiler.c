@@ -521,10 +521,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       stack->body[last - (rb_num_t)operands[0]] = stack->body[last];
       break;
     }
-    //case YARVINSN_adjuststack: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_adjuststack: {
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_pop(stack);
+      }
+      break;
+    }
     case YARVINSN_defined: {
       LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
       args[0] = llvm_value(operands[0]);

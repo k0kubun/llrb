@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-66/93
+67/93
 
 ### nop
 - [x] nop
@@ -105,7 +105,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] reput
 - [x] topn
 - [x] setn
-- [ ] adjuststack
+- [x] adjuststack
 
 ### setting
 - [x] defined
