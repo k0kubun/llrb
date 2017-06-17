@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-75/93
+77/93
 
 ### nop
 - [x] nop
@@ -64,8 +64,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setlocal (!)
 - [ ] setlocal\_OP\_\_WC\_\_0 (!)
 - [ ] setlocal\_OP\_\_WC\_\_1 (!)
-- [ ] getspecial (!)
-- [ ] setspecial (!)
+- [!] getspecial
+- [!] setspecial
 - [x] getinstancevariable
 - [x] setinstancevariable
 - [ ] getclassvariable (!)

@@ -26,8 +26,14 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'getlocal' do
   # specify 'setlocal' do
-  # specify 'getspecial' do
-  # specify 'setspecial' do
+
+  #specify 'getspecial' do
+  #  test_compile { $1 }
+  #end
+
+  #specify 'setspecial' do
+  #  test_compile { true if true..true }
+  #end
 
   specify 'getinstancevariable' do
     test_compile { @a = 1; @a }
@@ -49,8 +55,6 @@ RSpec.describe 'llrb_compile_iseq' do
       klass::X = true
     end
   end
-
-  # specify 'setconstant' do
 
   specify 'getglobal' do
     $llrb_gvar_get = 1
@@ -107,8 +111,6 @@ RSpec.describe 'llrb_compile_iseq' do
   specify 'tostring' do
     test_compile { "h#{2}o" }
   end
-
-  # specify 'freezestring' do
 
   specify 'toregexp' do
     test_compile { /#{true}/ =~ "true" }
@@ -428,8 +430,14 @@ RSpec.describe 'llrb_compile_iseq' do
     test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
   end
 
-  # specify 'getinlinecache' do
-  # specify 'setinlinecache' do
+  specify 'getinlinecache' do
+    test_compile { Struct }
+  end
+
+  specify 'setinlinecache' do
+    test_compile { Struct }
+  end
+
   # specify 'once' do
 
   specify 'opt_case_dispatch' do

@@ -303,6 +303,12 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_toregexp")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
+  } else if (!strcmp(name, "llrb_insn_getspecial")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_setspecial")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 2, false));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
@@ -355,14 +361,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  ;
     //  break;
     //}
-    //case YARVINSN_getspecial: {
-    //  ;
-    //  break;
-    //}
-    //case YARVINSN_setspecial: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_getspecial: {
+      LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(operands[1]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "getspecial"));
+      break;
+    }
+    case YARVINSN_setspecial: {
+      LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(operands[1]) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getspecial"), args, 2, "getspecial");
+      break;
+    }
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
       LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_get"), args, 2, "getinstancevariable"));
