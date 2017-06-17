@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-53/93
+56/93
 
 ### nop
 - [ ] nop
@@ -83,7 +83,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
 - [ ] putspecialobject (!)
 - [ ] putiseq
-- [ ] putstring
+- [x] putstring
 - [ ] concatstrings
 - [ ] tostring
 - [ ] freezestring
@@ -152,8 +152,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_empty\_p
 - [x] opt\_succ
 - [x] opt\_not
-- [ ] opt\_regexpmatch1
-- [ ] opt\_regexpmatch2
+- [x] opt\_regexpmatch1
+- [x] opt\_regexpmatch2
 - [!] opt\_call\_c\_function
 
 ### exception

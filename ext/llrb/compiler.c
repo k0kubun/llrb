@@ -355,7 +355,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     //case YARVINSN_putspecialobject:
     //case YARVINSN_putiseq:
-    //case YARVINSN_putstring:
+    case YARVINSN_putstring: {
+      LLVMValueRef args[] = { llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
+      break;
+    }
     //case YARVINSN_concatstrings:
     //case YARVINSN_tostring:
     //case YARVINSN_freezestring:
@@ -685,8 +689,20 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_opt_not:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, '!', 0));
       break;
-    //case YARVINSN_opt_regexpmatch1:
-    //case YARVINSN_opt_regexpmatch2:
+    case YARVINSN_opt_regexpmatch1: {
+      // Not using llrb_compile_funcall to prevent stack overflow
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
+      args[0] = llrb_stack_pop(stack);
+      args[1] = llvm_value(rb_intern("=~"));
+      args[2] = LLVMConstInt(LLVMInt32Type(), 1, true);
+      args[3] = llvm_value(operands[0]);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 4, "opt_regexpmatch1"));
+      break;
+    }
+    case YARVINSN_opt_regexpmatch2: {
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=~"), 1));
+      break;
+    }
     //case YARVINSN_opt_call_c_function:
     case YARVINSN_getlocal_OP__WC__0: {
       unsigned local_size = c->body->local_table_size;

@@ -60,7 +60,11 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'putspecialobject' do
   # specify 'putiseq' do
-  # specify 'putstring' do
+
+  specify 'putstring' do
+    test_compile { "hello" }
+  end
+
   # specify 'concatstrings' do
   # specify 'tostring' do
   # specify 'freezestring' do
@@ -479,8 +483,14 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { 100.! }
   end
 
-  # specify 'opt_regexpmatch1' do
-  # specify 'opt_regexpmatch2' do
+  specify 'opt_regexpmatch1' do
+    test_compile { /true/ =~ 'true' }
+  end
+
+  specify 'opt_regexpmatch2' do
+    test_compile { 'true' =~ /true/ }
+  end
+
   # specify 'opt_call_c_function' do
 
   specify 'getlocal_OP__WC__0' do
