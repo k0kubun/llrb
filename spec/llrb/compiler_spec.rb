@@ -51,8 +51,15 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'setconstant' do
-  # specify 'getglobal' do
-  # specify 'setglobal' do
+
+  specify 'getglobal' do
+    $llrb_gvar_get = 1
+    test_compile { $llrb_gvar_get }
+  end
+
+  specify 'setglobal' do
+    test_compile { $llrb_gvar_set = 2 }
+  end
 
   specify 'putnil' do
     test_compile { nil }

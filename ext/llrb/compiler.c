@@ -258,6 +258,12 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "rb_ivar_set")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "rb_gvar_get")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
+  } else if (!strcmp(name, "rb_gvar_set")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
   } else if (!strcmp(name, "rb_reg_new_ary")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt32Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
@@ -386,14 +392,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 3, "setconstant");
       break;
     }
-    //case YARVINSN_getglobal: {
-    //  ;
-    //  break;
-    //}
-    //case YARVINSN_setglobal: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_getglobal: {
+      LLVMValueRef args[] = { llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_get"), args, 1, "getglobal"));
+      break;
+    }
+    case YARVINSN_setglobal: {
+      LLVMValueRef args[] = { llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_set"), args, 2, "setglobal");
+      break;
+    }
     case YARVINSN_putnil:
       llrb_stack_push(stack, llvm_value(Qnil));
       break;
