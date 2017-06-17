@@ -371,8 +371,20 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
       break;
     }
-    //case YARVINSN_concatstrings:
-    //case YARVINSN_tostring:
+    case YARVINSN_concatstrings: {
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, operands[0] + 1);
+      args[0] = llvm_value(operands[0]); // function is in size_t. correct?
+      for (long i = (long)operands[0]-1; 0 <= i; i--) {
+        args[1+i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_concatstrings"), args, operands[0] + 1, "concatstrings"));
+      break;
+    }
+    case YARVINSN_tostring: {
+      LLVMValueRef args[] = { llrb_stack_pop(stack) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_obj_as_string"), args, 1, "tostring"));
+      break;
+    }
     //case YARVINSN_freezestring:
     //case YARVINSN_toregexp:
     case YARVINSN_newarray:

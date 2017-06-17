@@ -77,8 +77,14 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { "hello" }
   end
 
-  # specify 'concatstrings' do
-  # specify 'tostring' do
+  specify 'concatstrings' do
+    test_compile { "a#{}b" }
+  end
+
+  specify 'tostring' do
+    test_compile { "h#{2}o" }
+  end
+
   # specify 'freezestring' do
   # specify 'toregexp' do
 
