@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-64/93
+66/93
 
 ### nop
 - [x] nop
@@ -99,7 +99,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 ### stack
 - [x] pop
 - [x] dup
-- [ ] dupn
+- [x] dupn
 - [x] swap
 - [ ] reverse
 - [ ] reput
@@ -108,7 +108,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] adjuststack
 
 ### setting
-- [ ] defined (!)
+- [x] defined
 - [x] checkmatch
 - [ ] checkkeyword (!)
 - [!] trace

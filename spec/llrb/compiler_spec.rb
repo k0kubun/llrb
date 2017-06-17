@@ -130,7 +130,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(1) { |a| a&.+(2) }
   end
 
-  # specify 'dupn' do
+  specify 'dupn' do
+    test_compile(Class.new) do |klass|
+      klass::X ||= true
+    end
+  end
 
   specify 'swap' do
     test_compile { {}['true'] = true }
@@ -148,7 +152,11 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'adjuststack' do
-  # specify 'defined' do
+
+  specify 'defined' do
+    test_compile { defined?(a) }
+    test_compile(1) { |a| defined?(a) }
+  end
 
   specify 'checkmatch' do
     [0, 1].each do |aa|

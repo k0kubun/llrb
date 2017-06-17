@@ -229,9 +229,6 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   if (!strcmp(name, "rb_funcall")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
-  } else if (!strcmp(name, "llrb_insn_checkmatch")) {
-    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
-    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
   } else if (!strcmp(name, "rb_ary_new_from_args")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
@@ -282,6 +279,12 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_opt_lt")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "llrb_insn_defined")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
+  } else if (!strcmp(name, "llrb_insn_checkmatch")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
@@ -326,10 +329,22 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
   switch (insn) {
     case YARVINSN_nop:
       break; // nop
-    //case YARVINSN_getlocal:
-    //case YARVINSN_setlocal:
-    //case YARVINSN_getspecial:
-    //case YARVINSN_setspecial:
+    //case YARVINSN_getlocal: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setlocal: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_getspecial: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setspecial: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
       LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_get"), args, 2, "getinstancevariable"));
@@ -340,8 +355,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "setinstancevariable");
       break;
     }
-    //case YARVINSN_getclassvariable:
-    //case YARVINSN_setclassvariable:
+    //case YARVINSN_getclassvariable: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setclassvariable: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_getconstant: {
       LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getconstant"), args, 2, "getconstant"));
@@ -353,8 +374,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 3, "setconstant");
       break;
     }
-    //case YARVINSN_getglobal:
-    //case YARVINSN_setglobal:
+    //case YARVINSN_getglobal: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setglobal: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_putnil:
       llrb_stack_push(stack, llvm_value(Qnil));
       break;
@@ -364,8 +391,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_putobject:
       llrb_stack_push(stack, llvm_value(operands[0]));
       break;
-    //case YARVINSN_putspecialobject:
-    //case YARVINSN_putiseq:
+    //case YARVINSN_putspecialobject: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_putiseq: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_putstring: {
       LLVMValueRef args[] = { llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
@@ -390,7 +423,10 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_freeze"), args, 1, "freezestring"));
       break;
     }
-    //case YARVINSN_toregexp:
+    //case YARVINSN_toregexp: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_newarray:
       llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
       break;
@@ -400,9 +436,18 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 1, "duparray"));
       break;
     }
-    //case YARVINSN_expandarray:
-    //case YARVINSN_concatarray:
-    //case YARVINSN_splatarray:
+    //case YARVINSN_expandarray: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_concatarray: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_splatarray: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_newhash: {
       LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
       LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);
@@ -437,7 +482,20 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, value);
       break;
     }
-    //case YARVINSN_dupn:
+    case YARVINSN_dupn: {
+      LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0]);
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        values[i] = llrb_stack_pop(stack); // FIXME: obviously no need to pop
+      }
+
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_push(stack, values[operands[0] - 1 - i]);
+      }
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_push(stack, values[operands[0] - 1 - i]);
+      }
+      break;
+    }
     case YARVINSN_swap: {
       LLVMValueRef first  = llrb_stack_pop(stack);
       LLVMValueRef second = llrb_stack_pop(stack);
@@ -445,8 +503,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, second);
       break;
     }
-    //case YARVINSN_reverse:
-    //case YARVINSN_reput:
+    //case YARVINSN_reverse: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_reput: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_topn: {
       unsigned int last = stack->size - 1;
       llrb_stack_push(stack, stack->body[last - (unsigned int)operands[0]]);
@@ -457,22 +521,41 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       stack->body[last - (rb_num_t)operands[0]] = stack->body[last];
       break;
     }
-    //case YARVINSN_adjuststack:
-    //case YARVINSN_defined:
+    //case YARVINSN_adjuststack: {
+    //  ;
+    //  break;
+    //}
+    case YARVINSN_defined: {
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
+      args[0] = llvm_value(operands[0]);
+      args[1] = llvm_value(operands[1]);
+      args[2] = llvm_value(operands[2]);
+      args[3] = llrb_stack_pop(stack);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_defined"), args, 4, "defined"));
+      break;
+    }
     case YARVINSN_checkmatch: {
-      LLVMValueRef func = llrb_get_function(c->mod, "llrb_insn_checkmatch");
       LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
       args[1] = llrb_stack_pop(stack);
       args[0] = llrb_stack_pop(stack);
       args[2] = LLVMConstInt(LLVMInt64Type(), operands[0], false);
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 3, "checkmatch"));
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkmatch"), args, 3, "checkmatch"));
       break;
     }
-    //case YARVINSN_checkkeyword:
+    //case YARVINSN_checkkeyword: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_trace:
       break; // TODO: implement
-    //case YARVINSN_defineclass:
-    //case YARVINSN_send:
+    //case YARVINSN_defineclass: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_send: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_opt_str_freeze: {
       LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
       LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
@@ -495,8 +578,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, ci->mid, ci->orig_argc));
       break;
     }
-    //case YARVINSN_invokesuper:
-    //case YARVINSN_invokeblock:
+    //case YARVINSN_invokesuper: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_invokeblock: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_leave:
       if (stack->size != 1) {
         llrb_disasm_insns(c->body);
@@ -505,7 +594,10 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       }
       LLVMBuildRet(c->builder, llrb_stack_pop(stack));
       return true;
-    //case YARVINSN_throw:
+    //case YARVINSN_throw: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_jump: {
       unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
       LLVMBasicBlockRef next_block = c->blocks[dest].block;
@@ -560,9 +652,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
         }
       }
 
-      // No stack size check?
-      // If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.
-      if (branch_dest > pos) {
+      // If jumping forward (branch_dest > pos), create phi. (If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.)
+      if (branch_dest > pos && stack->size > 0) {
         LLVMValueRef phi = c->blocks[branch_dest].phi;
         if (phi == 0) {
           // Push block/value for phi
@@ -592,6 +683,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       struct llrb_stack copied_stack = (struct llrb_stack){ .size = stack->size, .max = stack->max };
       copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
       for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
+
+      // If jumping forward (branch_dest > pos) and has value in stack, create phi.
+      if (branch_dest > pos && stack->size > 0) {
+        LLVMValueRef phi = c->blocks[branch_dest].phi;
+        if (phi == 0) {
+          // Push block/value for phi
+          rb_ary_push(c->blocks[branch_dest].incoming_blocks, (VALUE)LLVMGetInsertBlock(c->builder));
+          rb_ary_push(c->blocks[branch_dest].incoming_values, (VALUE)llrb_stack_pop(stack));
+        } else {
+          LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
+          values[0] = llrb_stack_pop(stack);
+          LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
+          LLVMAddIncoming(phi, values, blocks, 1);
+        }
+      }
 
       llrb_compile_basic_block(c, &copied_stack, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
       llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
@@ -744,9 +850,18 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
       break;
     }
-    //case YARVINSN_getlocal_OP__WC__1:
-    //case YARVINSN_setlocal_OP__WC__0:
-    //case YARVINSN_setlocal_OP__WC__1:
+    //case YARVINSN_getlocal_OP__WC__1: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setlocal_OP__WC__0: {
+    //  ;
+    //  break;
+    //}
+    //case YARVINSN_setlocal_OP__WC__1: {
+    //  ;
+    //  break;
+    //}
     case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
       llrb_stack_push(stack, llvm_value(INT2FIX(0)));
       break;
