@@ -582,11 +582,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_opt_eq:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=="), 1));
       break;
-    //case YARVINSN_opt_neq:
-    //case YARVINSN_opt_lt:
-    //case YARVINSN_opt_le:
-    //case YARVINSN_opt_gt:
-    //case YARVINSN_opt_ge:
+    case YARVINSN_opt_neq:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
+      break;
+    case YARVINSN_opt_lt:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '<', 1));
+      break;
+    case YARVINSN_opt_le:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("<="), 1));
+      break;
+    case YARVINSN_opt_gt:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '>', 1));
+      break;
+    case YARVINSN_opt_ge:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern(">="), 1));
+      break;
     //case YARVINSN_opt_ltlt:
     //case YARVINSN_opt_aref:
     //case YARVINSN_opt_aset:

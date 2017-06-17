@@ -371,12 +371,40 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { 3 % 2 % 1 }
   end
 
-  # specify 'opt_eq' do
-  # specify 'opt_neq' do
-  # specify 'opt_lt' do
-  # specify 'opt_le' do
-  # specify 'opt_gt' do
-  # specify 'opt_ge' do
+  specify 'opt_eq' do
+    test_compile { 2 == 2 }
+    test_compile { 3 == 2 }
+  end
+
+  specify 'opt_neq' do
+    test_compile { 2 != 2 }
+    test_compile { 3 != 2 }
+  end
+
+  specify 'opt_lt' do
+    test_compile { 2 < 3 }
+    test_compile { 2 < 2 }
+    test_compile { 3 < 2 }
+  end
+
+  specify 'opt_le' do
+    test_compile { 2 <= 3 }
+    test_compile { 2 <= 2 }
+    test_compile { 3 <= 2 }
+  end
+
+  specify 'opt_gt' do
+    test_compile { 2 > 3 }
+    test_compile { 2 > 2 }
+    test_compile { 3 > 2 }
+  end
+
+  specify 'opt_ge' do
+    test_compile { 2 >= 3 }
+    test_compile { 2 >= 2 }
+    test_compile { 3 >= 2 }
+  end
+
   # specify 'opt_ltlt' do
   # specify 'opt_aref' do
   # specify 'opt_aset' do
