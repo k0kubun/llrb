@@ -324,7 +324,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
 {
   //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d before %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   switch (insn) {
-    //case YARVINSN_nop:
+    case YARVINSN_nop:
+      break; // nop
     //case YARVINSN_getlocal:
     //case YARVINSN_setlocal:
     //case YARVINSN_getspecial:

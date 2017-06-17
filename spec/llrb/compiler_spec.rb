@@ -20,7 +20,10 @@ RSpec.describe 'llrb_compile_iseq' do
     expect { native.test(*args.map(&:dup)) }.to raise_error(error)
   end
 
-  # specify 'nop' do
+  specify 'nop' do
+    test_compile { nil rescue true }
+  end
+
   # specify 'getlocal' do
   # specify 'setlocal' do
   # specify 'getspecial' do
