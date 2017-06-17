@@ -330,8 +330,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //case YARVINSN_setlocal:
     //case YARVINSN_getspecial:
     //case YARVINSN_setspecial:
-    //case YARVINSN_getinstancevariable:
-    //case YARVINSN_setinstancevariable:
+    case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
+      LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_get"), args, 2, "getinstancevariable"));
+      break;
+    }
+    case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
+      LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "setinstancevariable");
+      break;
+    }
     //case YARVINSN_getclassvariable:
     //case YARVINSN_setclassvariable:
     case YARVINSN_getconstant: {

@@ -28,8 +28,15 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'setlocal' do
   # specify 'getspecial' do
   # specify 'setspecial' do
-  # specify 'getinstancevariable' do
-  # specify 'setinstancevariable' do
+
+  specify 'getinstancevariable' do
+    test_compile { @a = 1; @a }
+  end
+
+  specify 'setinstancevariable' do
+    test_compile { @a = 2 }
+  end
+
   # specify 'getclassvariable' do
   # specify 'setclassvariable' do
 
