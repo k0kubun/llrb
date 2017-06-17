@@ -385,7 +385,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_obj_as_string"), args, 1, "tostring"));
       break;
     }
-    //case YARVINSN_freezestring:
+    case YARVINSN_freezestring: { // TODO: check debug info
+      LLVMValueRef args[] = { llrb_stack_pop(stack) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_freeze"), args, 1, "freezestring"));
+      break;
+    }
     //case YARVINSN_toregexp:
     case YARVINSN_newarray:
       llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
