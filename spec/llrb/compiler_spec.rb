@@ -70,8 +70,24 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { (1..2) }
   end
 
-  # specify 'putspecialobject' do
-  # specify 'putiseq' do
+  #specify 'putspecialobject' do
+  #  test_compile do
+  #    def answer; 42; end
+  #  end
+  #end
+
+  #specify 'putiseq' do
+  #  test_compile do
+  #    def answer; 42; end
+  #  end
+
+  #  test_compile do
+  #    def concatenate(hello, world)
+  #      hello + world
+  #    end
+  #    concatenate("hello", "world")
+  #  end
+  #end
 
   specify 'putstring' do
     test_compile { "hello" }

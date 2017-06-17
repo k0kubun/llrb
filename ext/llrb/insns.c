@@ -47,6 +47,28 @@ llrb_insn_checkmatch(VALUE target, VALUE pattern, rb_num_t flag)
   return result;
 }
 
+VALUE vm_get_cbase(const VALUE *ep);
+VALUE vm_get_const_base(const VALUE *ep);
+VALUE
+llrb_insn_putspecialobject(rb_num_t value_type) {
+  enum vm_special_object_type type = (enum vm_special_object_type)value_type;
+
+  switch (type) {
+    case VM_SPECIAL_OBJECT_VMCORE:
+      return rb_mRubyVMFrozenCore;
+    case VM_SPECIAL_OBJECT_CBASE: {
+      rb_thread_t *th = GET_THREAD();
+      return vm_get_cbase(th->cfp->ep);
+    }
+    case VM_SPECIAL_OBJECT_CONST_BASE: {
+      rb_thread_t *th = GET_THREAD();
+      return vm_get_const_base(th->cfp->ep);
+    }
+    default:
+      rb_bug("putspecialobject insn: unknown value_type");
+  }
+}
+
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L359-L372
 VALUE rb_str_concat_literals(size_t, const VALUE*);
 VALUE

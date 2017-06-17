@@ -267,6 +267,9 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_concatstrings")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
+  } else if (!strcmp(name, "llrb_insn_putspecialobject")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
   } else if (!strcmp(name, "llrb_insn_splatarray")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
@@ -392,13 +395,13 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, llvm_value(operands[0]));
       break;
     //case YARVINSN_putspecialobject: {
-    //  ;
+    //  LLVMValueRef args[] = { llvm_value(operands[0]) };
+    //  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_putspecialobject"), args, 1, "putspecialobject"));
     //  break;
     //}
-    //case YARVINSN_putiseq: {
-    //  ;
+    //case YARVINSN_putiseq:
+    //  llrb_stack_push(stack, llvm_value(operands[0]));
     //  break;
-    //}
     case YARVINSN_putstring: {
       LLVMValueRef args[] = { llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
