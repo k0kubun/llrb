@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-57/93
+59/93
 
 ### nop
 - [x] nop
@@ -77,7 +77,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ### put
 - [x] putnil
-- [ ] putself
+- [x] putself
 - [x] putobject
 - [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
@@ -94,7 +94,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] concatarray
 - [ ] splatarray
 - [x] newhash
-- [ ] newrange
+- [x] newrange
 
 ### stack
 - [x] pop

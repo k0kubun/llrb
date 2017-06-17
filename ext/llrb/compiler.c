@@ -350,7 +350,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_putnil:
       llrb_stack_push(stack, llvm_value(Qnil));
       break;
-    //case YARVINSN_putself:
+    case YARVINSN_putself:
+      llrb_stack_push(stack, llrb_argument_at(c, 0));
+      break;
     case YARVINSN_putobject:
       llrb_stack_push(stack, llvm_value(operands[0]));
       break;
@@ -394,7 +396,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, result);
       break;
     }
-    //case YARVINSN_newrange:
+    case YARVINSN_newrange: {
+      LLVMValueRef high = llrb_stack_pop(stack);
+      LLVMValueRef low  = llrb_stack_pop(stack);
+      LLVMValueRef flag = LLVMConstInt(LLVMInt64Type(), operands[0], false);
+      LLVMValueRef args[] = { low, high, flag };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_range_new"), args, 3, "newrange"));
+      break;
+    }
     case YARVINSN_pop:
       llrb_stack_pop(stack);
       break;

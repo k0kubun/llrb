@@ -51,7 +51,9 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil }
   end
 
-  # specify 'putself' do
+  specify 'putself' do
+    test_compile { print }
+  end
 
   specify 'putobject' do
     test_compile { true }
@@ -97,7 +99,15 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'newrange' do
+  specify 'newrange' do
+    test_compile(1) do |x|
+      (0..x)
+    end
+
+    test_compile(1) do |x|
+      (0...x)
+    end
+  end
 
   specify 'pop' do
     test_compile(false, 1) { |a, b| a || b }
