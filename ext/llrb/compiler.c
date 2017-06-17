@@ -266,7 +266,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
   } else if (!strcmp(name, "llrb_insn_setconstant")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
-    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 3, false));
   } else if (!strcmp(name, "llrb_insn_concatstrings")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, true));
@@ -333,8 +333,17 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //case YARVINSN_setinstancevariable:
     //case YARVINSN_getclassvariable:
     //case YARVINSN_setclassvariable:
-    //case YARVINSN_getconstant:
-    //case YARVINSN_setconstant:
+    case YARVINSN_getconstant: {
+      LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getconstant"), args, 2, "getconstant"));
+      break;
+    }
+    case YARVINSN_setconstant: {
+      LLVMValueRef cbase = llrb_stack_pop(stack);
+      LLVMValueRef args[] = { cbase, llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 3, "setconstant");
+      break;
+    }
     //case YARVINSN_getglobal:
     //case YARVINSN_setglobal:
     case YARVINSN_putnil:
@@ -546,8 +555,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_compile_basic_block(c, stack, fallthrough);
       return true;
     }
-    //case YARVINSN_getinlinecache:
-    //case YARVINSN_setinlinecache:
+    case YARVINSN_getinlinecache:
+      llrb_stack_push(stack, llvm_value(Qnil)); // TODO: implement
+      break;
+    case YARVINSN_setinlinecache:
+      break; // TODO: implement
     //case YARVINSN_once:
     case YARVINSN_opt_case_dispatch: // Use `switch` instruction
       llrb_stack_pop(stack); // TODO: implement

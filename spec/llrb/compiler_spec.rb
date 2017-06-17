@@ -29,7 +29,17 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'setinstancevariable' do
   # specify 'getclassvariable' do
   # specify 'setclassvariable' do
-  # specify 'getconstant' do
+
+  specify 'getconstant' do
+    test_compile { RubyVM::InstructionSequence }
+  end
+
+  specify 'setconstant' do
+    test_compile(Class.new) do |klass|
+      klass::X = true
+    end
+  end
+
   # specify 'setconstant' do
   # specify 'getglobal' do
   # specify 'setglobal' do
