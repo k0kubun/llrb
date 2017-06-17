@@ -507,10 +507,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  ;
     //  break;
     //}
-    //case YARVINSN_reput: {
-    //  ;
-    //  break;
-    //}
+    //case YARVINSN_reput:
     case YARVINSN_topn: {
       unsigned int last = stack->size - 1;
       llrb_stack_push(stack, stack->body[last - (unsigned int)operands[0]]);
