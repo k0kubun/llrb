@@ -100,7 +100,11 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'expandarray' do
   # specify 'concatarray' do
-  # specify 'splatarray' do
+
+  specify 'splatarray' do
+    test_compile { [*(1..2)] }
+    test_compile { [*''] }
+  end
 
   specify 'newhash' do
     test_compile(1) do |a|

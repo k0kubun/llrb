@@ -432,8 +432,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     case YARVINSN_duparray: {
       LLVMValueRef args[] = { llvm_value(operands[0]) };
-      LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_resurrect");
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 1, "duparray"));
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_resurrect"), args, 1, "duparray"));
       break;
     }
     //case YARVINSN_expandarray: {
@@ -444,10 +443,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  ;
     //  break;
     //}
-    //case YARVINSN_splatarray: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_splatarray: {
+      LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_splatarray"), args, 2, "splatarray"));
+      break;
+    }
     case YARVINSN_newhash: {
       LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
       LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);

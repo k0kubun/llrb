@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-68/93
+69/93
 
 ### nop
 - [x] nop
@@ -92,7 +92,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] duparray
 - [ ] expandarray
 - [ ] concatarray
-- [ ] splatarray
+- [x] splatarray
 - [x] newhash
 - [x] newrange
 
