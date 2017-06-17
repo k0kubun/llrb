@@ -79,7 +79,17 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'expandarray' do
   # specify 'concatarray' do
   # specify 'splatarray' do
-  # specify 'newhash' do
+
+  specify 'newhash' do
+    test_compile(1) do |a|
+      { a: a }
+    end
+
+    test_compile(1, 2) do |a, b|
+      { a: a, b: b }.to_a
+    end
+  end
+
   # specify 'newrange' do
 
   specify 'pop' do
@@ -91,11 +101,22 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'dupn' do
-  # specify 'swap' do
+
+  specify 'swap' do
+    test_compile { {}['true'] = true }
+  end
+
   # specify 'reverse' do
   # specify 'reput' do
-  # specify 'topn' do
-  # specify 'setn' do
+
+  specify 'topn' do
+    test_compile { {}['true'] = true }
+  end
+
+  specify 'setn' do
+    test_compile { [nil][0] = 1 }
+  end
+
   # specify 'adjuststack' do
   # specify 'defined' do
 
@@ -405,11 +426,31 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { 3 >= 2 }
   end
 
-  # specify 'opt_ltlt' do
-  # specify 'opt_aref' do
-  # specify 'opt_aset' do
-  # specify 'opt_aset_with' do
-  # specify 'opt_aref_with' do
+  specify 'opt_ltlt' do
+    test_compile { [] << [] }
+    test_compile { [[], [1]] << [3, :hello] }
+    test_compile { [] << [nil, nil] }
+  end
+
+  specify 'opt_aref' do
+    test_compile { [1, 2, 3][1] }
+    test_compile { ([] << [[nil, false], [[], 3]][1][0])[0] }
+  end
+
+  specify 'opt_aset' do
+    test_compile { [nil][0] = 1 }
+  end
+
+  specify 'opt_aset_with' do
+    test_compile { {}['true'] = true }
+  end
+
+  specify 'opt_aref_with' do
+    test_compile(100) do |x|
+      { 'true' => x }['true']
+    end
+  end
+
   # specify 'opt_length' do
   # specify 'opt_size' do
   # specify 'opt_empty_p' do

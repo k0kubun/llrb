@@ -12,7 +12,7 @@
 *.o
 *.a
 mkmf.log
-core.ruby.*
+core.*
 
 # rspec failure tracking
 .rspec_status
