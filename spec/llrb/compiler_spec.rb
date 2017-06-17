@@ -102,7 +102,10 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'freezestring' do
-  # specify 'toregexp' do
+
+  specify 'toregexp' do
+    test_compile { /#{true}/ =~ "true" }
+  end
 
   specify 'newarray' do
     test_compile { [] }
@@ -234,7 +237,7 @@ RSpec.describe 'llrb_compile_iseq' do
 
   specify 'opt_str_freeze' do
     test_compile { "foo".freeze }
-    #test_compile { "bar".freeze.frozen? }
+    test_compile { "bar".freeze.frozen? }
   end
 
   specify 'opt_newarray_max' do

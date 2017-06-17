@@ -258,6 +258,12 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "rb_ivar_set")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "rb_reg_new_ary")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt32Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  } else if (!strcmp(name, "rb_ary_clear")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
   } else if (!strcmp(name, "llrb_insn_getconstant")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
@@ -288,6 +294,9 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_checkmatch")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "llrb_insn_toregexp")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, true));
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
@@ -426,10 +435,23 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_freeze"), args, 1, "freezestring"));
       break;
     }
-    //case YARVINSN_toregexp: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_toregexp: {
+      rb_num_t cnt = operands[1];
+      LLVMValueRef *args1 = ALLOC_N(LLVMValueRef, cnt+1);
+      args1[0] = LLVMConstInt(LLVMInt64Type(), (long)cnt, true);
+      for (rb_num_t i = 0; i < cnt; i++) {
+        args1[1+i] = llrb_stack_pop(stack);
+      }
+      LLVMValueRef ary = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_new_from_args"), args1, 1+cnt, "toregexp");
+
+      LLVMValueRef args2[] = { ary, LLVMConstInt(LLVMInt32Type(), (int)operands[0], true) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_reg_new_ary"), args2, 2, "toregexp"));
+
+      LLVMValueRef *args3 = ALLOC_N(LLVMValueRef, 1);
+      args3[0] = ary;
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_clear"), args3, 1, "toregexp");
+      break;
+    }
     case YARVINSN_newarray:
       llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
       break;
