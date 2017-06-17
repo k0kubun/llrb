@@ -143,13 +143,13 @@ RSpec.describe 'llrb_compile_iseq' do
     #test_compile { "bar".freeze.frozen? }
   end
 
-  #specify 'opt_newarray_max' do
-  #  test_compile { [[], [0]].max }
-  #end
+  specify 'opt_newarray_max' do
+    test_compile { [[], [0]].max }
+  end
 
-  #specify 'opt_newarray_min' do
-  #  test_compile { [[], [0]].min }
-  #end
+  specify 'opt_newarray_min' do
+    test_compile { [[], [0]].min }
+  end
 
   specify 'opt_send_without_block' do
     test_compile { 2 ** 3 }

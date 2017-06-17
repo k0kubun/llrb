@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-28/93
+30/93
 
 ### nop
 - [ ] nop
@@ -124,8 +124,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ### optimize
 - [x] opt\_str\_freeze
-- [ ] opt\_newarray\_max
-- [ ] opt\_newarray\_min
+- [x] opt\_newarray\_max
+- [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
 - [ ] getinlinecache
 - [ ] setinlinecache

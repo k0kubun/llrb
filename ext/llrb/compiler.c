@@ -303,6 +303,19 @@ llrb_compile_funcall(struct llrb_compiler *c, struct llrb_stack *stack, ID mid, 
   return LLVMBuildCall(c->builder, func, args, 3+argc, "rb_funcall");
 }
 
+static LLVMValueRef
+llrb_compile_newarray(struct llrb_compiler *c, struct llrb_stack *stack, long num)
+{
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, num+1);
+  args[0] = LLVMConstInt(LLVMInt64Type(), num, true); // TODO: support 32bit
+  for (long i = num; 1 <= i; i--) {
+    args[i] = llrb_stack_pop(stack);
+  }
+
+  LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_new_from_args");
+  return LLVMBuildCall(c->builder, func, args, num+1, "newarray");
+}
+
 static void llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsigned int start);
 
 // @return true if jumped in this insn, and in that case br won't be created.
@@ -338,18 +351,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //case YARVINSN_tostring:
     //case YARVINSN_freezestring:
     //case YARVINSN_toregexp:
-    case YARVINSN_newarray: {
-      long num = (long)operands[0];
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, num+1);
-      args[0] = LLVMConstInt(LLVMInt64Type(), num, true); // TODO: support 32bit
-      for (long i = num; 1 <= i; i--) {
-        args[i] = llrb_stack_pop(stack);
-      }
-
-      LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_new_from_args");
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, num+1, "newarray"));
+    case YARVINSN_newarray:
+      llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
       break;
-    }
     case YARVINSN_duparray: {
       LLVMValueRef args[] = { llvm_value(operands[0]) };
       LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_resurrect");
@@ -401,8 +405,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 3, "opt_str_freeze"));
       break;
     }
-    //case YARVINSN_opt_newarray_max:
-    //case YARVINSN_opt_newarray_min:
+    case YARVINSN_opt_newarray_max:
+      llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("max"), 0));
+      break;
+    case YARVINSN_opt_newarray_min:
+      llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("min"), 0));
+      break;
     case YARVINSN_opt_send_without_block: {
       CALL_INFO ci = (CALL_INFO)operands[0];
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, ci->mid, ci->orig_argc));
