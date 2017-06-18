@@ -52,8 +52,6 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-77/93
-
 ### nop
 - [x] nop
 
@@ -64,8 +62,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setlocal (!)
 - [ ] setlocal\_OP\_\_WC\_\_0 (!)
 - [ ] setlocal\_OP\_\_WC\_\_1 (!)
-- [!] getspecial
-- [!] setspecial
+- [ ] getspecial
+- [ ] setspecial
 - [x] getinstancevariable
 - [x] setinstancevariable
 - [ ] getclassvariable (!)
@@ -81,8 +79,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] putobject
 - [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
 - [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
-- [!] putspecialobject
-- [!] putiseq
+- [ ] putspecialobject
+- [ ] putiseq
 - [x] putstring
 - [x] concatstrings
 - [x] tostring
@@ -102,7 +100,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] dupn
 - [x] swap
 - [ ] reverse
-- [!] reput
+- [ ] reput
 - [x] topn
 - [x] setn
 - [x] adjuststack
@@ -110,8 +108,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 ### setting
 - [x] defined
 - [x] checkmatch
-- [!] checkkeyword
-- [!] trace
+- [ ] checkkeyword
+- [ ] trace
 
 ### class/module
 - [ ] defineclass (!)
@@ -127,10 +125,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_newarray\_max
 - [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
-- [!] getinlinecache
-- [!] setinlinecache
-- [!] once
-- [!] opt\_case\_dispatch
+- [ ] getinlinecache
+- [ ] setinlinecache
+- [ ] once
+- [ ] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
 - [x] opt\_mult
@@ -154,7 +152,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_not
 - [x] opt\_regexpmatch1
 - [x] opt\_regexpmatch2
-- [!] opt\_call\_c\_function
+- [ ] opt\_call\_c\_function
 
 ### exception
 - [ ] throw (!)
