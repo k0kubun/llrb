@@ -141,29 +141,6 @@ llrb_init_basic_blocks(struct llrb_compiler *c, const struct rb_iseq_constant_bo
   }
 }
 
-// Given llrb_basic_block_starts result like [0, 2, 8, 9], it returns a Hash
-// whose value specifies basic block ends like { 0 => 1, 2 => 7, 8 => 8, 9 => 10 }.
-//
-// TODO: Note that sometimes "end" points to actual end's operands. This may hit a bug... So fix it later for safety.
-static VALUE
-llrb_basic_block_end_by_start(const struct rb_iseq_constant_body *body)
-{
-  VALUE end_by_start = rb_hash_new();
-  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
-
-  for (long i = 0; i < RARRAY_LEN(starts); i++) {
-    VALUE start = RARRAY_AREF(starts, i);
-
-    if (i == RARRAY_LEN(starts)-1) {
-      rb_hash_aset(end_by_start, start, INT2FIX(body->iseq_size-1)); // This assumes the end is always "leave". Is it true?
-    } else {
-      VALUE next_start = RARRAY_AREF(starts, i+1);
-      rb_hash_aset(end_by_start, start, INT2FIX(FIX2INT(next_start)-1));
-    }
-  }
-  return end_by_start;
-}
-
 static void
 llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 {
@@ -200,9 +177,7 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
     fprintf(stderr, "\n");
     i += insn_len(insn);
   }
-  VALUE end_by_start = llrb_basic_block_end_by_start(body); // TODO: free?
   fprintf(stderr, "\nbasic block starts: %s\n", RSTRING_PTR(rb_inspect(starts)));
-  fprintf(stderr, "basic block ends by starts: %s\n\n", RSTRING_PTR(rb_inspect(end_by_start)));
 }
 
 LLVMValueRef
