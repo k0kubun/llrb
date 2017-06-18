@@ -27,6 +27,9 @@ module LLRB
       preview_iseq(iseqw, recv)
     end
 
+    def self.compile_defined()
+    end
+
     # Followings are defined in ext/llrb/llrb.cc
 
     # @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
