@@ -134,3 +134,36 @@ llrb_insn_setspecial(rb_num_t key, VALUE obj)
 
   lep_svar_set(th, ep, key, obj);
 }
+
+VALUE
+llrb_insn_opt_plus(VALUE lhs, VALUE rhs)
+{
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_PLUS, INTEGER_REDEFINED_OP_FLAG)) {
+    return LONG2NUM(FIX2LONG(lhs) + FIX2LONG(rhs));
+  }
+  return rb_funcall(lhs, '+', 1, rhs);
+}
+
+VALUE
+llrb_insn_opt_minus(VALUE lhs, VALUE rhs)
+{
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_MINUS, INTEGER_REDEFINED_OP_FLAG)) {
+    return LONG2NUM(FIX2LONG(lhs) - FIX2LONG(rhs));
+  }
+  return rb_funcall(lhs, '-', 1, rhs);
+}
+
+VALUE
+llrb_insn_opt_lt(VALUE lhs, VALUE rhs)
+{
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_MINUS, INTEGER_REDEFINED_OP_FLAG)) {
+    SIGNED_VALUE a = lhs, b = rhs;
+
+    if (a < b) {
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
+  }
+  return rb_funcall(lhs, '<', 1, rhs);
+}

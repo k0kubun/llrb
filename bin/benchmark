@@ -2,14 +2,26 @@
 
 require 'bundler/setup'
 require 'benchmark/ips'
+require 'optparse'
 require 'llrb'
+
+preview = false
+opt = OptionParser.new
+opt.on('-p') { preview = true }
+opt.parse!(ARGV)
 
 script = File.read(ARGV.first || "#{__dir__}/scripts/bm_app_fib.rb")
 
+native = Class.new
+if preview
+  native.instance_eval("def self.script; #{script.gsub(/LLRB::JIT.compile(\([^\)]+\))/, 'LLRB::JIT.preview\1')}; end")
+  native.script
+  return
+else
+  native.instance_eval("def self.script; #{script}; end")
+end
 ruby = Class.new
 ruby.instance_eval("def self.script; #{script.gsub(/LLRB::JIT.compile\([^\)]+\)/, '')}; end")
-native = Class.new
-native.instance_eval("def self.script; #{script}; end")
 
 Benchmark.ips do |x|
   x.report('ruby')   { ruby.script }
