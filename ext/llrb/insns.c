@@ -167,3 +167,11 @@ llrb_insn_opt_lt(VALUE lhs, VALUE rhs)
   }
   return rb_funcall(lhs, '<', 1, rhs);
 }
+
+void
+llrb_push_result(rb_control_frame_t *cfp, VALUE result)
+{
+  // PUSH(result)
+  *(cfp->sp) = result;
+  cfp->sp += 1;
+}

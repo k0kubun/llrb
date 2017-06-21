@@ -281,7 +281,8 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "llrb_insn_getspecial")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
-  } else if (!strcmp(name, "llrb_insn_setspecial")) {
+  } else if (!strcmp(name, "llrb_insn_setspecial")
+      || !strcmp(name, "llrb_push_result")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 2, false));
   } else {
@@ -607,7 +608,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
         LLVMDumpModule(c->mod);
         rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", stack->size);
       }
-      LLVMBuildRet(c->builder, llrb_stack_pop(stack));
+
+      // reg_cfp is second argument of opt_call_c_function
+      LLVMValueRef args[] = { llrb_argument_at(c, 1), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "leave");
+      LLVMBuildRet(c->builder, llrb_argument_at(c, 1));
       return true;
     //case YARVINSN_throw: {
     //  ;
@@ -978,10 +983,9 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
   LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
 
-  LLVMTypeRef *arg_types = ALLOC_N(LLVMTypeRef, iseq->body->param.size+1);
-  for (unsigned i = 0; i <= iseq->body->param.size; i++) arg_types[i] = LLVMInt64Type();
+  LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
-      LLVMFunctionType(LLVMInt64Type(), arg_types, iseq->body->param.size+1, false));
+      LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
 
   struct llrb_compiler compiler = (struct llrb_compiler){
     .body = iseq->body,

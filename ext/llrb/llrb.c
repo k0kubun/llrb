@@ -3,6 +3,7 @@
 #include "llvm-c/Target.h"
 #include "ruby.h"
 #include "compiler.h"
+#include "insns.inc"
 
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 static const char *llrb_funcname = "llrb_exec";
@@ -22,6 +23,19 @@ llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
     }
   }
   return LLVMGetFunctionAddress(engine, funcname);
+}
+
+void
+llrb_replace_iseq_with_cfunc(const rb_iseq_t *iseq, rb_insn_func_t funcptr)
+{
+  VALUE *new_iseq_encoded = ALLOC_N(VALUE, 3);
+  new_iseq_encoded[0] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function];
+  new_iseq_encoded[1] = (VALUE)funcptr;
+  new_iseq_encoded[2] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
+
+  // Don't we need to prevent race condition by another thread? Will GVL protect us?
+  iseq->body->iseq_encoded = new_iseq_encoded;
+  iseq->body->iseq_size = 3;
 }
 
 // LLRB::JIT.preview_iseq
@@ -46,15 +60,17 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE 
 static VALUE
 rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE recv), VALUE klass, VALUE name, VALUE arity)
 {
-  LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
   if (!func) {
     fprintf(stderr, "Failed to create native function...\n");
     return Qfalse;
   }
 
-  VALUE name_str = rb_convert_type(name, T_STRING, "String", "to_s");
-  rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), FIX2INT(arity));
+  //VALUE name_str = rb_convert_type(name, T_STRING, "String", "to_s");
+  //rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), FIX2INT(arity));
+  llrb_replace_iseq_with_cfunc(iseq, (rb_insn_func_t)func);
   return Qtrue;
 }
 
