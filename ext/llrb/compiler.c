@@ -325,12 +325,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //}
     case YARVINSN_getspecial: {
       LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(operands[1]) };
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "getspecial"));
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getspecial"), args, 2, "getspecial"));
       break;
     }
     case YARVINSN_setspecial: {
-      LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(operands[1]) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getspecial"), args, 2, "getspecial");
+      LLVMValueRef args[] = { llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "setspecial");
       break;
     }
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart

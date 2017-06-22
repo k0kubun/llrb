@@ -28,13 +28,13 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'getlocal' do
   # specify 'setlocal' do
 
-  #specify 'getspecial' do
-  #  test_compile { $1 }
-  #end
+  specify 'getspecial' do
+    test_compile { $1 }
+  end
 
-  #specify 'setspecial' do
-  #  test_compile { true if true..true }
-  #end
+  specify 'setspecial' do
+    test_compile { true if true..true }
+  end
 
   specify 'getinstancevariable' do
     test_compile { @a = 1; @a }

@@ -62,8 +62,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] setlocal (!)
 - [x] setlocal\_OP\_\_WC\_\_0
 - [ ] setlocal\_OP\_\_WC\_\_1
-- [ ] getspecial
-- [ ] setspecial
+- [x] getspecial
+- [x] setspecial
 - [x] getinstancevariable
 - [x] setinstancevariable
 - [ ] getclassvariable (!)
@@ -100,7 +100,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] dupn
 - [x] swap
 - [ ] reverse
-- [ ] reput
+- [!] reput
 - [x] topn
 - [x] setn
 - [x] adjuststack
@@ -125,10 +125,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_newarray\_max
 - [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
-- [ ] getinlinecache
-- [ ] setinlinecache
+- [!] getinlinecache
+- [!] setinlinecache
 - [ ] once
-- [ ] opt\_case\_dispatch
+- [!] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
 - [x] opt\_mult
