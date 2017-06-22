@@ -187,7 +187,7 @@ llrb_argument_at(struct llrb_compiler *c, unsigned index)
   return LLVMGetParam(func, index);
 }
 
-inline LLVMValueRef
+static inline LLVMValueRef
 llrb_get_cfp(struct llrb_compiler *c)
 {
   return llrb_argument_at(c, 1);
@@ -215,7 +215,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "rb_str_freeze")
       || !strcmp(name, "rb_gvar_get")
       || !strcmp(name, "rb_ary_clear")
-      || !strcmp(name, "llrb_insn_putself")
+      || !strcmp(name, "llrb_self_from_cfp")
       || !strcmp(name, "llrb_insn_putspecialobject")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
@@ -258,6 +258,14 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else {
     rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
   }
+}
+
+// TODO: This can be optimized on runtime...
+static inline LLVMValueRef
+llrb_get_self(struct llrb_compiler *c)
+{
+  LLVMValueRef args[] = { llrb_get_cfp(c) };
+  return LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_self_from_cfp"), args, 1, "putself");
 }
 
 static LLVMValueRef
@@ -318,12 +326,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
-      LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]) };
+      LLVMValueRef args[] = { llrb_get_self(c), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_get"), args, 2, "getinstancevariable"));
       break;
     }
     case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
-      LLVMValueRef args[] = { llrb_argument_at(c, 0), llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMValueRef args[] = { llrb_get_self(c), llvm_value(operands[0]), llrb_stack_pop(stack) };
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "setinstancevariable");
       break;
     }
@@ -360,8 +368,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, llvm_value(Qnil));
       break;
     case YARVINSN_putself: {
-      LLVMValueRef args[] = { llrb_get_cfp(c) };
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_putself"), args, 1, "putself"));
+      llrb_stack_push(stack, llrb_get_self(c));
       break;
     }
     case YARVINSN_putobject:

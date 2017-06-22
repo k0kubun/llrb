@@ -37,11 +37,11 @@ RSpec.describe 'llrb_compile_iseq' do
   #end
 
   specify 'getinstancevariable' do
-    #test_compile { @a = 1; @a }
+    test_compile { @a = 1; @a }
   end
 
   specify 'setinstancevariable' do
-    #test_compile { @a = 2 }
+    test_compile { @a = 2 }
   end
 
   # specify 'getclassvariable' do

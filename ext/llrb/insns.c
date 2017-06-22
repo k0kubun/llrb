@@ -6,8 +6,9 @@ llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
   return *(cfp->ep - idx);
 }
 
+// TODO: This can be optimized on runtime...
 VALUE
-llrb_insn_putself(rb_control_frame_t *cfp)
+llrb_self_from_cfp(rb_control_frame_t *cfp)
 {
   return cfp->self;
 }
