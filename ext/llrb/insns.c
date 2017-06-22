@@ -6,6 +6,13 @@ llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
   return *(cfp->ep - idx);
 }
 
+void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
+void
+llrb_insn_setlocal_level0(rb_control_frame_t *cfp, lindex_t idx, VALUE val)
+{
+  rb_vm_env_write(cfp->ep, -(int)idx, val);
+}
+
 // TODO: This can be optimized on runtime...
 VALUE
 llrb_self_from_cfp(rb_control_frame_t *cfp)

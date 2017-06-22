@@ -58,10 +58,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 ### variable
 - [ ] getlocal (!)
 - [x] getlocal\_OP\_\_WC\_\_0
-- [ ] getlocal\_OP\_\_WC\_\_1 (!)
+- [ ] getlocal\_OP\_\_WC\_\_1
 - [ ] setlocal (!)
-- [ ] setlocal\_OP\_\_WC\_\_0 (!)
-- [ ] setlocal\_OP\_\_WC\_\_1 (!)
+- [x] setlocal\_OP\_\_WC\_\_0
+- [ ] setlocal\_OP\_\_WC\_\_1
 - [ ] getspecial
 - [ ] setspecial
 - [x] getinstancevariable

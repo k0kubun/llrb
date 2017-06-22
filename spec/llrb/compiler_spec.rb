@@ -576,7 +576,18 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'getlocal_OP__WC__1' do
-  # specify 'setlocal_OP__WC__0' do
+
+  specify 'setlocal_OP__WC__0' do
+    test_compile(1) do |a|
+      a = 2
+    end
+    test_compile do
+      a = 4
+      b = 3
+      a - b
+    end
+  end
+
   # specify 'setlocal_OP__WC__1' do
 
   specify 'putobject_OP_INT2FIX_O_0_C_' do

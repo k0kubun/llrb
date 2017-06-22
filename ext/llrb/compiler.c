@@ -230,6 +230,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "rb_ivar_get")
       || !strcmp(name, "rb_gvar_set")
       || !strcmp(name, "rb_reg_new_ary")
+      || !strcmp(name, "llrb_insn_getlocal_level0")
       || !strcmp(name, "llrb_insn_getconstant")
       || !strcmp(name, "llrb_insn_splatarray")
       || !strcmp(name, "llrb_insn_opt_plus")
@@ -249,9 +250,9 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "llrb_insn_setconstant")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
-  } else if (!strcmp(name, "llrb_insn_getlocal_level0")) {
-    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt32Type(), LLVMInt32Type(), LLVMInt64Type() };
-    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
+  } else if (!strcmp(name, "llrb_insn_setlocal_level0")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 3, false));
   } else if (!strcmp(name, "llrb_insn_defined")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
@@ -849,7 +850,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     //case YARVINSN_opt_call_c_function:
     case YARVINSN_getlocal_OP__WC__0: {
-      LLVMValueRef args[] = { llrb_get_cfp(c), LLVMConstInt(LLVMInt64Type(), (lindex_t)operands[0], false) };
+      LLVMValueRef idx = llvm_value((lindex_t)operands[0]);
+      LLVMValueRef args[] = { llrb_get_cfp(c), idx };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getlocal_level0"), args, 2, "getlocal"));
       break;
     }
@@ -857,10 +859,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  ;
     //  break;
     //}
-    //case YARVINSN_setlocal_OP__WC__0: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_setlocal_OP__WC__0: {
+      LLVMValueRef idx = llvm_value((lindex_t)operands[0]);
+      LLVMValueRef args[] = { llrb_get_cfp(c), idx, llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setlocal_level0"), args, 3, "setlocal");
+      break;
+    }
     //case YARVINSN_setlocal_OP__WC__1: {
     //  ;
     //  break;
