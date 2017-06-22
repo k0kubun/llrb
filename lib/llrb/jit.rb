@@ -10,7 +10,7 @@ module LLRB
     def self.compile(recv, name)
       method = recv.method(name)
       iseqw = RubyVM::InstructionSequence.of(method)
-      return false if iseqw.nil?
+      return false if iseqw.nil? # method defined with C function can't be compiled
 
       compile_iseq(iseqw, recv, method.owner, method.original_name, method.arity)
     end

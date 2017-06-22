@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/Target.h"
@@ -38,6 +39,14 @@ llrb_replace_iseq_with_cfunc(const rb_iseq_t *iseq, rb_insn_func_t funcptr)
   iseq->body->iseq_size = 3;
 }
 
+static bool
+llrb_check_already_compiled(const rb_iseq_t *iseq)
+{
+  return iseq->body->iseq_size == 3
+    && iseq->body->iseq_encoded[0] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function]
+    && iseq->body->iseq_encoded[2] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
+}
+
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
 // @param  [Object]  recv  - method receiver (not used for now)
@@ -45,7 +54,10 @@ llrb_replace_iseq_with_cfunc(const rb_iseq_t *iseq, rb_insn_func_t funcptr)
 static VALUE
 rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE recv))
 {
-  LLVMModuleRef mod = llrb_compile_iseq(rb_iseqw_to_iseq(iseqw), llrb_funcname);
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  if (llrb_check_already_compiled(iseq)) return Qfalse;
+
+  LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   LLVMDumpModule(mod);
   return Qtrue;
 }
@@ -61,6 +73,8 @@ static VALUE
 rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE recv), VALUE klass, VALUE name, VALUE arity)
 {
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  if (llrb_check_already_compiled(iseq)) return Qfalse;
+
   LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
   if (!func) {
