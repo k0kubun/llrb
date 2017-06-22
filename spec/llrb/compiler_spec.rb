@@ -10,13 +10,13 @@ RSpec.describe 'llrb_compile_iseq' do
     expect(klass.test(*args.map(&:dup))).to eq(result)
   end
 
-  #def test_error(error, *args, &block)
-  #  native = Class.new
-  #  native.send(:define_singleton_method, :test, &block)
+  def test_error(error, *args, &block)
+    native = Class.new
+    native.send(:define_singleton_method, :test, &block)
 
-  #  expect(LLRB::JIT.compile(native, :test)).to eq(true)
-  #  expect { native.test(*args.map(&:dup)) }.to raise_error(error)
-  #end
+    expect(LLRB::JIT.compile(native, :test)).to eq(true)
+    expect { native.test(*args.map(&:dup)) }.to raise_error(error)
+  end
 
   specify 'nop' do
     test_compile { nil rescue true }
@@ -33,13 +33,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #  test_compile { true if true..true }
   #end
 
-  #specify 'getinstancevariable' do
-  #  test_compile { @a = 1; @a }
-  #end
+  specify 'getinstancevariable' do
+    #test_compile { @a = 1; @a }
+  end
 
-  #specify 'setinstancevariable' do
-  #  test_compile { @a = 2 }
-  #end
+  specify 'setinstancevariable' do
+    #test_compile { @a = 2 }
+  end
 
   # specify 'getclassvariable' do
   # specify 'setclassvariable' do
@@ -48,11 +48,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { RubyVM::InstructionSequence }
   end
 
-  #specify 'setconstant' do
-  #  test_compile(Class.new) do |klass|
-  #    klass::X = true
-  #  end
-  #end
+  specify 'setconstant' do
+    #test_compile(Class.new) do |klass|
+    #  klass::X = true
+    #end
+  end
 
   specify 'getglobal' do
     $llrb_gvar_get = 1
@@ -67,9 +67,9 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil }
   end
 
-  #specify 'putself' do
-  #  test_compile { print }
-  #end
+  specify 'putself' do
+    #test_compile { print }
+  end
 
   specify 'putobject' do
     test_compile { true }
@@ -132,39 +132,39 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [*''] }
   end
 
-  #specify 'newhash' do
-  #  test_compile(1) do |a|
-  #    { a: a }
-  #  end
+  specify 'newhash' do
+    #test_compile(1) do |a|
+    #  { a: a }
+    #end
 
-  #  test_compile(1, 2) do |a, b|
-  #    { a: a, b: b }.to_a
-  #  end
-  #end
+    #test_compile(1, 2) do |a, b|
+    #  { a: a, b: b }.to_a
+    #end
+  end
 
-  #specify 'newrange' do
-  #  test_compile(1) do |x|
-  #    (0..x)
-  #  end
+  specify 'newrange' do
+    #test_compile(1) do |x|
+    #  (0..x)
+    #end
 
-  #  test_compile(1) do |x|
-  #    (0...x)
-  #  end
-  #end
+    #test_compile(1) do |x|
+    #  (0...x)
+    #end
+  end
 
-  #specify 'pop' do
-  #  test_compile(false, 1) { |a, b| a || b }
-  #end
+  specify 'pop' do
+    #test_compile(false, 1) { |a, b| a || b }
+  end
 
-  #specify 'dup' do
-  #  test_compile(1) { |a| a&.+(2) }
-  #end
+  specify 'dup' do
+    #test_compile(1) { |a| a&.+(2) }
+  end
 
-  #specify 'dupn' do
-  #  test_compile(Class.new) do |klass|
-  #    klass::X ||= true
-  #  end
-  #end
+  specify 'dupn' do
+    #test_compile(Class.new) do |klass|
+    #  klass::X ||= true
+    #end
+  end
 
   specify 'swap' do
     test_compile { {}['true'] = true }
@@ -181,61 +181,61 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [nil][0] = 1 }
   end
 
-  #specify 'adjuststack' do
-  #  test_compile([true]) do |x|
-  #    x[0] ||= nil
-  #    x[0]
-  #  end
-  #end
+  specify 'adjuststack' do
+    #test_compile([true]) do |x|
+    #  x[0] ||= nil
+    #  x[0]
+    #end
+  end
 
-  #specify 'defined' do
-  #  test_compile { defined?(a) }
-  #  test_compile(1) { |a| defined?(a) }
-  #end
+  specify 'defined' do
+    #test_compile { defined?(a) }
+    #test_compile(1) { |a| defined?(a) }
+  end
 
-  #specify 'checkmatch' do
-  #  [0, 1].each do |aa|
-  #    test_compile(aa) do |a|
-  #      case a
-  #      when 1
-  #        2
-  #      else
-  #        3
-  #      end
-  #    end
-  #  end
+  specify 'checkmatch' do
+    [0, 1].each do |aa|
+      #test_compile(aa) do |a|
+      #  case a
+      #  when 1
+      #    2
+      #  else
+      #    3
+      #  end
+      #end
+    end
 
-  #  test_compile(1) do |a|
-  #    1000 + case a
-  #           when 1
-  #             100
-  #           end
-  #  end
+    #test_compile(1) do |a|
+    #  1000 + case a
+    #         when 1
+    #           100
+    #         end
+    #end
 
-  #  test_compile(3) do |a|
-  #    case a
-  #    when 1
-  #      100
-  #    when 3
-  #    end
-  #  end
+    #test_compile(3) do |a|
+    #  case a
+    #  when 1
+    #    100
+    #  when 3
+    #  end
+    #end
 
-  #  test_compile(3, 2) do |a, b|
-  #    1000 + case a
-  #           when 1
-  #             100
-  #           when 2
-  #             200
-  #           when 3
-  #             300 + case b
-  #                   when 4
-  #                     400
-  #                   else
-  #                     500
-  #                   end + 600
-  #           end + 700
-  #  end
-  #end
+    #test_compile(3, 2) do |a, b|
+    #  1000 + case a
+    #         when 1
+    #           100
+    #         when 2
+    #           200
+    #         when 3
+    #           300 + case b
+    #                 when 4
+    #                   400
+    #                 else
+    #                   500
+    #                 end + 600
+    #         end + 700
+    #end
+  end
 
   # specify 'checkkeyword' do
   # specify 'trace' do
@@ -271,162 +271,162 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'throw' do
 
-  #specify 'jump' do
-  #  test_compile(true) { |a| 1 if a }
-  #  test_compile(nil) { |a| while a; end }
-  #end
+  specify 'jump' do
+    #test_compile(true) { |a| 1 if a }
+    #test_compile(nil) { |a| while a; end }
+  end
 
-  #specify 'branchif' do
-  #  test_compile(false, 1) { |a, b| a || b }
-  #  test_compile(1, 2) { |a, b| a || b }
-  #  test_compile(false) do |a|
-  #    1+1 while a
-  #  end
-  #end
+  specify 'branchif' do
+    #test_compile(false, 1) { |a, b| a || b }
+    #test_compile(1, 2) { |a, b| a || b }
+    #test_compile(false) do |a|
+    #  1+1 while a
+    #end
+  end
 
-  #specify 'branchunless' do
-  #  test_compile(true) do |a|
-  #    if a
-  #      1
-  #    else
-  #      2
-  #    end
-  #  end
+  specify 'branchunless' do
+    #test_compile(true) do |a|
+    #  if a
+    #    1
+    #  else
+    #    2
+    #  end
+    #end
 
-  #  [
-  #    [true, false, false],
-  #    [false, true, false],
-  #    [false, false, true],
-  #    [false, false, false],
-  #  ].each do |args|
-  #    test_compile(*args) do |a, b, c|
-  #      if a
-  #        1
-  #      elsif b
-  #        2
-  #      elsif c
-  #        3
-  #      else
-  #        4
-  #      end
-  #    end
-  #  end
+    [
+      [true, false, false],
+      [false, true, false],
+      [false, false, true],
+      [false, false, false],
+    ].each do |args|
+      #test_compile(*args) do |a, b, c|
+      #  if a
+      #    1
+      #  elsif b
+      #    2
+      #  elsif c
+      #    3
+      #  else
+      #    4
+      #  end
+      #end
+    end
 
-  #  [
-  #    true,
-  #    false,
-  #    nil,
-  #  ].each do |arg|
-  #    test_compile(arg) do |a|
-  #      unless a
-  #        1
-  #      else
-  #        2
-  #      end
-  #    end
+    [
+      true,
+      false,
+      nil,
+    ].each do |arg|
+      #test_compile(arg) do |a|
+      #  unless a
+      #    1
+      #  else
+      #    2
+      #  end
+      #end
 
-  #    test_compile(arg) do |a|
-  #      1 unless a
-  #    end
+      #test_compile(arg) do |a|
+      #  1 unless a
+      #end
 
-  #    test_compile(arg) do |a|
-  #      1 if a
-  #    end
-  #  end
+      #test_compile(arg) do |a|
+      #  1 if a
+      #end
+    end
 
-  #  [
-  #    [1, nil],
-  #    [2, 1],
-  #    [2, nil],
-  #    [3, nil],
-  #    [4, 1],
-  #    [4, 2],
-  #    [4, nil],
-  #    [nil, nil],
-  #  ].each do |args|
-  #    test_compile(*args) do |a, b|
-  #      if a == 1
-  #        19
-  #      elsif a == 2
-  #        if b == 1
-  #          21
-  #        else
-  #          29
-  #        end
-  #      elsif a == 3
-  #        39
-  #      elsif a == 4
-  #        if b == 1
-  #          41
-  #        elsif b == 2
-  #          42
-  #        else
-  #          49
-  #        end
-  #      else
-  #        99
-  #      end
-  #    end
-  #  end
+    [
+      [1, nil],
+      [2, 1],
+      [2, nil],
+      [3, nil],
+      [4, 1],
+      [4, 2],
+      [4, nil],
+      [nil, nil],
+    ].each do |args|
+      #test_compile(*args) do |a, b|
+      #  if a == 1
+      #    19
+      #  elsif a == 2
+      #    if b == 1
+      #      21
+      #    else
+      #      29
+      #    end
+      #  elsif a == 3
+      #    39
+      #  elsif a == 4
+      #    if b == 1
+      #      41
+      #    elsif b == 2
+      #      42
+      #    else
+      #      49
+      #    end
+      #  else
+      #    99
+      #  end
+      #end
+    end
 
-  #  test_compile(true, true, true, false) do |a, b, c, d|
-  #    if a
-  #      if b
-  #        if c
-  #          if d
-  #            1
-  #          else
-  #            2
-  #          end
-  #        end
-  #      end
-  #    end
-  #  end
+    #test_compile(true, true, true, false) do |a, b, c, d|
+    #  if a
+    #    if b
+    #      if c
+    #        if d
+    #          1
+    #        else
+    #          2
+    #        end
+    #      end
+    #    end
+    #  end
+    #end
 
-  #  test_compile(false) do |a|
-  #    1 + if a
-  #          2
-  #        else
-  #          3
-  #        end + 4
-  #  end
+    #test_compile(false) do |a|
+    #  1 + if a
+    #        2
+    #      else
+    #        3
+    #      end + 4
+    #end
 
-  #  test_compile(false, true) do |a, b|
-  #    unless a
-  #      if b
-  #        7
-  #      end + 9
-  #    end
-  #  end
+    #test_compile(false, true) do |a, b|
+    #  unless a
+    #    if b
+    #      7
+    #    end + 9
+    #  end
+    #end
 
-  #  test_compile(false, true, false) do |a, b, c|
-  #    1 + if a
-  #          2 + if b
-  #                3
-  #              else
-  #                4
-  #              end + 5
-  #        else
-  #          6 + unless c
-  #                7
-  #              else
-  #                8
-  #              end + 9
-  #        end + 10
-  #  end
+    #test_compile(false, true, false) do |a, b, c|
+    #  1 + if a
+    #        2 + if b
+    #              3
+    #            else
+    #              4
+    #            end + 5
+    #      else
+    #        6 + unless c
+    #              7
+    #            else
+    #              8
+    #            end + 9
+    #      end + 10
+    #end
 
-  #  test_compile(true) { |a| until a; end }
-  #  test_compile(true) do |a|
-  #    1+1 until a
-  #  end
-  #end
+    #test_compile(true) { |a| until a; end }
+    #test_compile(true) do |a|
+    #  1+1 until a
+    #end
+  end
 
-  #specify 'branchnil' do
-  #  test_compile(1) { |a| a&.+(2) }
-  #  test_compile(nil) { |a| a&.+(2) }
-  #  test_compile(1) { |a| 2 + a&.+(3) + 4 }
-  #  test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
-  #end
+  specify 'branchnil' do
+    #test_compile(1) { |a| a&.+(2) }
+    #test_compile(nil) { |a| a&.+(2) }
+    #test_compile(1) { |a| 2 + a&.+(3) + 4 }
+    #test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
+  end
 
   specify 'getinlinecache' do
     test_compile { Struct }
@@ -438,22 +438,22 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'once' do
 
-  #specify 'opt_case_dispatch' do
-  #  test_compile(1) do |a|
-  #    case a
-  #    when 1
-  #      2
-  #    end
-  #  end
-  #end
+  specify 'opt_case_dispatch' do
+    #test_compile(1) do |a|
+    #  case a
+    #  when 1
+    #    2
+    #  end
+    #end
+  end
 
-  #specify 'opt_plus' do
-  #  test_compile(1, 2) { |a, b| a+b }
-  #end
+  specify 'opt_plus' do
+    #test_compile(1, 2) { |a, b| a+b }
+  end
 
-  #specify 'opt_minus' do
-  #  test_compile(2, 1) { |a, b| a-b }
-  #end
+  specify 'opt_minus' do
+    #test_compile(2, 1) { |a, b| a-b }
+  end
 
   specify 'opt_mult' do
     test_compile { 3 * 2 * 1 }
@@ -524,11 +524,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { {}['true'] = true }
   end
 
-  #specify 'opt_aref_with' do
-  #  test_compile(100) do |x|
-  #    { 'true' => x }['true']
-  #  end
-  #end
+  specify 'opt_aref_with' do
+    #test_compile(100) do |x|
+    #  { 'true' => x }['true']
+    #end
+  end
 
   specify 'opt_length' do
     test_compile { [1, nil, false].length }
@@ -568,9 +568,9 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # specify 'opt_call_c_function' do
 
-  #specify 'getlocal_OP__WC__0' do
-  #  test_compile(1) { |a| a }
-  #end
+  specify 'getlocal_OP__WC__0' do
+    #test_compile(1) { |a| a }
+  end
 
   # specify 'getlocal_OP__WC__1' do
   # specify 'setlocal_OP__WC__0' do
