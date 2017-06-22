@@ -71,7 +71,7 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'putself' do
-    #test_compile { print }
+    test_compile { print }
   end
 
   specify 'putobject' do
@@ -192,8 +192,8 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'defined' do
-    #test_compile { defined?(a) }
-    #test_compile(1) { |a| defined?(a) }
+    test_compile { defined?(a) }
+    test_compile(1) { |a| defined?(a) }
   end
 
   specify 'checkmatch' do

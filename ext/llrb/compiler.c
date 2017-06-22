@@ -215,6 +215,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "rb_str_freeze")
       || !strcmp(name, "rb_gvar_get")
       || !strcmp(name, "rb_ary_clear")
+      || !strcmp(name, "llrb_insn_putself")
       || !strcmp(name, "llrb_insn_putspecialobject")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 1, false));
@@ -358,9 +359,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_putnil:
       llrb_stack_push(stack, llvm_value(Qnil));
       break;
-    case YARVINSN_putself:
-      llrb_stack_push(stack, llrb_argument_at(c, 0));
+    case YARVINSN_putself: {
+      LLVMValueRef args[] = { llrb_get_cfp(c) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_putself"), args, 1, "putself"));
       break;
+    }
     case YARVINSN_putobject:
       llrb_stack_push(stack, llvm_value(operands[0]));
       break;

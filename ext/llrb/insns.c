@@ -6,6 +6,12 @@ llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
   return *(cfp->ep - idx);
 }
 
+VALUE
+llrb_insn_putself(rb_control_frame_t *cfp)
+{
+  return cfp->self;
+}
+
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L180-L199
 VALUE
 llrb_insn_getconstant(VALUE orig_klass, ID id) {
