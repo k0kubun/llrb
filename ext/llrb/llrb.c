@@ -32,7 +32,7 @@ llrb_replace_iseq_with_cfunc(const rb_iseq_t *iseq, rb_insn_func_t funcptr)
   VALUE *new_iseq_encoded = ALLOC_N(VALUE, 3);
   new_iseq_encoded[0] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function];
   new_iseq_encoded[1] = (VALUE)funcptr;
-  new_iseq_encoded[2] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
+  new_iseq_encoded[2] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave]; // There may be the case that last insn is not :leave.
 
   // Don't we need to prevent race condition by another thread? Will GVL protect us?
   iseq->body->iseq_encoded = new_iseq_encoded;
@@ -86,6 +86,13 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE 
   return Qtrue;
 }
 
+static VALUE
+rb_jit_is_compiled(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
+{
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  return llrb_check_already_compiled(iseq) ? Qtrue : Qfalse;
+}
+
 void
 Init_llrb(void)
 {
@@ -99,6 +106,7 @@ Init_llrb(void)
   VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
   rb_define_singleton_method(rb_mJIT, "preview_iseq", RUBY_METHOD_FUNC(rb_jit_preview_iseq), 2);
   rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 5);
+  rb_define_singleton_method(rb_mJIT, "is_compiled",  RUBY_METHOD_FUNC(rb_jit_is_compiled), 1);
 
   Init_compiler(rb_mJIT);
 }

@@ -187,6 +187,12 @@ llrb_argument_at(struct llrb_compiler *c, unsigned index)
   return LLVMGetParam(func, index);
 }
 
+inline LLVMValueRef
+llrb_get_cfp(struct llrb_compiler *c)
+{
+  return llrb_argument_at(c, 1);
+}
+
 // In base 2, RTEST is: (v != Qfalse && v != Qnil) -> (v != 0000 && v != 1000) -> (v & 0111) != 0000 -> (v & ~Qnil) != 0
 static LLVMValueRef
 llrb_build_rtest(LLVMBuilderRef builder, LLVMValueRef value)
@@ -242,6 +248,9 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "llrb_insn_setconstant")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
+  } else if (!strcmp(name, "llrb_insn_getlocal_level0")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt32Type(), LLVMInt32Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
   } else if (!strcmp(name, "llrb_insn_defined")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
@@ -570,9 +579,9 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       }
 
       // reg_cfp is second argument of opt_call_c_function
-      LLVMValueRef args[] = { llrb_argument_at(c, 1), llrb_stack_pop(stack) };
+      LLVMValueRef args[] = { llrb_get_cfp(c), llrb_stack_pop(stack) };
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "leave");
-      LLVMBuildRet(c->builder, llrb_argument_at(c, 1));
+      LLVMBuildRet(c->builder, llrb_get_cfp(c));
       return true;
     //case YARVINSN_throw: {
     //  ;
@@ -820,11 +829,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     case YARVINSN_opt_regexpmatch1: {
       // Not using llrb_compile_funcall to prevent stack overflow
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
-      args[0] = llrb_stack_pop(stack);
-      args[1] = llvm_value(rb_intern("=~"));
-      args[2] = LLVMConstInt(LLVMInt32Type(), 1, true);
-      args[3] = llvm_value(operands[0]);
+      LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(rb_intern("=~")), LLVMConstInt(LLVMInt32Type(), 1, true), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 4, "opt_regexpmatch1"));
       break;
     }
@@ -834,9 +839,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     //case YARVINSN_opt_call_c_function:
     case YARVINSN_getlocal_OP__WC__0: {
-      unsigned local_size = c->body->local_table_size;
-      unsigned arg_size   = c->body->param.size;
-      llrb_stack_push(stack, llrb_argument_at(c, 3 - local_size + 2 * arg_size - (unsigned)operands[0])); // XXX: is this okay????
+      LLVMValueRef args[] = { llrb_get_cfp(c), LLVMConstInt(LLVMInt64Type(), (lindex_t)operands[0], false) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getlocal_level0"), args, 2, "getlocal"));
       break;
     }
     //case YARVINSN_getlocal_OP__WC__1: {

@@ -27,12 +27,17 @@ module LLRB
       preview_iseq(iseqw, recv)
     end
 
-    def self.compile_defined()
+    def self.compiled?(recv, name)
+      method = recv.method(name)
+      iseqw = RubyVM::InstructionSequence.of(method)
+      return false if iseqw.nil?
+
+      is_compiled(iseqw)
     end
 
     # Followings are defined in ext/llrb/llrb.cc
 
-    # @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
+    # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @param  [Object]  recv   - method receiver
     # @param  [Class]   klass  - method class
     # @param  [Symbol]  method - method name to define
@@ -40,9 +45,13 @@ module LLRB
     # @return [Boolean] return true if compiled
     private_class_method :compile_iseq
 
-    # @param  [Array]   iseqw - RubyVM::InstructionSequence instance
+    # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @param  [Object]  recv  - method receiver
     # @return [Boolean] return true if compiled
     private_class_method :preview_iseq
+
+    # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
+    # @return [Boolean] return true if compiled
+    private_class_method :is_compiled
   end
 end

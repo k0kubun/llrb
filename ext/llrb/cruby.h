@@ -7,6 +7,7 @@
 #include "cruby/vm_core.h"
 #pragma GCC diagnostic pop
 #include "cruby/method.h"
+#include "cruby/vm_exec.h"
 
 /* start vm_insnhelper.h (which can't be compiled without calling static function) */
 

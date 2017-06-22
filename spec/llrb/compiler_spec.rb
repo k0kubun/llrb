@@ -6,7 +6,10 @@ RSpec.describe 'llrb_compile_iseq' do
     klass.send(:define_singleton_method, :test, &block)
     result = klass.test(*args.map(&:dup))
 
-    expect(LLRB::JIT.compile(klass, :test)).to eq(true)
+    # Possibly the same block in a loop is compiled multiple times
+    already_compiled = LLRB::JIT.compiled?(klass, :test)
+    compiled = LLRB::JIT.compile(klass, :test)
+    expect(compiled).to eq(true) unless already_compiled
     expect(klass.test(*args.map(&:dup))).to eq(result)
   end
 
@@ -49,9 +52,9 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'setconstant' do
-    #test_compile(Class.new) do |klass|
-    #  klass::X = true
-    #end
+    test_compile(Class.new) do |klass|
+      klass::X = true
+    end
   end
 
   specify 'getglobal' do
@@ -133,37 +136,37 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'newhash' do
-    #test_compile(1) do |a|
-    #  { a: a }
-    #end
+    test_compile(1) do |a|
+      { a: a }
+    end
 
-    #test_compile(1, 2) do |a, b|
-    #  { a: a, b: b }.to_a
-    #end
+    test_compile(1, 2) do |a, b|
+      { a: a, b: b }.to_a
+    end
   end
 
   specify 'newrange' do
-    #test_compile(1) do |x|
-    #  (0..x)
-    #end
+    test_compile(1) do |x|
+      (0..x)
+    end
 
-    #test_compile(1) do |x|
-    #  (0...x)
-    #end
+    test_compile(1) do |x|
+      (0...x)
+    end
   end
 
   specify 'pop' do
-    #test_compile(false, 1) { |a, b| a || b }
+    test_compile(false, 1) { |a, b| a || b }
   end
 
   specify 'dup' do
-    #test_compile(1) { |a| a&.+(2) }
+    test_compile(1) { |a| a&.+(2) }
   end
 
   specify 'dupn' do
-    #test_compile(Class.new) do |klass|
-    #  klass::X ||= true
-    #end
+    test_compile(Class.new) do |klass|
+      klass::X ||= true
+    end
   end
 
   specify 'swap' do
@@ -182,10 +185,10 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'adjuststack' do
-    #test_compile([true]) do |x|
-    #  x[0] ||= nil
-    #  x[0]
-    #end
+    test_compile([true]) do |x|
+      x[0] ||= nil
+      x[0]
+    end
   end
 
   specify 'defined' do
@@ -195,46 +198,46 @@ RSpec.describe 'llrb_compile_iseq' do
 
   specify 'checkmatch' do
     [0, 1].each do |aa|
-      #test_compile(aa) do |a|
-      #  case a
-      #  when 1
-      #    2
-      #  else
-      #    3
-      #  end
-      #end
+      test_compile(aa) do |a|
+        case a
+        when 1
+          2
+        else
+          3
+        end
+      end
     end
 
-    #test_compile(1) do |a|
-    #  1000 + case a
-    #         when 1
-    #           100
-    #         end
-    #end
+    test_compile(1) do |a|
+      1000 + case a
+             when 1
+               100
+             end
+    end
 
-    #test_compile(3) do |a|
-    #  case a
-    #  when 1
-    #    100
-    #  when 3
-    #  end
-    #end
+    test_compile(3) do |a|
+      case a
+      when 1
+        100
+      when 3
+      end
+    end
 
-    #test_compile(3, 2) do |a, b|
-    #  1000 + case a
-    #         when 1
-    #           100
-    #         when 2
-    #           200
-    #         when 3
-    #           300 + case b
-    #                 when 4
-    #                   400
-    #                 else
-    #                   500
-    #                 end + 600
-    #         end + 700
-    #end
+    test_compile(3, 2) do |a, b|
+      1000 + case a
+             when 1
+               100
+             when 2
+               200
+             when 3
+               300 + case b
+                     when 4
+                       400
+                     else
+                       500
+                     end + 600
+             end + 700
+    end
   end
 
   # specify 'checkkeyword' do
@@ -272,26 +275,26 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'throw' do
 
   specify 'jump' do
-    #test_compile(true) { |a| 1 if a }
-    #test_compile(nil) { |a| while a; end }
+    test_compile(true) { |a| 1 if a }
+    test_compile(nil) { |a| while a; end }
   end
 
   specify 'branchif' do
-    #test_compile(false, 1) { |a, b| a || b }
-    #test_compile(1, 2) { |a, b| a || b }
-    #test_compile(false) do |a|
-    #  1+1 while a
-    #end
+    test_compile(false, 1) { |a, b| a || b }
+    test_compile(1, 2) { |a, b| a || b }
+    test_compile(false) do |a|
+      1+1 while a
+    end
   end
 
   specify 'branchunless' do
-    #test_compile(true) do |a|
-    #  if a
-    #    1
-    #  else
-    #    2
-    #  end
-    #end
+    test_compile(true) do |a|
+      if a
+        1
+      else
+        2
+      end
+    end
 
     [
       [true, false, false],
@@ -299,17 +302,17 @@ RSpec.describe 'llrb_compile_iseq' do
       [false, false, true],
       [false, false, false],
     ].each do |args|
-      #test_compile(*args) do |a, b, c|
-      #  if a
-      #    1
-      #  elsif b
-      #    2
-      #  elsif c
-      #    3
-      #  else
-      #    4
-      #  end
-      #end
+      test_compile(*args) do |a, b, c|
+        if a
+          1
+        elsif b
+          2
+        elsif c
+          3
+        else
+          4
+        end
+      end
     end
 
     [
@@ -317,21 +320,21 @@ RSpec.describe 'llrb_compile_iseq' do
       false,
       nil,
     ].each do |arg|
-      #test_compile(arg) do |a|
-      #  unless a
-      #    1
-      #  else
-      #    2
-      #  end
-      #end
+      test_compile(arg) do |a|
+        unless a
+          1
+        else
+          2
+        end
+      end
 
-      #test_compile(arg) do |a|
-      #  1 unless a
-      #end
+      test_compile(arg) do |a|
+        1 unless a
+      end
 
-      #test_compile(arg) do |a|
-      #  1 if a
-      #end
+      test_compile(arg) do |a|
+        1 if a
+      end
     end
 
     [
@@ -344,88 +347,88 @@ RSpec.describe 'llrb_compile_iseq' do
       [4, nil],
       [nil, nil],
     ].each do |args|
-      #test_compile(*args) do |a, b|
-      #  if a == 1
-      #    19
-      #  elsif a == 2
-      #    if b == 1
-      #      21
-      #    else
-      #      29
-      #    end
-      #  elsif a == 3
-      #    39
-      #  elsif a == 4
-      #    if b == 1
-      #      41
-      #    elsif b == 2
-      #      42
-      #    else
-      #      49
-      #    end
-      #  else
-      #    99
-      #  end
-      #end
+      test_compile(*args) do |a, b|
+        if a == 1
+          19
+        elsif a == 2
+          if b == 1
+            21
+          else
+            29
+          end
+        elsif a == 3
+          39
+        elsif a == 4
+          if b == 1
+            41
+          elsif b == 2
+            42
+          else
+            49
+          end
+        else
+          99
+        end
+      end
     end
 
-    #test_compile(true, true, true, false) do |a, b, c, d|
-    #  if a
-    #    if b
-    #      if c
-    #        if d
-    #          1
-    #        else
-    #          2
-    #        end
-    #      end
-    #    end
-    #  end
-    #end
+    test_compile(true, true, true, false) do |a, b, c, d|
+      if a
+        if b
+          if c
+            if d
+              1
+            else
+              2
+            end
+          end
+        end
+      end
+    end
 
-    #test_compile(false) do |a|
-    #  1 + if a
-    #        2
-    #      else
-    #        3
-    #      end + 4
-    #end
+    test_compile(false) do |a|
+      1 + if a
+            2
+          else
+            3
+          end + 4
+    end
 
-    #test_compile(false, true) do |a, b|
-    #  unless a
-    #    if b
-    #      7
-    #    end + 9
-    #  end
-    #end
+    test_compile(false, true) do |a, b|
+      unless a
+        if b
+          7
+        end + 9
+      end
+    end
 
-    #test_compile(false, true, false) do |a, b, c|
-    #  1 + if a
-    #        2 + if b
-    #              3
-    #            else
-    #              4
-    #            end + 5
-    #      else
-    #        6 + unless c
-    #              7
-    #            else
-    #              8
-    #            end + 9
-    #      end + 10
-    #end
+    test_compile(false, true, false) do |a, b, c|
+      1 + if a
+            2 + if b
+                  3
+                else
+                  4
+                end + 5
+          else
+            6 + unless c
+                  7
+                else
+                  8
+                end + 9
+          end + 10
+    end
 
-    #test_compile(true) { |a| until a; end }
-    #test_compile(true) do |a|
-    #  1+1 until a
-    #end
+    test_compile(true) { |a| until a; end }
+    test_compile(true) do |a|
+      1+1 until a
+    end
   end
 
   specify 'branchnil' do
-    #test_compile(1) { |a| a&.+(2) }
-    #test_compile(nil) { |a| a&.+(2) }
-    #test_compile(1) { |a| 2 + a&.+(3) + 4 }
-    #test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
+    test_compile(1) { |a| a&.+(2) }
+    test_compile(nil) { |a| a&.+(2) }
+    test_compile(1) { |a| 2 + a&.+(3) + 4 }
+    test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
   end
 
   specify 'getinlinecache' do
@@ -439,20 +442,20 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'once' do
 
   specify 'opt_case_dispatch' do
-    #test_compile(1) do |a|
-    #  case a
-    #  when 1
-    #    2
-    #  end
-    #end
+    test_compile(1) do |a|
+      case a
+      when 1
+        2
+      end
+    end
   end
 
   specify 'opt_plus' do
-    #test_compile(1, 2) { |a, b| a+b }
+    test_compile(1, 2) { |a, b| a+b }
   end
 
   specify 'opt_minus' do
-    #test_compile(2, 1) { |a, b| a-b }
+    test_compile(2, 1) { |a, b| a-b }
   end
 
   specify 'opt_mult' do
@@ -462,9 +465,9 @@ RSpec.describe 'llrb_compile_iseq' do
   specify 'opt_div' do
     test_compile { 3 / 2 / 1 }
     test_compile { 1 + (3 - 4) * 5 / 2 }
-    #test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
-    #  (a + b) * c ** d * e / b
-    #end
+    test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
+      (a + b) * c ** d * e / b
+    end
   end
 
   specify 'opt_mod' do
@@ -525,9 +528,9 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'opt_aref_with' do
-    #test_compile(100) do |x|
-    #  { 'true' => x }['true']
-    #end
+    test_compile(100) do |x|
+      { 'true' => x }['true']
+    end
   end
 
   specify 'opt_length' do
@@ -569,7 +572,7 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'opt_call_c_function' do
 
   specify 'getlocal_OP__WC__0' do
-    #test_compile(1) { |a| a }
+    test_compile(1) { |a| a }
   end
 
   # specify 'getlocal_OP__WC__1' do
