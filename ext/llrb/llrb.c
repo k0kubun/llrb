@@ -82,8 +82,6 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE 
     return Qfalse;
   }
 
-  //VALUE name_str = rb_convert_type(name, T_STRING, "String", "to_s");
-  //rb_define_method(klass, RSTRING_PTR(name_str), RUBY_METHOD_FUNC(func), FIX2INT(arity));
   llrb_replace_iseq_with_cfunc(iseq, (rb_insn_func_t)func);
   return Qtrue;
 }
