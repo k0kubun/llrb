@@ -522,11 +522,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     case YARVINSN_defined: {
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
-      args[0] = llvm_value(operands[0]);
-      args[1] = llvm_value(operands[1]);
-      args[2] = llvm_value(operands[2]);
-      args[3] = llrb_stack_pop(stack);
+      LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(operands[1]), llvm_value(operands[2]), llrb_stack_pop(stack) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_defined"), args, 4, "defined"));
       break;
     }
@@ -589,7 +585,6 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
         rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", stack->size);
       }
 
-      // reg_cfp is second argument of opt_call_c_function
       LLVMValueRef args[] = { llrb_get_cfp(c), llrb_stack_pop(stack) };
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "leave");
       LLVMBuildRet(c->builder, llrb_get_cfp(c));
@@ -725,7 +720,6 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
         LLVMAddIncoming(phi, values, blocks, 1);
       }
 
-      //fprintf(stderr, "[DEBUG] branchnil llrb_compile_basic_block by %04d after %s (stack size: %d)\n", pos, insn_name(insn), stack->size);
       llrb_compile_basic_block(c, stack, fallthrough);
       return true;
     }
