@@ -166,10 +166,17 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'swap' do
-    test_compile { {}['true'] = true }
+    test_compile do
+      {}['true'] = true
+    end
   end
 
-  # specify 'reverse' do
+  #specify 'reverse' do
+  #  test_compile do
+  #    q, (w, e), r = 1, [2, 3], 4; e == 3
+  #  end
+  #end
+
   # specify 'reput' do
 
   specify 'topn' do

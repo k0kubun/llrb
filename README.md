@@ -68,8 +68,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] setinstancevariable
 - [ ] getclassvariable (!)
 - [ ] setclassvariable (!)
-- [x] getconstant (current scope not handled)
-- [x] setconstant (current scope not handled)
+- [x] getconstant (current scope not handled) (!)
+- [x] setconstant (current scope not handled) (!)
 - [x] getglobal
 - [x] setglobal
 

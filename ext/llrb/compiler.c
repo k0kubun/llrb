@@ -298,6 +298,13 @@ llrb_compile_newarray(struct llrb_compiler *c, struct llrb_stack *stack, long nu
   return LLVMBuildCall(c->builder, func, args, num+1, "newarray");
 }
 
+static inline LLVMValueRef
+llrb_topn(struct llrb_stack *stack, unsigned int n)
+{
+  unsigned int last = stack->size - 1;
+  return stack->body[last - n];
+}
+
 static void llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsigned int start);
 
 // @return true if jumped in this insn, and in that case br won't be created.
@@ -501,13 +508,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     //case YARVINSN_reverse: {
-    //  ;
+    //  rb_num_t n = (rb_num_t)operands[0];
+    //  unsigned int last = stack->size - 1;
+    //  unsigned int top_i = last - n;
+
+    //  for (rb_num_t i = 0; i < n/2; i++) {
+    //    LLVMValueRef v0 = stack->body[top_i+i];
+    //    LLVMValueRef v1 = stack->body[last-i];
+    //    stack->body[top_i+i] = v1;
+    //    stack->body[last-i]  = v0;
+    //  }
     //  break;
     //}
     //case YARVINSN_reput:
     case YARVINSN_topn: {
-      unsigned int last = stack->size - 1;
-      llrb_stack_push(stack, stack->body[last - (unsigned int)operands[0]]);
+      llrb_stack_push(stack, llrb_topn(stack, (unsigned int)operands[0]));
       break;
     }
     case YARVINSN_setn: {
