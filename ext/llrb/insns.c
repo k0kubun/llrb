@@ -20,23 +20,27 @@ llrb_self_from_cfp(rb_control_frame_t *cfp)
   return cfp->self;
 }
 
-// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L180-L199
-VALUE
-llrb_insn_getconstant(VALUE orig_klass, ID id) {
-  // TODO: Handle Qnil and Qfalse properly
-  if (orig_klass == Qnil || orig_klass == Qfalse) {
-    orig_klass = rb_cObject; // force top level
+static inline void
+vm_check_if_namespace(VALUE klass)
+{
+  if (!RB_TYPE_P(klass, T_CLASS) && !RB_TYPE_P(klass, T_MODULE)) {
+    rb_raise(rb_eTypeError, "%+"PRIsVALUE" is not a class/module", klass);
   }
-  return rb_const_get(orig_klass, id);
+}
+
+static inline void
+vm_ensure_not_refinement_module(VALUE self)
+{
+  if (RB_TYPE_P(self, T_MODULE) && FL_TEST(self, RMODULE_IS_REFINEMENT)) {
+    rb_warn("not defined at the refinement, but at the outer class/module");
+  }
 }
 
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L201-L223
 void
-llrb_insn_setconstant(VALUE cbase, ID id, VALUE val) {
-  // TODO: Handle Qnil and Qfalse properly
-  if (cbase == Qnil || cbase == Qfalse) {
-    cbase = rb_cObject; // force top level
-  }
+llrb_insn_setconstant(VALUE self, VALUE cbase, ID id, VALUE val) {
+  vm_check_if_namespace(cbase);
+  vm_ensure_not_refinement_module(self);
   rb_const_set(cbase, id, val);
 }
 
@@ -200,9 +204,7 @@ VALUE vm_get_cvar_base(const rb_cref_t *cref, rb_control_frame_t *cfp);
 void
 llrb_insn_setclassvariable(rb_control_frame_t *cfp, ID id, VALUE val)
 {
-  if (RB_TYPE_P(cfp->self, T_MODULE) && FL_TEST(cfp->self, RMODULE_IS_REFINEMENT)) {
-    rb_warn("not defined at the refinement, but at the outer class/module");
-  }
+  vm_ensure_not_refinement_module(cfp->self);
   rb_cvar_set(vm_get_cvar_base(rb_vm_get_cref(cfp->ep), cfp), id, val);
 }
 

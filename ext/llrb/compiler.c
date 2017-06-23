@@ -188,6 +188,12 @@ llrb_argument_at(struct llrb_compiler *c, unsigned index)
 }
 
 static inline LLVMValueRef
+llrb_get_thread(struct llrb_compiler *c)
+{
+  return llrb_argument_at(c, 0);
+}
+
+static inline LLVMValueRef
 llrb_get_cfp(struct llrb_compiler *c)
 {
   return llrb_argument_at(c, 1);
@@ -231,7 +237,6 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "rb_gvar_set")
       || !strcmp(name, "rb_reg_new_ary")
       || !strcmp(name, "llrb_insn_getlocal_level0")
-      || !strcmp(name, "llrb_insn_getconstant")
       || !strcmp(name, "llrb_insn_splatarray")
       || !strcmp(name, "llrb_insn_opt_plus")
       || !strcmp(name, "llrb_insn_opt_minus")
@@ -247,14 +252,19 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   } else if (!strcmp(name, "rb_hash_aset")
       || !strcmp(name, "rb_range_new")
       || !strcmp(name, "rb_ivar_set")
-      || !strcmp(name, "llrb_insn_checkmatch")
-      || !strcmp(name, "llrb_insn_setconstant")) {
+      || !strcmp(name, "llrb_insn_checkmatch")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
   } else if (!strcmp(name, "llrb_insn_setlocal_level0")
       || !strcmp(name, "llrb_insn_setclassvariable")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 3, false));
+  } else if (!strcmp(name, "llrb_insn_setconstant")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 4, false));
+  } else if (!strcmp(name, "vm_get_ev_const")) {
+    LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt32Type() };
+    return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
   } else if (!strcmp(name, "llrb_insn_defined")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 4, false));
@@ -356,14 +366,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     case YARVINSN_getconstant: {
-      LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getconstant"), args, 2, "getconstant"));
+      LLVMValueRef args[] = { llrb_get_thread(c), llrb_stack_pop(stack), llvm_value(operands[0]), LLVMConstInt(LLVMInt32Type(), 0, true) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "vm_get_ev_const"), args, 4, "getconstant"));
       break;
     }
     case YARVINSN_setconstant: {
       LLVMValueRef cbase = llrb_stack_pop(stack);
-      LLVMValueRef args[] = { cbase, llvm_value(operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 3, "setconstant");
+      LLVMValueRef args[] = { llrb_get_self(c), cbase, llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "setconstant");
       break;
     }
     case YARVINSN_getglobal: {
