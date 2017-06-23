@@ -5,9 +5,9 @@
 #include "compiler.h"
 #include "insns.inc"
 #include "insns_info.inc"
+#include "functions.h"
 
 static VALUE rb_eCompileError;
-#include "functions.h"
 
 // Emulates rb_control_frame's sp, which is function local
 struct llrb_stack {
@@ -36,6 +36,43 @@ struct llrb_compiler {
   LLVMModuleRef mod;
   struct llrb_block_info *blocks;
 };
+
+static inline LLVMTypeRef
+llrb_num_to_type(unsigned int num)
+{
+  switch (num) {
+    case 64:
+      return LLVMInt64Type();
+    case 32:
+      return LLVMInt32Type();
+    case 0:
+      return LLVMVoidType();
+    default:
+      rb_raise(rb_eCompileError, "'%d' is unexpected for llrb_num_to_type", num);
+  }
+}
+
+static LLVMValueRef
+llrb_get_function(LLVMModuleRef mod, const char *name)
+{
+  LLVMValueRef func = LLVMGetNamedFunction(mod, name);
+  if (func) return func;
+
+  for (size_t i = 0; i < llrb_extern_func_num; i++) {
+    if (strcmp(name, llrb_extern_funcs[i].name)) continue;
+
+    LLVMTypeRef arg_types[LLRB_EXTERN_FUNC_MAX_ARGC];
+    for (unsigned int j = 0; j < llrb_extern_funcs[i].argc; j++) {
+      arg_types[j] = llrb_num_to_type(llrb_extern_funcs[i].argv[j]);
+    }
+
+    return LLVMAddFunction(mod, llrb_extern_funcs[i].name, LLVMFunctionType(
+          llrb_num_to_type(llrb_extern_funcs[i].return_type), arg_types,
+          llrb_extern_funcs[i].argc, llrb_extern_funcs[i].unlimited));
+  }
+
+  rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
+}
 
 static LLVMValueRef
 llvm_value(VALUE value)
