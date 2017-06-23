@@ -157,15 +157,6 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
     for (int j = 1; j < insn_len(insn); j++) {
       VALUE op = body->iseq_encoded[i+j];
       switch (insn_op_type(insn, j-1)) {
-        case TS_VALUE:
-          //if (BUILTIN_TYPE(op) == T_STRING) {
-          //  op = rb_str_resurrect(op);
-          //  fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
-          //} else if (BUILTIN_TYPE(op) == T_ARRAY) {
-          //  op = rb_ary_resurrect(op);
-          //  fprintf(stderr, "%-4s ", RSTRING_PTR(rb_inspect(op)));
-          //}
-          break;
         case TS_NUM:
           fprintf(stderr, "%-4ld ", (rb_num_t)op);
           break;
