@@ -430,8 +430,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMValueRef args2[] = { ary, LLVMConstInt(LLVMInt32Type(), (int)operands[0], true) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_reg_new_ary"), args2, 2, "toregexp"));
 
-      LLVMValueRef *args3 = ALLOC_N(LLVMValueRef, 1);
-      args3[0] = ary;
+      LLVMValueRef args3[] = { ary };
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_clear"), args3, 1, "toregexp");
       break;
     }
@@ -547,10 +546,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     case YARVINSN_checkmatch: {
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
-      args[1] = llrb_stack_pop(stack);
+      LLVMValueRef args[] = { 0, llrb_stack_pop(stack), LLVMConstInt(LLVMInt64Type(), operands[0], false) };
       args[0] = llrb_stack_pop(stack);
-      args[2] = LLVMConstInt(LLVMInt64Type(), operands[0], false);
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkmatch"), args, 3, "checkmatch"));
       break;
     }
@@ -569,12 +566,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  break;
     //}
     case YARVINSN_opt_str_freeze: {
-      LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3);
-      args[0] = llvm_value(operands[0]);
-      args[1] = llvm_value(rb_intern("freeze"));
-      args[2] = LLVMConstInt(LLVMInt32Type(), 0, true);
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 3, "opt_str_freeze"));
+      LLVMValueRef args[] = { llvm_value(operands[0]), llvm_value(rb_intern("freeze")), LLVMConstInt(LLVMInt32Type(), 0, true) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 3, "opt_str_freeze"));
       break;
     }
     case YARVINSN_opt_newarray_max:
@@ -630,9 +623,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
         rb_ary_push(c->blocks[dest].incoming_blocks, (VALUE)LLVMGetInsertBlock(c->builder));
         rb_ary_push(c->blocks[dest].incoming_values, (VALUE)llrb_stack_pop(stack));
       } else {
-
-        LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
-        values[0] = llrb_stack_pop(stack);
+        LLVMValueRef values[] = { llrb_stack_pop(stack) };
         LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
         LLVMAddIncoming(phi, values, blocks, 1);
       }
@@ -807,34 +798,21 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMValueRef value = llrb_stack_pop(stack);
       LLVMValueRef recv  = llrb_stack_pop(stack);
 
-      // Not using llrb_compile_funcall to prevent stack overflow
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5);
-      args[0] = recv;
-      args[1] = llvm_value(rb_intern("[]="));
-      args[2] = LLVMConstInt(LLVMInt32Type(), 2, true);
-      {
-        LLVMValueRef a[] = { llvm_value(operands[2]) };
-        args[3] = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), a, 1, "opt_aset_with_3");
-      }
-      args[4] = value;
+      LLVMValueRef resurrect_args[] = { llvm_value(operands[2]) };
+      LLVMValueRef str = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), resurrect_args, 1, "opt_aset_with_3");
 
-      LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 5, "opt_aset_with"));
+      // Not using llrb_compile_funcall to prevent stack overflow
+      LLVMValueRef args[] = { recv, llvm_value(rb_intern("[]=")), LLVMConstInt(LLVMInt32Type(), 2, true), str, value };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 5, "opt_aset_with"));
       break;
     }
     case YARVINSN_opt_aref_with: {
-      // Not using llrb_compile_funcall to prevent stack overflow
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4);
-      args[0] = llrb_stack_pop(stack);
-      args[1] = llvm_value(rb_intern("[]"));
-      args[2] = LLVMConstInt(LLVMInt32Type(), 1, true);
-      {
-        LLVMValueRef a[] = { llvm_value(operands[2]) };
-        args[3] = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), a, 1, "opt_aref_with_3");
-      }
+      LLVMValueRef resurrect_args[] = { llvm_value(operands[2]) };
+      LLVMValueRef str = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), resurrect_args, 1, "opt_aref_with_3");
 
-      LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 4, "opt_aref_with"));
+      // Not using llrb_compile_funcall to prevent stack overflow
+      LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(rb_intern("[]")), LLVMConstInt(LLVMInt32Type(), 1, true), str };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 4, "opt_aref_with"));
       break;
     }
     case YARVINSN_opt_length:
