@@ -33,7 +33,7 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'setspecial' do
-    test_compile { true if true..true }
+    test_compile { true if nil.nil?..nil.nil? }
   end
 
   specify 'getinstancevariable' do
@@ -44,8 +44,17 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { @a = 2 }
   end
 
-  # specify 'getclassvariable' do
-  # specify 'setclassvariable' do
+  specify 'getclassvariable' do
+    result = ClassVariableTest.test_getclassvariable
+    expect(LLRB::JIT.compile(ClassVariableTest, :test_getclassvariable)).to eq(true)
+    expect(ClassVariableTest.test_getclassvariable).to eq(result)
+  end
+
+  specify 'setclassvariable' do
+    result = ClassVariableTest.test_setclassvariable
+    expect(LLRB::JIT.compile(ClassVariableTest, :test_setclassvariable)).to eq(true)
+    expect(ClassVariableTest.test_setclassvariable).to eq(result)
+  end
 
   specify 'getconstant' do
     test_compile { RubyVM::InstructionSequence }

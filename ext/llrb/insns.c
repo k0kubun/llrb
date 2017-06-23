@@ -188,6 +188,24 @@ llrb_insn_opt_lt(VALUE lhs, VALUE rhs)
   return rb_funcall(lhs, '<', 1, rhs);
 }
 
+VALUE vm_get_cvar_base(const rb_cref_t *cref, rb_control_frame_t *cfp);
+rb_cref_t * rb_vm_get_cref(const VALUE *ep);
+VALUE
+llrb_insn_getclassvariable(rb_control_frame_t *cfp, ID id)
+{
+  return rb_cvar_get(vm_get_cvar_base(rb_vm_get_cref(cfp->ep), cfp), id);
+}
+
+VALUE vm_get_cvar_base(const rb_cref_t *cref, rb_control_frame_t *cfp);
+void
+llrb_insn_setclassvariable(rb_control_frame_t *cfp, ID id, VALUE val)
+{
+  if (RB_TYPE_P(cfp->self, T_MODULE) && FL_TEST(cfp->self, RMODULE_IS_REFINEMENT)) {
+    rb_warn("not defined at the refinement, but at the outer class/module");
+  }
+  rb_cvar_set(vm_get_cvar_base(rb_vm_get_cref(cfp->ep), cfp), id, val);
+}
+
 void
 llrb_push_result(rb_control_frame_t *cfp, VALUE result)
 {

@@ -236,6 +236,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "llrb_insn_opt_plus")
       || !strcmp(name, "llrb_insn_opt_minus")
       || !strcmp(name, "llrb_insn_opt_lt")
+      || !strcmp(name, "llrb_insn_getclassvariable")
       || !strcmp(name, "llrb_insn_getspecial")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
@@ -250,7 +251,8 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
       || !strcmp(name, "llrb_insn_setconstant")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMInt64Type(), arg_types, 3, false));
-  } else if (!strcmp(name, "llrb_insn_setlocal_level0")) {
+  } else if (!strcmp(name, "llrb_insn_setlocal_level0")
+      || !strcmp(name, "llrb_insn_setclassvariable")) {
     LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type(), LLVMInt64Type() };
     return LLVMAddFunction(mod, name, LLVMFunctionType(LLVMVoidType(), arg_types, 3, false));
   } else if (!strcmp(name, "llrb_insn_defined")) {
@@ -343,14 +345,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "setinstancevariable");
       break;
     }
-    //case YARVINSN_getclassvariable: {
-    //  ;
-    //  break;
-    //}
-    //case YARVINSN_setclassvariable: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_getclassvariable: {
+      LLVMValueRef args[] = { llrb_get_cfp(c), llvm_value(operands[0]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getclassvariable"), args, 2, "getclassvariable"));
+      break;
+    }
+    case YARVINSN_setclassvariable: {
+      LLVMValueRef args[] = { llrb_get_cfp(c), llvm_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setclassvariable"), args, 3, "setclassvariable");
+      break;
+    }
     case YARVINSN_getconstant: {
       LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getconstant"), args, 2, "getconstant"));
@@ -521,6 +525,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  break;
     //}
     //case YARVINSN_reput:
+    //  break; // none
     case YARVINSN_topn: {
       llrb_stack_push(stack, llrb_topn(stack, (unsigned int)operands[0]));
       break;

@@ -56,18 +56,18 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] nop
 
 ### variable
-- [ ] getlocal (!)
+- [ ] getlocal
 - [x] getlocal\_OP\_\_WC\_\_0
 - [ ] getlocal\_OP\_\_WC\_\_1
-- [ ] setlocal (!)
+- [ ] setlocal
 - [x] setlocal\_OP\_\_WC\_\_0
 - [ ] setlocal\_OP\_\_WC\_\_1
 - [x] getspecial
 - [x] setspecial
 - [x] getinstancevariable
 - [x] setinstancevariable
-- [ ] getclassvariable (!)
-- [ ] setclassvariable (!)
+- [x] getclassvariable
+- [x] setclassvariable
 - [x] getconstant (current scope not handled) (!)
 - [x] setconstant (current scope not handled) (!)
 - [x] getglobal
@@ -127,7 +127,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_send\_without\_block
 - [!] getinlinecache
 - [!] setinlinecache
-- [ ] once
+- [!] once
 - [!] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
@@ -152,7 +152,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_not
 - [x] opt\_regexpmatch1
 - [x] opt\_regexpmatch2
-- [ ] opt\_call\_c\_function
+- [!] opt\_call\_c\_function
 
 ### exception
 - [ ] throw (!)
