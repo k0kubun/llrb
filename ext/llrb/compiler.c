@@ -525,10 +525,11 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkmatch"), args, 3, "checkmatch"));
       break;
     }
-    //case YARVINSN_checkkeyword: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_checkkeyword: {
+      LLVMValueRef args[] = { llrb_get_cfp(c), llvm_value((lindex_t)operands[0]), llvm_value((rb_num_t)operands[1]) };
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkkeyword"), args, 3, "checkkeyword"));
+      break;
+    }
     case YARVINSN_trace:
       break; // TODO: implement
     //case YARVINSN_defineclass: {

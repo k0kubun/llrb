@@ -252,7 +252,12 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'checkkeyword' do
+  specify 'checkkeyword' do
+    test_compile(x: true) do |x: rand|
+      x
+    end
+  end
+
   # specify 'trace' do
   # specify 'defineclass' do
   # specify 'send' do

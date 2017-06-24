@@ -223,3 +223,20 @@ llrb_insn_throw(rb_thread_t *th, rb_control_frame_t *cfp, rb_num_t throw_state, 
   RUBY_VM_CHECK_INTS(th);
   th->errinfo = vm_throw(th, cfp, throw_state, throwobj);
 }
+
+// FIXME: Can we avoid just copying this?
+VALUE
+llrb_insn_checkkeyword(rb_control_frame_t *cfp, lindex_t kw_bits_index, rb_num_t keyword_index)
+{
+  const VALUE *ep = cfp->ep;
+  const VALUE kw_bits = *(ep - kw_bits_index);
+
+  if (FIXNUM_P(kw_bits)) {
+    int bits = FIX2INT(kw_bits);
+    return (bits & (0x01 << keyword_index)) ? Qfalse : Qtrue;
+  }
+  else {
+    VM_ASSERT(RB_TYPE_P(kw_bits, T_HASH));
+    return rb_hash_has_key(kw_bits, INT2FIX(keyword_index)) ? Qfalse : Qtrue;
+  }
+}
