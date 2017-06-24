@@ -24,6 +24,7 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 64, 1, { 64 },             true,  "rb_ary_new_from_args" },
   { 0,  2, { 64, 64 },         false, "llrb_insn_setspecial" },
   { 0,  2, { 64, 64 },         false, "llrb_push_result" },
+  { 64, 2, { 64, 64 },         false, "llrb_insn_concatarray" },
   { 64, 2, { 64, 64 },         false, "llrb_insn_getclassvariable" },
   { 64, 2, { 64, 64 },         false, "llrb_insn_getlocal_level0" },
   { 64, 2, { 64, 64 },         false, "llrb_insn_getspecial" },

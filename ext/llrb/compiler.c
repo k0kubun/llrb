@@ -417,14 +417,20 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       break;
     }
     //case YARVINSN_expandarray: {
-    //  ;
+    //  rb_num_t flag = (rb_num_t)operands[1];
+    //  if (flag & 0x02) { // for postarg
+    //  } else {
+    //  }
     //  break;
     //}
-    //case YARVINSN_concatarray: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_concatarray: {
+      LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
+      args[0] = llrb_stack_pop(stack);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_concatarray"), args, 2, "concatarray"));
+      break;
+    }
     case YARVINSN_splatarray: {
+      // Can we refactor code for this kind of insn implementation...?
       LLVMValueRef args[] = { llrb_stack_pop(stack), llvm_value(operands[0]) };
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_splatarray"), args, 2, "splatarray"));
       break;

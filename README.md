@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-82/93 (88.2%)
+85/93 (91.4%)
 
 ### nop
 - [x] nop
@@ -90,8 +90,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] toregexp
 - [x] newarray
 - [x] duparray
-- [ ] expandarray
-- [ ] concatarray
+- [!] expandarray
+- [x] concatarray
 - [x] splatarray
 - [x] newhash
 - [x] newrange
@@ -101,7 +101,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] dup
 - [x] dupn
 - [x] swap
-- [ ] reverse
+- [!] reverse
 - [!] reput
 - [x] topn
 - [x] setn
@@ -114,7 +114,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [ ] trace
 
 ### class/module
-- [ ] defineclass (!)
+- [!] defineclass
 
 ### method/iterator
 - [ ] send (!)

@@ -224,7 +224,7 @@ llrb_insn_throw(rb_thread_t *th, rb_control_frame_t *cfp, rb_num_t throw_state, 
   th->errinfo = vm_throw(th, cfp, throw_state, throwobj);
 }
 
-// FIXME: Can we avoid just copying this?
+// TODO: Use vm_check_keyword after Ruby 2.5
 VALUE
 llrb_insn_checkkeyword(rb_control_frame_t *cfp, lindex_t kw_bits_index, rb_num_t keyword_index)
 {
@@ -239,4 +239,26 @@ llrb_insn_checkkeyword(rb_control_frame_t *cfp, lindex_t kw_bits_index, rb_num_t
     VM_ASSERT(RB_TYPE_P(kw_bits, T_HASH));
     return rb_hash_has_key(kw_bits, INT2FIX(keyword_index)) ? Qfalse : Qtrue;
   }
+}
+
+// TODO: Use vm_concat_array after Ruby 2.5
+VALUE
+llrb_insn_concatarray(VALUE ary1, VALUE ary2st)
+{
+  const VALUE ary2 = ary2st;
+  VALUE tmp1 = rb_check_convert_type(ary1, T_ARRAY, "Array", "to_a");
+  VALUE tmp2 = rb_check_convert_type(ary2, T_ARRAY, "Array", "to_a");
+
+  if (NIL_P(tmp1)) {
+    tmp1 = rb_ary_new3(1, ary1);
+  }
+
+  if (NIL_P(tmp2)) {
+    tmp2 = rb_ary_new3(1, ary2);
+  }
+
+  if (tmp1 == ary1) {
+    tmp1 = rb_ary_dup(ary1);
+  }
+  return rb_ary_concat(tmp1, tmp2);
 }

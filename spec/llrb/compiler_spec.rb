@@ -132,8 +132,13 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [:foo, :bar] }
   end
 
-  # specify 'expandarray' do
-  # specify 'concatarray' do
+  #specify 'expandarray' do
+  #  test_compile { y = [ true, false, nil ]; x, = y; x }
+  #end
+
+  specify 'concatarray' do
+    test_compile { ["t", "r", *x = "u", "e"].join }
+  end
 
   specify 'splatarray' do
     test_compile { [*(1..2)] }
