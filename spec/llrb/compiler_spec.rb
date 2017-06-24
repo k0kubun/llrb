@@ -8,6 +8,7 @@ RSpec.describe 'llrb_compile_iseq' do
 
     # Possibly the same block in a loop is compiled multiple times
     already_compiled = LLRB::JIT.compiled?(klass, :test)
+    #LLRB::JIT.preview(klass, :test)
     compiled = LLRB::JIT.compile(klass, :test)
     expect(compiled).to eq(true) unless already_compiled
     expect(klass.test(*args.map(&:dup))).to eq(result)
@@ -284,6 +285,7 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   specify 'opt_send_without_block' do
+    test_compile { [1,2].reverse }
     test_compile { 2 ** 3 }
     test_compile { false || 2.even? }
     test_compile { [nil].push(3) }

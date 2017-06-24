@@ -12,8 +12,8 @@ RSpec.describe 'llrb_compile_iseq' do
     expect(native.test(*args.map(&:dup))).to eq(ruby.test(*args.map(&:dup)))
   end
 
-  specify 'freezestring' do
-    test_compile { "#{true}" }
-    test_compile { "#{true}".frozen? }
-  end
+  #specify 'freezestring' do
+  #  test_compile { "#{true}" }
+  #  test_compile { "#{true}".frozen? }
+  #end
 end

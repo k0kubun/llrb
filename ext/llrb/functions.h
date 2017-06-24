@@ -1,7 +1,7 @@
 #ifndef LLRB_FUNCTIONS_H
 #define LLRB_FUNCTIONS_H
 
-#define LLRB_EXTERN_FUNC_MAX_ARGC 4
+#define LLRB_EXTERN_FUNC_MAX_ARGC 5
 struct llrb_extern_func {
   unsigned int return_type; // 0 = void, 32 = 32bit int, 64 = 64bit int
   unsigned int argc;
@@ -49,6 +49,8 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 0,  4, { 64, 64, 64, 64 }, false, "llrb_insn_throw" },
   { 64, 4, { 64, 64, 64, 32 }, false, "vm_get_ev_const" },
   { 64, 4, { 64, 64, 64, 64 }, false, "llrb_insn_defined" },
+  { 64, 5, { 64, 64, 64, 64, 32 }, true, "llrb_insn_opt_send_without_block" },
+  //{ 64, 1, { 32 }, true, "llrb_insn_opt_send_without_block" },
 };
 static size_t llrb_extern_func_num = sizeof(llrb_extern_funcs) / sizeof(struct llrb_extern_func);
 
