@@ -71,7 +71,7 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
           llrb_extern_funcs[i].argc, llrb_extern_funcs[i].unlimited));
   }
 
-  rb_raise(rb_eCompileError, "'%s' is not defined in llrb_get_function", name);
+  rb_raise(rb_eCompileError, "'%s' is not defined in llrb_extern_funcs", name);
 }
 
 static LLVMValueRef
@@ -536,8 +536,14 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkkeyword"), args, 3, "checkkeyword"));
       break;
     }
-    case YARVINSN_trace:
-      break; // TODO: implement
+    case YARVINSN_trace: {
+      rb_event_flag_t flag = (rb_event_flag_t)((rb_num_t)operands[0]);
+      LLVMValueRef val = (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? stack->body[stack->size-1] : llvm_value(Qundef);
+
+      LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), LLVMConstInt(LLVMInt32Type(), flag, false), val };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_trace"), args, 4, "trace");
+      break;
+    }
     //case YARVINSN_defineclass: {
     //  ;
     //  break;

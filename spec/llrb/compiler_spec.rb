@@ -263,7 +263,10 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'trace' do
+  specify 'trace' do
+    test_compile { nil }
+  end
+
   # specify 'defineclass' do
   # specify 'send' do
 

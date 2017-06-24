@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-85/93 (91.4%)
+86/93 (92.4%)
 
 ### nop
 - [x] nop
@@ -111,7 +111,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] defined
 - [x] checkmatch
 - [x] checkkeyword
-- [ ] trace
+- [x] trace
 
 ### class/module
 - [!] defineclass

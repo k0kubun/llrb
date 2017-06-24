@@ -1,4 +1,5 @@
 #include "cruby.h"
+#include "cruby/probes_helper.h"
 
 VALUE
 llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
@@ -261,4 +262,33 @@ llrb_insn_concatarray(VALUE ary1, VALUE ary2st)
     tmp1 = rb_ary_dup(ary1);
   }
   return rb_ary_concat(tmp1, tmp2);
+}
+
+// TODO: Use vm_dtrace after Ruby 2.5
+void
+llrb_insn_trace(rb_thread_t *th, rb_control_frame_t *cfp, rb_event_flag_t flag, VALUE val)
+{
+  if (RUBY_DTRACE_METHOD_ENTRY_ENABLED() ||
+      RUBY_DTRACE_METHOD_RETURN_ENABLED() ||
+      RUBY_DTRACE_CMETHOD_ENTRY_ENABLED() ||
+      RUBY_DTRACE_CMETHOD_RETURN_ENABLED()) {
+
+    switch (flag) {
+      case RUBY_EVENT_CALL:
+        RUBY_DTRACE_METHOD_ENTRY_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_C_CALL:
+        RUBY_DTRACE_CMETHOD_ENTRY_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_RETURN:
+        RUBY_DTRACE_METHOD_RETURN_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_C_RETURN:
+        RUBY_DTRACE_CMETHOD_RETURN_HOOK(th, 0, 0);
+        break;
+    }
+  }
+
+  // TODO: Confirm it works, especially for :line event. We may need to update program counter.
+  EXEC_EVENT_HOOK(th, flag, cfp->self, 0, 0, 0 /* id and klass are resolved at callee */, val);
 }
