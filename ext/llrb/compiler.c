@@ -131,11 +131,12 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 
     // Rule 3
     switch (insn) {
-      case YARVINSN_jump:
       case YARVINSN_branchif:
       case YARVINSN_branchunless:
       case YARVINSN_branchnil:
+      case YARVINSN_jump:
       case YARVINSN_opt_case_dispatch:
+      case YARVINSN_throw:
         if (i+insn_len(insn) < body->iseq_size) {
           rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
         }
@@ -575,10 +576,16 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "leave");
       LLVMBuildRet(c->builder, llrb_get_cfp(c));
       return true;
-    //case YARVINSN_throw: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_throw: {
+      LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), llvm_value((rb_num_t)operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_throw"), args, 4, "throw");
+
+      // In opt_call_c_function, if we return 0, we can throw error fron th->errinfo.
+      // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2147-L2151
+      LLVMBuildRet(c->builder, llvm_value(0));
+      return true;
+      break;
+    }
     case YARVINSN_jump: {
       unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
       LLVMBasicBlockRef next_block = c->blocks[dest].block;

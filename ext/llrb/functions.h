@@ -43,6 +43,7 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 64, 3, { 64, 64, 64 },     false, "rb_ivar_set" },
   { 64, 3, { 64, 64, 64 },     false, "rb_range_new" },
   { 0,  4, { 64, 64, 64, 64 }, false, "llrb_insn_setconstant" },
+  { 0,  4, { 64, 64, 64, 64 }, false, "llrb_insn_throw" },
   { 64, 4, { 64, 64, 64, 32 }, false, "vm_get_ev_const" },
   { 64, 4, { 64, 64, 64, 64 }, false, "llrb_insn_defined" },
 };

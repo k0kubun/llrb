@@ -215,3 +215,11 @@ llrb_push_result(rb_control_frame_t *cfp, VALUE result)
   *(cfp->sp) = result;
   cfp->sp += 1;
 }
+
+VALUE vm_throw(rb_thread_t *th, rb_control_frame_t *reg_cfp, rb_num_t throw_state, VALUE throwobj);
+void
+llrb_insn_throw(rb_thread_t *th, rb_control_frame_t *cfp, rb_num_t throw_state, VALUE throwobj)
+{
+  RUBY_VM_CHECK_INTS(th);
+  th->errinfo = vm_throw(th, cfp, throw_state, throwobj);
+}

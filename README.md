@@ -52,6 +52,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
+81/93 (87.1%)
+
 ### nop
 - [x] nop
 
@@ -155,7 +157,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [!] opt\_call\_c\_function
 
 ### exception
-- [ ] throw (!)
+- [x] throw
 
 ### jump
 - [x] jump

@@ -284,7 +284,25 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil }
   end
 
-  # specify 'throw' do
+  specify 'throw' do
+    test_compile do
+      if 1+1 == 1
+        return 3
+      else
+        return 4
+      end
+      5
+    end
+
+    test_compile do
+      if 1+1 == 2
+        4
+      else
+        return 3
+      end
+      5
+    end
+  end
 
   specify 'jump' do
     test_compile(true) { |a| 1 if a }
