@@ -295,7 +295,7 @@ llrb_insn_trace(rb_thread_t *th, rb_control_frame_t *cfp, rb_event_flag_t flag, 
 
 #define CALL_METHOD(calling, ci, cc) (*(cc)->call)(th, cfp, (calling), (ci), (cc))
 void vm_search_method(const struct rb_call_info *ci, struct rb_call_cache *cc, VALUE recv);
-VALUE
+VALUE // TODO: refactor with invokesuper
 llrb_insn_opt_send_without_block(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, unsigned int stack_size, ...)
 {
   VALUE recv = Qnil;
@@ -314,6 +314,37 @@ llrb_insn_opt_send_without_block(rb_thread_t *th, rb_control_frame_t *cfp, CALL_
   calling.block_handler = VM_BLOCK_HANDLER_NONE;
   calling.argc = ci->orig_argc;
   calling.recv = recv;
+
+  VALUE result = CALL_METHOD(&calling, ci, cc);
+  if (result == Qundef) {
+    // Reducing stack instead of calling RESTORE_REGS. Is this okay?
+    // Maybe this is working because leave insn comes after opt_call_c_function.
+    cfp->sp -= 1;
+  }
+  return result;
+}
+
+void vm_caller_setup_arg_block(const rb_thread_t *th, rb_control_frame_t *reg_cfp,
+    struct rb_calling_info *calling, const struct rb_call_info *ci, rb_iseq_t *blockiseq, const int is_super);
+void vm_search_super_method(rb_thread_t *th, rb_control_frame_t *reg_cfp,
+    struct rb_calling_info *calling, struct rb_call_info *ci, struct rb_call_cache *cc);
+VALUE
+llrb_insn_invokesuper(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq, unsigned int stack_size, ...)
+{
+  va_list ar;
+  va_start(ar, stack_size);
+  for (unsigned int i = 0; i < stack_size; i++) {
+    VALUE val = va_arg(ar, VALUE);
+    llrb_push_result(cfp, val);
+  }
+  va_end(ar);
+
+  struct rb_calling_info calling;
+  calling.argc = ci->orig_argc;
+
+  vm_caller_setup_arg_block(th, cfp, &calling, ci, blockiseq, 1);
+  calling.recv = th->cfp->self;
+  vm_search_super_method(th, th->cfp, &calling, ci, cc);
 
   VALUE result = CALL_METHOD(&calling, ci, cc);
   if (result == Qundef) {

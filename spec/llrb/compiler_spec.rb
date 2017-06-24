@@ -292,7 +292,24 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [] + [nil].push(3) }
   end
 
-  # specify 'invokesuper' do
+  #specify 'invokesuper' do
+  #  mod = Module.new {
+  #    def test
+  #      super
+  #    end
+  #  }
+  #  klass = Class.new {
+  #    prepend mod
+  #    def test
+  #      1
+  #    end
+  #  }
+  #  object = klass.new
+  #  result = object.test
+  #  expect(LLRB::JIT.compile(object, :test)).to eq(true)
+  #  expect(object.test).to eq(result)
+  #end
+
   # specify 'invokeblock' do
 
   specify 'leave' do
