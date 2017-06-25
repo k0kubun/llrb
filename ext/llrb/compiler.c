@@ -594,23 +594,23 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_send_without_block"), args, 5 + stack_size, "opt_send_without_block"));
       break;
     }
-    //case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
-    //  CALL_INFO ci = (CALL_INFO)operands[0];
-    //  unsigned int stack_size = ci->orig_argc + 1;
+    case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      unsigned int stack_size = ci->orig_argc + 1;
 
-    //  LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
-    //  args[0] = llrb_get_thread(c);
-    //  args[1] = llrb_get_cfp(c);
-    //  args[2] = llvm_value((VALUE)ci);
-    //  args[3] = llvm_value((VALUE)((CALL_CACHE)operands[1]));
-    //  args[4] = llvm_value((VALUE)((ISEQ)operands[2]));
-    //  args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-    //  for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-    //    args[6 + i] = llrb_stack_pop(stack);
-    //  }
-    //  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "invokesuper"));
-    //  break;
-    //}
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
+      args[0] = llrb_get_thread(c);
+      args[1] = llrb_get_cfp(c);
+      args[2] = llvm_value((VALUE)ci);
+      args[3] = llvm_value((VALUE)((CALL_CACHE)operands[1]));
+      args[4] = llvm_value((VALUE)((ISEQ)operands[2]));
+      args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+        args[6 + i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "invokesuper"));
+      break;
+    }
     //case YARVINSN_invokeblock: {
     //  ;
     //  CALL_INFO ci = (CALL_INFO)operands[0];

@@ -326,33 +326,32 @@ llrb_insn_opt_send_without_block(rb_thread_t *th, rb_control_frame_t *cfp, CALL_
 
 void vm_caller_setup_arg_block(const rb_thread_t *th, rb_control_frame_t *reg_cfp,
     struct rb_calling_info *calling, const struct rb_call_info *ci, rb_iseq_t *blockiseq, const int is_super);
-//void vm_search_super_method(rb_thread_t *th, rb_control_frame_t *reg_cfp,
-//    struct rb_calling_info *calling, struct rb_call_info *ci, struct rb_call_cache *cc);
-//VALUE
-//llrb_insn_invokesuper(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq, unsigned int stack_size, ...)
-//{
-//  va_list ar;
-//  va_start(ar, stack_size);
-//  for (unsigned int i = 0; i < stack_size; i++) {
-//    llrb_push_result(cfp, va_arg(ar, VALUE));
-//  }
-//  va_end(ar);
-//
-//  struct rb_calling_info calling;
-//  calling.argc = ci->orig_argc;
-//
-//  vm_caller_setup_arg_block(th, cfp, &calling, ci, blockiseq, 1);
-//  calling.recv = th->cfp->self;
-//  vm_search_super_method(th, th->cfp, &calling, ci, cc);
-//
-//  VALUE result = CALL_METHOD(&calling, ci, cc);
-//  if (result == Qundef) {
-//    // Reducing stack instead of calling RESTORE_REGS. Is this okay?
-//    // Maybe this is working because leave insn comes after opt_call_c_function.
-//    cfp->sp -= 1;
-//  }
-//  return result;
-//}
+void vm_search_super_method(rb_thread_t *th, rb_control_frame_t *reg_cfp,
+    struct rb_calling_info *calling, struct rb_call_info *ci, struct rb_call_cache *cc);
+VALUE
+llrb_insn_invokesuper(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq, unsigned int stack_size, ...)
+{
+  va_list ar;
+  va_start(ar, stack_size);
+  for (unsigned int i = 0; i < stack_size; i++) {
+    llrb_push_result(cfp, va_arg(ar, VALUE));
+  }
+  va_end(ar);
+
+  struct rb_calling_info calling;
+  calling.argc = ci->orig_argc;
+
+  vm_caller_setup_arg_block(th, cfp, &calling, ci, blockiseq, 1);
+  calling.recv = th->cfp->self;
+  vm_search_super_method(th, th->cfp, &calling, ci, cc);
+
+  VALUE result = CALL_METHOD(&calling, ci, cc);
+  if (result == Qundef) {
+    VM_ENV_FLAGS_SET(th->cfp->ep, VM_FRAME_FLAG_FINISH);
+    return vm_exec(th);
+  }
+  return result;
+}
 
 //VALUE vm_invoke_block(rb_thread_t *th, rb_control_frame_t *reg_cfp, struct rb_calling_info *calling, const struct rb_call_info *ci);
 //VALUE
