@@ -353,28 +353,29 @@ llrb_insn_invokesuper(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CA
   return result;
 }
 
-//VALUE vm_invoke_block(rb_thread_t *th, rb_control_frame_t *reg_cfp, struct rb_calling_info *calling, const struct rb_call_info *ci);
-//VALUE
-//llrb_insn_invokeblock(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, unsigned int stack_size, ...)
-//{
-//  va_list ar;
-//  va_start(ar, stack_size);
-//  for (unsigned int i = 0; i < stack_size; i++) {
-//    llrb_push_result(cfp, va_arg(ar, VALUE));
-//  }
-//  va_end(ar);
-//
-//  struct rb_calling_info calling;
-//  calling.argc = ci->orig_argc;
-//  calling.block_handler = VM_BLOCK_HANDLER_NONE;
-//  calling.recv = cfp->self;
-//
-//  VALUE val = vm_invoke_block(th, cfp, &calling, ci);
-//  if (val == Qundef) {
-//    cfp->sp -= 1;
-//  }
-//  return val;
-//}
+VALUE vm_invoke_block(rb_thread_t *th, rb_control_frame_t *reg_cfp, struct rb_calling_info *calling, const struct rb_call_info *ci);
+VALUE
+llrb_insn_invokeblock(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, unsigned int stack_size, ...)
+{
+  va_list ar;
+  va_start(ar, stack_size);
+  for (unsigned int i = 0; i < stack_size; i++) {
+    llrb_push_result(cfp, va_arg(ar, VALUE));
+  }
+  va_end(ar);
+
+  struct rb_calling_info calling;
+  calling.argc = ci->orig_argc;
+  calling.block_handler = VM_BLOCK_HANDLER_NONE;
+  calling.recv = cfp->self;
+
+  VALUE val = vm_invoke_block(th, cfp, &calling, ci);
+  if (val == Qundef) {
+    VM_ENV_FLAGS_SET(th->cfp->ep, VM_FRAME_FLAG_FINISH);
+    return vm_exec(th);
+  }
+  return val;
+}
 
 VALUE
 llrb_insn_send(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq, unsigned int stack_size, ...)
@@ -398,9 +399,8 @@ llrb_insn_send(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACH
 
   VALUE result = CALL_METHOD(&calling, ci, cc);
   if (result == Qundef) {
-    // Reducing stack instead of calling RESTORE_REGS. Is this okay?
-    // Maybe this is working because leave insn comes after opt_call_c_function.
-    cfp->sp -= 1;
+    VM_ENV_FLAGS_SET(th->cfp->ep, VM_FRAME_FLAG_FINISH);
+    return vm_exec(th);
   }
   return result;
 }

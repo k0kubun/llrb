@@ -280,6 +280,19 @@ RSpec.describe 'llrb_compile_iseq' do
         ary << i
       end
     end
+
+    klass = Class.new {
+      def self.test(a)
+        if a > 0
+          test(a-1) { 1 } + yield
+        else
+          0
+        end
+      end
+    }
+    result = klass.test(1) { 2 }
+    expect(LLRB::JIT.compile(klass, :test)).to eq(true)
+    expect(klass.test(1) { 2 }).to eq(result)
   end
 
   specify 'opt_str_freeze' do
@@ -332,17 +345,17 @@ RSpec.describe 'llrb_compile_iseq' do
     expect(object.test).to eq(result)
   end
 
-  #specify 'invokeblock' do
-  #  klass = Class.new {
-  #    def test
-  #      1 + yield + 3
-  #    end
-  #  }
-  #  object = klass.new
-  #  result = object.test { 2 }
-  #  expect(LLRB::JIT.compile(object, :test)).to eq(true)
-  #  expect(object.test { 2 }).to eq(result)
-  #end
+  specify 'invokeblock' do
+    klass = Class.new {
+      def test
+        1 + yield + 3
+      end
+    }
+    object = klass.new
+    result = object.test { 2 }
+    expect(LLRB::JIT.compile(object, :test)).to eq(true)
+    expect(object.test { 2 }).to eq(result)
+  end
 
   specify 'leave' do
     test_compile { nil }
