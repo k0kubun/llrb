@@ -118,8 +118,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ### method/iterator
 - [ ] send (!)
-- [ ] invokesuper (!)
-- [ ] invokeblock (!)
+- [ ] invokesuper
+- [ ] invokeblock
 - [x] leave
 
 ### optimize

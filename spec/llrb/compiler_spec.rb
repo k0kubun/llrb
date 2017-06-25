@@ -310,7 +310,17 @@ RSpec.describe 'llrb_compile_iseq' do
   #  expect(object.test).to eq(result)
   #end
 
-  # specify 'invokeblock' do
+  #specify 'invokeblock' do
+  #  klass = Class.new {
+  #    def test
+  #      1 + yield + 3
+  #    end
+  #  }
+  #  object = klass.new
+  #  result = object.test { 2 }
+  #  expect(LLRB::JIT.compile(object, :test)).to eq(true)
+  #  expect(object.test { 2 }).to eq(result)
+  #end
 
   specify 'leave' do
     test_compile { nil }

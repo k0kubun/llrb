@@ -597,11 +597,23 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     //  for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
     //    args[6 + i] = llrb_stack_pop(stack);
     //  }
-    //  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "opt_send_without_block"));
+    //  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "invokesuper"));
     //  break;
     //}
     //case YARVINSN_invokeblock: {
     //  ;
+    //  CALL_INFO ci = (CALL_INFO)operands[0];
+    //  unsigned int stack_size = ci->orig_argc;
+
+    //  LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4 + stack_size);
+    //  args[0] = llrb_get_thread(c);
+    //  args[1] = llrb_get_cfp(c);
+    //  args[2] = llvm_value((VALUE)ci);
+    //  args[3] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+    //  for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+    //    args[4 + i] = llrb_stack_pop(stack);
+    //  }
+    //  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokeblock"), args, 4 + stack_size, "invokeblock"));
     //  break;
     //}
     case YARVINSN_leave:
