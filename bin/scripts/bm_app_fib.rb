@@ -5,6 +5,6 @@ def fib n
     fib(n-1) + fib(n-2)
   end
 end
-LLRB::JIT.compile(self, :fib)
+#LLRB::JIT.compile(self, :fib)
 
 fib(34)

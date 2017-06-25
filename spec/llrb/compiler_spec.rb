@@ -301,6 +301,17 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { false || 2.even? }
     test_compile { [nil].push(3) }
     test_compile { [] + [nil].push(3) }
+
+    klass = Class.new {
+      def self.test(a)
+        if a > 0
+          test(a-1)
+        end
+      end
+    }
+    result = klass.test(1)
+    expect(LLRB::JIT.compile(klass, :test)).to eq(true)
+    expect(klass.test(1)).to eq(result)
   end
 
   #specify 'invokesuper' do

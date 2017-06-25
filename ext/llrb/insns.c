@@ -295,6 +295,7 @@ llrb_insn_trace(rb_thread_t *th, rb_control_frame_t *cfp, rb_event_flag_t flag, 
 
 #define CALL_METHOD(calling, ci, cc) (*(cc)->call)(th, cfp, (calling), (ci), (cc))
 void vm_search_method(const struct rb_call_info *ci, struct rb_call_cache *cc, VALUE recv);
+VALUE vm_exec(rb_thread_t *th);
 VALUE // TODO: refactor with invokesuper
 llrb_insn_opt_send_without_block(rb_thread_t *th, rb_control_frame_t *cfp, CALL_INFO ci, CALL_CACHE cc, unsigned int stack_size, ...)
 {
@@ -317,9 +318,8 @@ llrb_insn_opt_send_without_block(rb_thread_t *th, rb_control_frame_t *cfp, CALL_
 
   VALUE result = CALL_METHOD(&calling, ci, cc);
   if (result == Qundef) {
-    // Reducing stack instead of calling RESTORE_REGS. Is this okay?
-    // Maybe this is working because leave insn comes after opt_call_c_function.
-    cfp->sp -= 1;
+    VM_ENV_FLAGS_SET(th->cfp->ep, VM_FRAME_FLAG_FINISH);
+    return vm_exec(th);
   }
   return result;
 }
