@@ -10,21 +10,28 @@ opt = OptionParser.new
 opt.on('-p') { preview = true }
 opt.parse!(ARGV)
 
-script = File.read(ARGV.first || "#{__dir__}/scripts/bm_app_fib.rb")
-
-native = Class.new
-if preview
-  native.instance_eval("def self.script; #{script.gsub(/LLRB::JIT.compile(\([^\)]+\))/, 'LLRB::JIT.preview\1')}; end")
-  native.script
-  return
-else
-  native.instance_eval("def self.script; #{script}; end")
-end
 ruby = Class.new
-ruby.instance_eval("def self.script; #{script.gsub(/LLRB::JIT.compile\([^\)]+\)/, '')}; end")
+def ruby.fib(n)
+  if n < 3
+    1
+  else
+    fib(n-1) + fib(n-2)
+  end
+end
+
+llrb = Class.new
+def llrb.fib(n)
+  if n < 3
+    1
+  else
+    fib(n-1) + fib(n-2)
+  end
+end
+return LLRB::JIT.preview(llrb, :fib) if preview
+LLRB::JIT.compile(llrb, :fib)
 
 Benchmark.ips do |x|
-  x.report('ruby')   { ruby.script }
-  x.report('native') { native.script }
+  x.report('Ruby') { ruby.fib(34) }
+  x.report('LLRB') { llrb.fib(34) }
   x.compare!
 end
