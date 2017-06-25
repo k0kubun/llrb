@@ -12,5 +12,5 @@ build:
         name: rspec
         code: bundle exec rake spec
     - script:
-        name: rspec
+        name: benchmark
         code: bin/benchmark

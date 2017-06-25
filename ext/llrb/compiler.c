@@ -789,17 +789,17 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_pop(stack); // TODO: implement
       break;
     case YARVINSN_opt_plus: {
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
-      //LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-      //args[0] = llrb_stack_pop(stack);
-      //llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_plus"), args, 2, "opt_plus"));
+      //llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
+      LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
+      args[0] = llrb_stack_pop(stack);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_plus"), args, 2, "opt_plus"));
       break;
     }
     case YARVINSN_opt_minus: {
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '-', 1));
-      //LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-      //args[0] = llrb_stack_pop(stack);
-      //llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_minus"), args, 2, "opt_minus"));
+      //llrb_stack_push(stack, llrb_compile_funcall(c, stack, '-', 1));
+      LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
+      args[0] = llrb_stack_pop(stack);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_minus"), args, 2, "opt_minus"));
       break;
     }
     case YARVINSN_opt_mult:
@@ -818,10 +818,10 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
       break;
     case YARVINSN_opt_lt: {
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '<', 1));
-      //LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-      //args[0] = llrb_stack_pop(stack);
-      //llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_lt"), args, 2, "opt_lt"));
+      //llrb_stack_push(stack, llrb_compile_funcall(c, stack, '<', 1));
+      LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
+      args[0] = llrb_stack_pop(stack);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_lt"), args, 2, "opt_lt"));
       break;
     }
     case YARVINSN_opt_le:
