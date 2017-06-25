@@ -269,7 +269,18 @@ RSpec.describe 'llrb_compile_iseq' do
   end
 
   # specify 'defineclass' do
-  # specify 'send' do
+
+  specify 'send' do
+    test_compile do
+      1.times { 2 }
+    end
+
+    test_compile do
+      [1, 2].inject([]) do |ary, i|
+        ary << i
+      end
+    end
+  end
 
   specify 'opt_str_freeze' do
     test_compile { "foo".freeze }

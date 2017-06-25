@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-86/93 (92.4%)
+87/93 (93.5%)
 
 ### nop
 - [x] nop
@@ -117,7 +117,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [!] defineclass
 
 ### method/iterator
-- [ ] send (!)
+- [x] send
 - [ ] invokesuper
 - [ ] invokeblock
 - [x] leave
