@@ -27,7 +27,7 @@ def llrb.fib(n)
     fib(n-1) + fib(n-2)
   end
 end
-return LLRB::JIT.preview(llrb, :fib) if preview
+LLRB::JIT.preview(llrb, :fib) and return if preview
 LLRB::JIT.compile(llrb, :fib)
 
 Benchmark.ips do |x|
