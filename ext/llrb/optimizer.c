@@ -9,31 +9,14 @@
 static void
 llrb_run_passes(LLVMModuleRef mod)
 {
-  LLVMPassManagerRef pm = LLVMCreateFunctionPassManagerForModule(mod);
+  LLVMPassManagerRef pm = LLVMCreatePassManager();
 	LLVMTargetDataRef td = LLVMCreateTargetData(LLVMGetDataLayout(mod));
 
   LLVMAddTargetData(td, pm);
-  LLVMAddPromoteMemoryToRegisterPass(pm);
-  LLVMAddCFGSimplificationPass(pm);
-  //LLVMAddAlwaysInlinerPass(pm);
-  //LLVMAddFunctionInliningPass(pm);
-  LLVMAddInstructionCombiningPass(pm);
-  LLVMAddReassociatePass(pm);
-  LLVMInitializeFunctionPassManager(pm);
+  LLVMAddFunctionInliningPass(pm);
+  LLVMAddAggressiveDCEPass(pm);
 
-  LLVMValueRef func = LLVMGetNamedFunction(mod, "llrb_exec");
-  if (!func) {
-    fprintf(stderr, "llrb_exec was not found\n");
-    return;
-  }
-
-  if (LLVMRunFunctionPassManager(pm, func) == 0) {
-    //fprintf(stderr, "LLVMRunPassManager modified nothing\n");
-  }
-
-  if (LLVMFinalizeFunctionPassManager(pm) == 0) {
-    //fprintf(stderr, "LLVMFinalizeFunctionPassManager modified nothing\n");
-  }
+  LLVMRunPassManager(pm, mod);
 
   LLVMDisposePassManager(pm);
   LLVMDisposeTargetData(td);
