@@ -1,11 +1,11 @@
 #include "cruby.h"
 #include "cruby/probes_helper.h"
 
-VALUE
-llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
-{
-  return *(cfp->ep - idx);
-}
+//VALUE
+//llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
+//{
+//  return *(cfp->ep - idx);
+//}
 
 void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
 void

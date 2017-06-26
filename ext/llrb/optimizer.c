@@ -1,13 +1,37 @@
+#include <stdio.h>
+#include "llvm-c/BitReader.h"
 #include "llvm-c/Core.h"
+#include "llvm-c/Linker.h"
 #include "llvm-c/TargetMachine.h"
 
-void
-llrb_add_target_metadata(LLVMModuleRef mod)
+static LLVMModuleRef
+llrb_create_insns_module()
 {
-  char *triple = LLVMGetDefaultTargetTriple();
-  LLVMSetTarget(mod, triple);
-  LLVMDisposeMessage(triple);
-  LLVMSetDataLayout(mod, "e-m:e-i64:64-f80:128-n8:16:32:64-S128"); // TODO: Dynamically generate this
+  LLVMMemoryBufferRef buf;
+  char *err;
+  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
+    fprintf(stderr, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s\n", err);
+    return 0;
+  }
+
+  LLVMModuleRef ret;
+  if (LLVMParseBitcode2(buf, &ret)) {
+    fprintf(stderr, "LLVMParseBitcode2 Failed!\n");
+    return 0;
+  }
+  LLVMDisposeMemoryBuffer(buf);
+  return ret;
+}
+
+static void
+llrb_link_insns(LLVMModuleRef mod)
+{
+  LLVMModuleRef insns_mod = llrb_create_insns_module();
+  if (insns_mod == 0) return;
+
+  if (LLVMLinkModules2(mod, insns_mod)) {
+    fprintf(stderr, "LLVMLinkModules2 Failed!\n");
+  }
 }
 
 // Main function of this file. This function links LLRB's internal functions,
@@ -15,7 +39,7 @@ llrb_add_target_metadata(LLVMModuleRef mod)
 LLVMModuleRef
 llrb_optimize_module(LLVMModuleRef mod)
 {
-  llrb_add_target_metadata(mod);
+  llrb_link_insns(mod);
   //LLVMDumpModule(mod);
   return mod;
 }

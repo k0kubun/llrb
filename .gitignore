@@ -13,7 +13,9 @@
 *.a
 mkmf.log
 core.*
+/ext/insns.ll
+/ext/insns.bc
+perf.data
 
 # rspec failure tracking
 .rspec_status
-perf.data
