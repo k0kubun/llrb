@@ -992,6 +992,8 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
   }
 }
 
+LLVMModuleRef llrb_optimize_module(LLVMModuleRef mod);
+
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
@@ -1012,9 +1014,8 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   };
   llrb_init_basic_blocks(&compiler, iseq->body, func);
 
-  //llrb_disasm_insns(iseq->body);
   llrb_compile_basic_block(&compiler, 0, 0);
-  //LLVMDumpModule(mod);
+  llrb_optimize_module(mod);
   return mod;
 }
 

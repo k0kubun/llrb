@@ -16,3 +16,4 @@ core.*
 
 # rspec failure tracking
 .rspec_status
+perf.data
