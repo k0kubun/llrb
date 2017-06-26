@@ -3,6 +3,41 @@
 #include "llvm-c/Core.h"
 #include "llvm-c/Linker.h"
 #include "llvm-c/TargetMachine.h"
+#include "llvm-c/Transforms/IPO.h"
+#include "llvm-c/Transforms/Scalar.h"
+
+static void
+llrb_run_passes(LLVMModuleRef mod)
+{
+  LLVMPassManagerRef pm = LLVMCreateFunctionPassManagerForModule(mod);
+	LLVMTargetDataRef td = LLVMCreateTargetData(LLVMGetDataLayout(mod));
+
+  LLVMAddTargetData(td, pm);
+  LLVMAddPromoteMemoryToRegisterPass(pm);
+  LLVMAddCFGSimplificationPass(pm);
+  //LLVMAddAlwaysInlinerPass(pm);
+  //LLVMAddFunctionInliningPass(pm);
+  LLVMAddInstructionCombiningPass(pm);
+  LLVMAddReassociatePass(pm);
+  LLVMInitializeFunctionPassManager(pm);
+
+  LLVMValueRef func = LLVMGetNamedFunction(mod, "llrb_exec");
+  if (!func) {
+    fprintf(stderr, "llrb_exec was not found\n");
+    return;
+  }
+
+  if (LLVMRunFunctionPassManager(pm, func) == 0) {
+    //fprintf(stderr, "LLVMRunPassManager modified nothing\n");
+  }
+
+  if (LLVMFinalizeFunctionPassManager(pm) == 0) {
+    //fprintf(stderr, "LLVMFinalizeFunctionPassManager modified nothing\n");
+  }
+
+  LLVMDisposePassManager(pm);
+  LLVMDisposeTargetData(td);
+}
 
 static LLVMModuleRef
 llrb_create_insns_module()
@@ -40,6 +75,7 @@ LLVMModuleRef
 llrb_optimize_module(LLVMModuleRef mod)
 {
   llrb_link_insns(mod);
+  llrb_run_passes(mod);
   //LLVMDumpModule(mod);
   return mod;
 }

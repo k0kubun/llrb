@@ -59,6 +59,7 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, RB_UNUSED_VAR(VALUE 
 
   LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   LLVMDumpModule(mod);
+  LLVMDisposeModule(mod);
   return Qtrue;
 }
 
