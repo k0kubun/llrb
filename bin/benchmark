@@ -28,7 +28,11 @@ def llrb.fib(n)
   end
 end
 LLRB::JIT.preview(llrb, :fib) and return if preview
+
+started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
 LLRB::JIT.compile(llrb, :fib)
+finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
+puts "Compile Time: #{ "%.2fms" % ((finished_at - started_at) / 1000)}"
 
 Benchmark.ips do |x|
   x.report('Ruby') { ruby.fib(34) }
