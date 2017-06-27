@@ -16,6 +16,7 @@ def ruby.loop_while
   while i< 6_000_000
     i += 1
   end
+  i
 end
 
 llrb = Class.new
@@ -24,6 +25,7 @@ def llrb.loop_while
   while i< 6_000_000
     i += 1
   end
+  i
 end
 LLRB::JIT.preview(llrb, :loop_while) and return if preview
 

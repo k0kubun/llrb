@@ -26,12 +26,73 @@ llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
   return LLVMGetFunctionAddress(engine, funcname);
 }
 
+#include "cruby/probes_helper.h"
+static inline void
+llrb_insn_trace2(rb_thread_t *th, rb_control_frame_t *cfp, rb_event_flag_t flag, VALUE val)
+{
+  if (RUBY_DTRACE_METHOD_ENTRY_ENABLED() ||
+      RUBY_DTRACE_METHOD_RETURN_ENABLED() ||
+      RUBY_DTRACE_CMETHOD_ENTRY_ENABLED() ||
+      RUBY_DTRACE_CMETHOD_RETURN_ENABLED()) {
+
+    switch (flag) {
+      case RUBY_EVENT_CALL:
+        RUBY_DTRACE_METHOD_ENTRY_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_C_CALL:
+        RUBY_DTRACE_CMETHOD_ENTRY_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_RETURN:
+        RUBY_DTRACE_METHOD_RETURN_HOOK(th, 0, 0);
+        break;
+      case RUBY_EVENT_C_RETURN:
+        RUBY_DTRACE_CMETHOD_RETURN_HOOK(th, 0, 0);
+        break;
+    }
+  }
+
+  // TODO: Confirm it works, especially for :line event. We may need to update program counter.
+  EXEC_EVENT_HOOK(th, flag, cfp->self, 0, 0, 0 /* id and klass are resolved at callee */, val);
+}
+
+void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
+static inline void
+llrb_insn_setlocal_level0(rb_control_frame_t *cfp, lindex_t idx, VALUE val)
+{
+  rb_vm_env_write(cfp->ep, -(int)idx, val);
+}
+
+static inline VALUE
+llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
+{
+  return *(cfp->ep - idx);
+}
+
+rb_control_frame_t *
+llrb_exec2(rb_thread_t *th, rb_control_frame_t *cfp)
+{
+  llrb_insn_trace2(th, cfp, 8, (VALUE)52);
+  llrb_insn_trace2(th, cfp, 1, (VALUE)52);
+  llrb_insn_trace2(th, cfp, 1, (VALUE)52);
+
+  llrb_insn_setlocal_level0(cfp, 3, INT2FIX(0));
+  while (FIX2INT(llrb_insn_getlocal_level0(cfp, 3)) < 6000000) {
+    llrb_insn_trace2(th, cfp, 1, (VALUE)52);
+    llrb_insn_setlocal_level0(cfp, 3, INT2FIX(FIX2INT(llrb_insn_getlocal_level0(cfp, 3)) + 1));
+  }
+
+  llrb_insn_trace2(th, cfp, 16, (VALUE)8);
+  *(cfp->sp) = llrb_insn_getlocal_level0(cfp, 3);
+  cfp->sp += 1;
+  return cfp;
+}
+
 void
 llrb_replace_iseq_with_cfunc(const rb_iseq_t *iseq, rb_insn_func_t funcptr)
 {
   VALUE *new_iseq_encoded = ALLOC_N(VALUE, 3);
   new_iseq_encoded[0] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function];
-  new_iseq_encoded[1] = (VALUE)funcptr;
+  new_iseq_encoded[1] = (VALUE)llrb_exec2;
   new_iseq_encoded[2] = (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave]; // There may be the case that last insn is not :leave.
 
   // Don't we need to prevent race condition by another thread? Will GVL protect us?
