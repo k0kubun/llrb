@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'benchmark/ips'
+require 'optparse'
+require 'llrb'
+
+preview = false
+opt = OptionParser.new
+opt.on('-p') { preview = true }
+opt.parse!(ARGV)
+
+ruby = Class.new
+def ruby.empty_method
+  1
+end
+
+llrb = Class.new
+def llrb.empty_method
+  1
+end
+LLRB::JIT.preview(llrb, :empty_method) and return if preview
+
+started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
+LLRB::JIT.compile(llrb, :empty_method)
+finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
+puts "Compile Time: #{ "%.2fms" % ((finished_at - started_at) / 1000)}"
+
+Benchmark.ips do |x|
+  x.report('Ruby') { ruby.empty_method }
+  x.report('LLRB') { llrb.empty_method }
+  x.compare!
+end

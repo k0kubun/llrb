@@ -17,3 +17,6 @@ build:
     - script:
         name: bm_app_fib
         code: bin/bm_app_fib
+    - script:
+        name: bm_empty_method
+        code: bin/bm_empty_method
