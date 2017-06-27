@@ -12,5 +12,8 @@ build:
         name: rspec
         code: bundle exec rake spec
     - script:
-        name: benchmark
-        code: bin/benchmark
+        name: bm_loop_while
+        code: bin/bm_loop_while
+    - script:
+        name: bm_app_fib
+        code: bin/bm_app_fib
