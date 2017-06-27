@@ -24,6 +24,8 @@ module LLRB
       iseqw = RubyVM::InstructionSequence.of(method)
       return false if iseqw.nil?
 
+      puts iseqw.disasm
+      puts
       preview_iseq(iseqw, recv)
     end
 
