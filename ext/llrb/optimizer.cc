@@ -19,10 +19,12 @@ ApplyFunctionPasses(llvm::Module *mod, llvm::Function *func)
 {
   auto fpm = llvm::make_unique<llvm::legacy::FunctionPassManager>(mod);
 
-  //fpm->add(llvm::createInstructionCombiningPass()); // SEGV with opt_newarray_min/max, throw, jump, branchif/unless
   fpm->add(llvm::createReassociatePass());
   fpm->add(llvm::createGVNPass());
-  fpm->add(llvm::createCFGSimplificationPass());
+  fpm->add(llvm::createCFGSimplificationPass()); // Removes empty basic block.
+  // This needs to be called after CFGSimplificationPass because we add empty basic block
+  // and this pass fetches terminator instruction of basic block.
+  fpm->add(llvm::createInstructionCombiningPass());
 
   fpm->doInitialization();
   fpm->run(*func);
