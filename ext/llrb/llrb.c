@@ -14,7 +14,7 @@ llrb_create_native_func(LLVMModuleRef mod, const char *funcname)
 {
   LLVMExecutionEngineRef engine;
   char *error;
-  if (LLVMCreateJITCompilerForModule(&engine, mod, 0, &error) != 0) {
+  if (LLVMCreateJITCompilerForModule(&engine, mod, LLVMCodeGenLevelAggressive, &error) != 0) {
     fprintf(stderr, "Failed to create JIT compiler...\n");
 
     if (error) {
