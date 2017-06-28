@@ -992,6 +992,9 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
   }
 }
 
+void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
+
+// TODO: Verify LLVM function?
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
@@ -1013,6 +1016,8 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   llrb_init_basic_blocks(&compiler, iseq->body, func);
 
   llrb_compile_basic_block(&compiler, 0, 0);
+  llrb_optimize_function(mod, func);
+  //LLVMDumpModule(mod);
   return mod;
 }
 
