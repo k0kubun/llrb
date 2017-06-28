@@ -91,7 +91,7 @@ llrb_exec2(rb_thread_t *th, rb_control_frame_t *cfp)
   llrb_insn_trace2(th, cfp, 1, (VALUE)52);
 
   llrb_insn_setlocal_level0(cfp, 3, INT2FIX(0));
-  while (RTEST(llrb_insn_opt_lt(llrb_insn_getlocal_level0(cfp, 3), INT2FIX(6000000)))) {
+  while (RTEST(llrb_insn_opt_lt(llrb_insn_getlocal_level0(cfp, 3), INT2FIX(600000000)))) {
     llrb_insn_trace2(th, cfp, 1, (VALUE)52);
     llrb_insn_setlocal_level0(cfp, 3, INT2FIX(FIX2INT(llrb_insn_getlocal_level0(cfp, 3)) + 1));
   }
