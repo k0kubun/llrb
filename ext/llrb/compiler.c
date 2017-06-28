@@ -306,7 +306,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     case YARVINSN_setspecial: {
       LLVMValueRef args[] = { llvm_value(operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "setspecial");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "");
       break;
     }
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
@@ -316,7 +316,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
       LLVMValueRef args[] = { llrb_get_self(c), llvm_value(operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "setinstancevariable");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "");
       break;
     }
     case YARVINSN_getclassvariable: {
@@ -326,7 +326,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     case YARVINSN_setclassvariable: {
       LLVMValueRef args[] = { llrb_get_cfp(c), llvm_value(operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setclassvariable"), args, 3, "setclassvariable");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setclassvariable"), args, 3, "");
       break;
     }
     case YARVINSN_getconstant: {
@@ -337,7 +337,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_setconstant: {
       LLVMValueRef cbase = llrb_stack_pop(stack);
       LLVMValueRef args[] = { llrb_get_self(c), cbase, llvm_value(operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "setconstant");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
       break;
     }
     case YARVINSN_getglobal: {
@@ -541,7 +541,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       LLVMValueRef val = (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? stack->body[stack->size-1] : llvm_value(Qundef);
 
       LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), LLVMConstInt(LLVMInt32Type(), flag, false), val };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_trace"), args, 4, "trace");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_trace"), args, 4, "");
       break;
     }
     //case YARVINSN_defineclass: {
@@ -634,12 +634,12 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       }
 
       LLVMValueRef args[] = { llrb_get_cfp(c), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "leave");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "");
       LLVMBuildRet(c->builder, llrb_get_cfp(c));
       return true;
     case YARVINSN_throw: {
       LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), llvm_value((rb_num_t)operands[0]), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_throw"), args, 4, "throw");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_throw"), args, 4, "");
 
       // In opt_call_c_function, if we return 0, we can throw error fron th->errinfo.
       // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2147-L2151
@@ -898,7 +898,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_setlocal_OP__WC__0: {
       LLVMValueRef idx = llvm_value((lindex_t)operands[0]);
       LLVMValueRef args[] = { llrb_get_cfp(c), idx, llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setlocal_level0"), args, 3, "setlocal");
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setlocal_level0"), args, 3, "");
       break;
     }
     //case YARVINSN_setlocal_OP__WC__1: {
