@@ -33,9 +33,10 @@ end
 
 desc 'Compile insns.ll to insns.bc'
 task :module_bc => :module_ll do
-  #sh "opt -O3 -S -o #{__dir__}/ext/module_opt.ll #{__dir__}/ext/module.ll"
-  #sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module_opt.ll"
-  sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module.ll"
+  sh "opt -O3 -S -o #{__dir__}/ext/module_opt.ll #{__dir__}/ext/module.ll"
+  sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module_opt.ll"
+
+  #sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module.ll"
 end
 
 task :default => [:clobber, :compile, :spec]
