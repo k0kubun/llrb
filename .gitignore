@@ -14,6 +14,8 @@
 mkmf.log
 core.*
 /ext/insns.ll
+/ext/module.ll
+/ext/module_opt.ll
 /ext/insns.bc
 perf.data
 

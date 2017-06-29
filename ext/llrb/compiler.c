@@ -150,7 +150,7 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
   return starts;
 }
 
-static void
+void
 llrb_init_basic_blocks(struct llrb_compiler *c, const struct rb_iseq_constant_body *body, LLVMValueRef func)
 {
   VALUE starts = llrb_basic_block_starts(body);
@@ -992,31 +992,30 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
   }
 }
 
-LLVMModuleRef llrb_optimize_module(LLVMModuleRef mod);
+LLVMModuleRef llrb_optimize_module();
 
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
-  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
+  //LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
 
-  LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
-  LLVMValueRef func = LLVMAddFunction(mod, funcname,
-      LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
+  //LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
+  //LLVMValueRef func = LLVMAddFunction(mod, funcname,
+  //    LLVMFunctionType(LLVMInt64Type(), arg_types, 2, false));
 
-  struct llrb_compiler compiler = (struct llrb_compiler){
-    .body = iseq->body,
-    .funcname = funcname,
-    .builder = LLVMCreateBuilder(),
-    .mod = mod,
-    // In each iseq insn index, it stores `struct llrb_block_info`. For easy implementation (it stores llrb_block_info in the index of insn),
-    // it allocates the number of `iseq->body->iseq_size`. So it uses unnecessary memory. Fix it later.
-    .blocks = ALLOC_N(struct llrb_block_info, iseq->body->iseq_size)
-  };
-  llrb_init_basic_blocks(&compiler, iseq->body, func);
+  //struct llrb_compiler compiler = (struct llrb_compiler){
+  //  .body = iseq->body,
+  //  .funcname = funcname,
+  //  .builder = LLVMCreateBuilder(),
+  //  .mod = mod,
+  //  // In each iseq insn index, it stores `struct llrb_block_info`. For easy implementation (it stores llrb_block_info in the index of insn),
+  //  // it allocates the number of `iseq->body->iseq_size`. So it uses unnecessary memory. Fix it later.
+  //  .blocks = ALLOC_N(struct llrb_block_info, iseq->body->iseq_size)
+  //};
+  //llrb_init_basic_blocks(&compiler, iseq->body, func);
 
-  llrb_compile_basic_block(&compiler, 0, 0);
-  llrb_optimize_module(mod);
-  return mod;
+  //llrb_compile_basic_block(&compiler, 0, 0);
+  return llrb_optimize_module();
 }
 
 void

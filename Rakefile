@@ -25,9 +25,15 @@ task :insns_ll do
   sh "clang #{ruby_cflags} -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
 end
 
+desc 'Compilec'
+task :module_ll => [:insns_ll] do
+  sh "llvm-link -S -o #{__dir__}/ext/module.ll #{__dir__}/ext/insns.ll #{__dir__}/ext/llrb_exec.ll"
+end
+
 desc 'Compile insns.ll to insns.bc'
-task :insns_bc => :insns_ll do
-  sh "llvm-as #{__dir__}/ext/insns.ll"
+task :module_bc => :module_ll do
+  sh "opt -O3 -S -o #{__dir__}/ext/module_opt.ll #{__dir__}/ext/module.ll"
+  sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module_opt.ll"
 end
 
 task :default => [:clobber, :compile, :spec]
