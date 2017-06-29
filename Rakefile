@@ -22,7 +22,7 @@ task :insns_ll do
     RbConfig::CONFIG['rubyarchhdrdir'],
   ]
   ruby_cflags = "#{incdirs.map {|d| "-I#{d}" }.join(' ')} #{RbConfig::CONFIG['cflags']}"
-  sh "clang #{ruby_cflags} -O3 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
+  sh "clang #{ruby_cflags} -O0 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
 end
 
 desc 'Compilec'
@@ -33,8 +33,9 @@ end
 
 desc 'Compile insns.ll to insns.bc'
 task :module_bc => :module_ll do
-  sh "opt -O3 -S -o #{__dir__}/ext/module_opt.ll #{__dir__}/ext/module.ll"
-  sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module_opt.ll"
+  #sh "opt -O3 -S -o #{__dir__}/ext/module_opt.ll #{__dir__}/ext/module.ll"
+  #sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module_opt.ll"
+  sh "llvm-as -o #{__dir__}/ext/module.bc #{__dir__}/ext/module.ll"
 end
 
 task :default => [:clobber, :compile, :spec]
