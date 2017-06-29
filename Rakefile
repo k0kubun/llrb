@@ -22,13 +22,13 @@ task :insns_ll do
     RbConfig::CONFIG['rubyarchhdrdir'],
   ]
   ruby_cflags = "#{incdirs.map {|d| "-I#{d}" }.join(' ')} #{RbConfig::CONFIG['cflags']}"
-  sh "clang #{ruby_cflags} -O0 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
+  sh "clang #{ruby_cflags} -O3 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
 end
 
 desc 'Compilec'
 task :module_ll => [:insns_ll] do
-  #sh "llvm-link -S -o #{__dir__}/ext/module.ll #{__dir__}/ext/insns.ll #{__dir__}/ext/llrb_exec.ll"
-  sh "cp #{__dir__}/ext/insns.ll #{__dir__}/ext/module.ll"
+  sh "llvm-link -S -o #{__dir__}/ext/module.ll #{__dir__}/ext/insns.ll #{__dir__}/ext/llrb_exec.ll"
+  #sh "cp #{__dir__}/ext/insns.ll #{__dir__}/ext/module.ll"
 end
 
 desc 'Compile insns.ll to insns.bc'

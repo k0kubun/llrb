@@ -77,23 +77,23 @@ llrb_insn_opt_lt(VALUE lhs, VALUE rhs)
   return rb_funcall(lhs, '<', 1, rhs);
 }
 
-rb_control_frame_t *
-llrb_exec(rb_thread_t *th, rb_control_frame_t *cfp)
-{
-  llrb_insn_trace(th, cfp, 8, (VALUE)52);
-  llrb_insn_trace(th, cfp, 1, (VALUE)52);
-  llrb_insn_setlocal_level0(cfp, 3, (VALUE)1);
-  llrb_insn_trace(th, cfp, 1, (VALUE)52);
-
-  while (RTEST(llrb_insn_opt_lt(llrb_insn_getlocal_level0(cfp, 3), (VALUE)12000001))) {
-    llrb_insn_trace(th, cfp, 1, (VALUE)52);
-    llrb_insn_setlocal_level0(cfp, (lindex_t)3,
-        llrb_insn_opt_plus(
-          llrb_insn_getlocal_level0(cfp, (VALUE)3),
-          (VALUE)3));
-  }
-
-  llrb_insn_trace(th, cfp, 16, (VALUE)8);
-  llrb_push_result(cfp, (VALUE)8);
-  return cfp;
-}
+//rb_control_frame_t *
+//llrb_exec(rb_thread_t *th, rb_control_frame_t *cfp)
+//{
+//  llrb_insn_trace(th, cfp, 8, (VALUE)52);
+//  llrb_insn_trace(th, cfp, 1, (VALUE)52);
+//  llrb_insn_setlocal_level0(cfp, 3, (VALUE)1);
+//  llrb_insn_trace(th, cfp, 1, (VALUE)52);
+//
+//  while (RTEST(llrb_insn_opt_lt(llrb_insn_getlocal_level0(cfp, 3), (VALUE)12000001))) {
+//    llrb_insn_trace(th, cfp, 1, (VALUE)52);
+//    llrb_insn_setlocal_level0(cfp, (lindex_t)3,
+//        llrb_insn_opt_plus(
+//          llrb_insn_getlocal_level0(cfp, (VALUE)3),
+//          (VALUE)3));
+//  }
+//
+//  llrb_insn_trace(th, cfp, 16, (VALUE)8);
+//  llrb_push_result(cfp, (VALUE)8);
+//  return cfp;
+//}
