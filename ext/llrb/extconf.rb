@@ -25,7 +25,7 @@ unless system('which llvm-config 2>&1 >/dev/null')
 end
 $CFLAGS = "#{$CFLAGS} -Wall -Werror -W #{`llvm-config --cflags`.rstrip}"
 $CXXFLAGS = "#{$CXXFLAGS} -Wall -W #{`llvm-config --cxxflags`.rstrip}"
-$LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine native linker passes`}"
+$LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine native passes`}"
 
 # To include ccan/*, add ext/llrb/cruby under include path. And "dynamic" dir has CRuby's dynamic headers.
 $INCFLAGS = "#{$INCFLAGS} -I$(srcdir)/cruby -I$(srcdir)/dynamic"

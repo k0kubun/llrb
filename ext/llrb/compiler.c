@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "llvm-c/BitReader.h"
 #include "llvm-c/Core.h"
 #include "llvm-c/ExecutionEngine.h"
 #include "ruby.h"
@@ -994,11 +995,31 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
 
 void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
 
+LLVMModuleRef
+llrb_build_initial_module()
+{
+  LLVMMemoryBufferRef buf;
+  char *err;
+  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
+    fprintf(stderr, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s\n", err);
+    return 0;
+  }
+
+  LLVMModuleRef ret;
+  if (LLVMParseBitcode2(buf, &ret)) {
+    fprintf(stderr, "LLVMParseBitcode2 Failed!\n");
+    return 0;
+  }
+  LLVMDisposeMemoryBuffer(buf);
+  return ret;
+}
+
 // TODO: Verify LLVM function?
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
-  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
+  LLVMModuleRef mod = llrb_build_initial_module();
+  if (!mod) return 0;
 
   LLVMTypeRef arg_types[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,

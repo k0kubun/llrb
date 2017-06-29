@@ -7,7 +7,7 @@ build:
         code: git submodule init && git submodule update
     - script:
         name: compile
-        code: bundle exec rake compile
+        code: bundle exec rake insns_bc compile
     - script:
         name: rspec
         code: bundle exec rake spec
