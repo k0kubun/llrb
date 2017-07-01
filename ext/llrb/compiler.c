@@ -56,14 +56,12 @@ llrb_build_initial_module()
   LLVMMemoryBufferRef buf;
   char *err;
   if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
-    fprintf(stderr, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s\n", err);
-    return 0;
+    rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
   }
 
   LLVMModuleRef ret;
   if (LLVMParseBitcode2(buf, &ret)) {
-    fprintf(stderr, "LLVMParseBitcode2 Failed!\n");
-    return 0;
+    rb_raise(rb_eCompileError, "LLVMParseBitcode2 Failed!");
   }
   LLVMDisposeMemoryBuffer(buf);
   return ret;
