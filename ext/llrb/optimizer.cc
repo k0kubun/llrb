@@ -19,12 +19,8 @@ ApplyFunctionPasses(llvm::Module *mod, llvm::Function *func)
 {
   auto fpm = llvm::make_unique<llvm::legacy::FunctionPassManager>(mod);
 
-  fpm->add(llvm::createReassociatePass());
-  fpm->add(llvm::createGVNPass());
-  fpm->add(llvm::createCFGSimplificationPass()); // Removes empty basic block.
-  // This needs to be called after CFGSimplificationPass because we add empty basic block
-  // and this pass fetches terminator instruction of basic block.
-  fpm->add(llvm::createInstructionCombiningPass());
+  // Strip empty basic blocks. That should be done in compiler.
+  //fpm->add(llvm::createCFGSimplificationPass());
 
   fpm->doInitialization();
   fpm->run(*func);
