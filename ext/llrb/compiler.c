@@ -32,11 +32,23 @@ struct llrb_block_info {
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
   const struct rb_iseq_constant_body *body;
-  const char *funcname;
+  LLVMValueRef func;
   LLVMBuilderRef builder;
   LLVMModuleRef mod;
   struct llrb_block_info *blocks;
 };
+
+static LLVMBasicBlockRef
+llrb_build_block(struct llrb_compiler *c, unsigned index)
+{
+  if (c->blocks[index].block == 0) {
+    VALUE label = rb_str_new_cstr("label_");
+    rb_str_catf(label, "%d", index);
+    c->blocks[index].block = LLVMAppendBasicBlock(c->func, RSTRING_PTR(label));
+    rb_str_free(label);
+  }
+  return c->blocks[index].block;
+}
 
 static inline LLVMTypeRef
 llrb_num_to_type(unsigned int num)
@@ -160,10 +172,6 @@ llrb_init_basic_blocks(struct llrb_compiler *c, const struct rb_iseq_constant_bo
     long start = FIX2INT(RARRAY_AREF(starts, i));
     unsigned int block_end;
 
-    VALUE label = rb_str_new_cstr("label_"); // TODO: free?
-    rb_str_catf(label, "%ld", start);
-    LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, RSTRING_PTR(label));
-
     if (i == RARRAY_LEN(starts)-1) {
       block_end = (unsigned int)(body->iseq_size-1); // This assumes the end is always "leave". Is it true?
     } else {
@@ -171,7 +179,7 @@ llrb_init_basic_blocks(struct llrb_compiler *c, const struct rb_iseq_constant_bo
     }
 
     c->blocks[start] = (struct llrb_block_info){
-      .block = block,
+      .block = 0,
       .phi = 0,
       .compiled = false,
       .block_end = block_end,
@@ -214,8 +222,7 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body)
 LLVMValueRef
 llrb_argument_at(struct llrb_compiler *c, unsigned index)
 {
-  LLVMValueRef func = LLVMGetNamedFunction(c->mod, c->funcname);
-  return LLVMGetParam(func, index);
+  return LLVMGetParam(c->func, index);
 }
 
 static inline LLVMValueRef
@@ -650,7 +657,7 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     }
     case YARVINSN_jump: {
       unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
-      LLVMBasicBlockRef next_block = c->blocks[dest].block;
+      LLVMBasicBlockRef next_block = llrb_build_block(c, dest);
 
       // If stack is empty, don't create phi.
       if (stack->size == 0) {
@@ -676,8 +683,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_branchif: {
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
-      LLVMBasicBlockRef branch_dest_block = c->blocks[branch_dest].block;
-      LLVMBasicBlockRef fallthrough_block = c->blocks[fallthrough].block;
+      LLVMBasicBlockRef branch_dest_block = llrb_build_block(c, branch_dest);
+      LLVMBasicBlockRef fallthrough_block = llrb_build_block(c, fallthrough);
 
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
@@ -722,8 +729,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_branchunless: {
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
-      LLVMBasicBlockRef branch_dest_block = c->blocks[branch_dest].block;
-      LLVMBasicBlockRef fallthrough_block = c->blocks[fallthrough].block;
+      LLVMBasicBlockRef branch_dest_block = llrb_build_block(c, branch_dest);
+      LLVMBasicBlockRef fallthrough_block = llrb_build_block(c, fallthrough);
 
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block, branch_dest_block);
@@ -754,8 +761,8 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
     case YARVINSN_branchnil: {
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
-      LLVMBasicBlockRef branch_dest_block = c->blocks[branch_dest].block;
-      LLVMBasicBlockRef fallthrough_block = c->blocks[fallthrough].block;
+      LLVMBasicBlockRef branch_dest_block = llrb_build_block(c, branch_dest);
+      LLVMBasicBlockRef fallthrough_block = llrb_build_block(c, fallthrough);
 
       LLVMValueRef cond = llrb_stack_pop(stack);
       LLVMBuildCondBr(c->builder,
@@ -928,7 +935,7 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
   if (c->blocks[start].compiled) return;
   c->blocks[start].compiled = true;
 
-  LLVMBasicBlockRef block = c->blocks[start].block;
+  LLVMBasicBlockRef block = llrb_build_block(c, start);
   LLVMPositionBuilderAtEnd(c->builder, block);
 
   // Use previous stack or create new one
@@ -972,7 +979,7 @@ llrb_compile_basic_block(struct llrb_compiler *c, struct llrb_stack *stack, unsi
 
   // After reached block end, if not jumped and next block exists, create br to next block.
   if (!jumped && pos < c->body->iseq_size) {
-    LLVMBasicBlockRef next_block = c->blocks[pos].block;
+    LLVMBasicBlockRef next_block = llrb_build_block(c, pos);
     // Create phi only when stack has value.
     if (stack->size > 0) {
 
@@ -1027,7 +1034,7 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 
   struct llrb_compiler compiler = (struct llrb_compiler){
     .body = iseq->body,
-    .funcname = funcname,
+    .func = func,
     .builder = LLVMCreateBuilder(),
     .mod = mod,
     // In each iseq insn index, it stores `struct llrb_block_info`. For easy implementation (it stores llrb_block_info in the index of insn),

@@ -1,6 +1,7 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Transforms/Scalar.h"
 
@@ -18,6 +19,8 @@ static void
 ApplyFunctionPasses(llvm::Module *mod, llvm::Function *func)
 {
   auto fpm = llvm::make_unique<llvm::legacy::FunctionPassManager>(mod);
+
+  //fpm->add(llvm::createVerifierPass());
 
   fpm->add(llvm::createReassociatePass());
   fpm->add(llvm::createGVNPass());
