@@ -575,9 +575,11 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'opt_plus' do
-  #   test_compile(1, 2) { |a, b| a+b }
-  # end
+  specify 'opt_plus' do
+    test_compile do
+      1 + 2 + 3 + 4 + 5
+    end
+  end
 
   # specify 'opt_minus' do
   #   test_compile(2, 1) { |a, b| a-b }

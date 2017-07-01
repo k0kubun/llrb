@@ -22,4 +22,12 @@ end
 # To include ccan/*, add ext/llrb/cruby under include path. "cruby_extra" dir has CRuby's dynamic headers.
 $INCFLAGS = "#{$INCFLAGS} -I$(srcdir)/cruby -I$(srcdir)/cruby_extra"
 
+# Link LLVM
+unless system('which llvm-config 2>&1 >/dev/null')
+  raise "llvm-config(1) must be available!\nNot found in PATH='#{ENV['PATH']}'"
+end
+$CFLAGS = "#{$CFLAGS} -Wall -Werror -W #{`llvm-config --cflags`.rstrip}" # remove -Werror later
+$CXXFLAGS = "#{$CXXFLAGS} -Wall -Werror -W #{`llvm-config --cxxflags`.rstrip}" # remove -Werror later
+$LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine`}"
+
 create_makefile('llrb/llrb')
