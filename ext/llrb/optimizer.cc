@@ -3,6 +3,9 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/CBindingWrapping.h"
+#include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Scalar.h"
 
 namespace llrb {
 
@@ -15,29 +18,46 @@ SetTargetMetadata(llvm::Module *mod)
 }
 
 static void
-ApplyFunctionPasses(llvm::Module *mod, llvm::Function *func)
+RunFunctionPasses(llvm::Module *mod, llvm::Function *func)
 {
-  auto fpm = llvm::make_unique<llvm::legacy::FunctionPassManager>(mod);
+  std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+  fpm.reset(new llvm::legacy::FunctionPassManager(mod));
 
   fpm->add(llvm::createVerifierPass());
 
-  //fpm->add(llvm::createFunctionInliningPass());
-  //fpm->add(llvm::createReassociatePass());
-  //fpm->add(llvm::createGVNPass());
-  //fpm->add(llvm::createCFGSimplificationPass()); // Removes empty basic block.
-  // This needs to be called after CFGSimplificationPass because we add empty basic block
-  // and this pass fetches terminator instruction of basic block.
-  //fpm->add(llvm::createInstructionCombiningPass());
+  llvm::PassManagerBuilder builder;
+  builder.OptLevel  = 3;
+  builder.SizeLevel = 0;
+  builder.populateFunctionPassManager(*fpm);
 
   fpm->doInitialization();
-  fpm->run(*func);
+  for (llvm::Function &f : *mod) {
+    fpm->run(f);
+  }
+  fpm->doFinalization();
+}
+
+static void
+RunModulePasses(llvm::Module *mod)
+{
+  llvm::legacy::PassManager mpm;
+
+  llvm::PassManagerBuilder builder;
+  builder.OptLevel  = 3;
+  builder.SizeLevel = 0;
+  builder.Inliner = llvm::createFunctionInliningPass(builder.OptLevel, builder.SizeLevel);
+  builder.populateModulePassManager(mpm);
+
+  mpm.add(llvm::createVerifierPass());
+  mpm.run(*mod);
 }
 
 static void
 OptimizeFunction(llvm::Module *mod, llvm::Function *func)
 {
   SetTargetMetadata(mod);
-  ApplyFunctionPasses(mod, func);
+  RunFunctionPasses(mod, func);
+  RunModulePasses(mod);
 }
 
 } // namespace llrb

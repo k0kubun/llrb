@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
+#include "llvm-c/BitReader.h"
 #include "llvm-c/Core.h"
 #include "cruby.h"
 #include "funcs.h"
@@ -47,10 +48,31 @@ llrb_compile_prototype(struct llrb_compiler *c, LLVMModuleRef mod)
   LLVMBuildRet(c->builder, llrb_get_cfp(c));
 }
 
+static LLVMModuleRef
+llrb_build_initial_module()
+{
+  // return LLVMModuleCreateWithName("llrb");
+
+  LLVMMemoryBufferRef buf;
+  char *err;
+  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
+    fprintf(stderr, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s\n", err);
+    return 0;
+  }
+
+  LLVMModuleRef ret;
+  if (LLVMParseBitcode2(buf, &ret)) {
+    fprintf(stderr, "LLVMParseBitcode2 Failed!\n");
+    return 0;
+  }
+  LLVMDisposeMemoryBuffer(buf);
+  return ret;
+}
+
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
-  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
+  LLVMModuleRef mod = llrb_build_initial_module();
 
   LLVMTypeRef args[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
@@ -63,11 +85,12 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
     .mod = mod,
   };
 
-  llrb_compile_prototype(&compiler, mod);
+  if (0) llrb_compile_prototype(&compiler, mod);
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   llrb_optimize_function(mod, func);
 
+  //LLVMDumpModule(mod);
   return mod;
 }
 

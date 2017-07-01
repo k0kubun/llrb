@@ -28,6 +28,6 @@ unless system('which llvm-config 2>&1 >/dev/null')
 end
 $CFLAGS = "#{$CFLAGS} -Wall -Werror -W #{`llvm-config --cflags`.rstrip}" # remove -Werror later
 $CXXFLAGS = "#{$CXXFLAGS} -Wall -Werror -W #{`llvm-config --cxxflags`.rstrip}" # remove -Werror later
-$LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine`}"
+$LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine passes`}"
 
 create_makefile('llrb/llrb')

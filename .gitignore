@@ -12,6 +12,8 @@
 *.o
 *.a
 mkmf.log
+*.ll
+*.bc
 
 # rspec failure tracking
 .rspec_status
