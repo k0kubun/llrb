@@ -11,4 +11,4 @@ Rake::ExtensionTask.new('llrb') do |ext|
   ext.lib_dir = 'lib/llrb'
 end
 
-task :default => [:clobber, :compile, :spec]
+task :default => [:compile, :spec]

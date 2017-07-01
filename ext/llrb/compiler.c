@@ -24,18 +24,28 @@ llrb_get_cfp(struct llrb_compiler *c)
   return LLVMGetParam(c->func, 1);
 }
 
+static LLVMValueRef
+llrb_plus(struct llrb_compiler *c, LLVMValueRef lhs, LLVMValueRef rhs)
+{
+  LLVMValueRef args[] = { lhs, rhs };
+  return LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_plus"), args, 2, "");
+}
+
 static void
 llrb_compile_prototype(struct llrb_compiler *c, LLVMModuleRef mod)
 {
   LLVMBasicBlockRef block = LLVMAppendBasicBlock(c->func, "entry");
   LLVMPositionBuilderAtEnd(c->builder, block);
 
-  LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value(INT2FIX(15)) };
+  LLVMValueRef v1 = llrb_plus(c, llrb_value(INT2FIX(1)), llrb_value(INT2FIX(2)));
+  LLVMValueRef v2 = llrb_plus(c, v1, llrb_value(INT2FIX(3)));
+  LLVMValueRef v3 = llrb_plus(c, v2, llrb_value(INT2FIX(4)));
+  LLVMValueRef v4 = llrb_plus(c, v3, llrb_value(INT2FIX(5)));
+
+  LLVMValueRef args[] = { llrb_get_cfp(c), v4 };
   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "");
   LLVMBuildRet(c->builder, llrb_get_cfp(c));
 }
-
-void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
 
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
@@ -54,7 +64,10 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   };
 
   llrb_compile_prototype(&compiler, mod);
+
+  extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   llrb_optimize_function(mod, func);
+
   return mod;
 }
 
