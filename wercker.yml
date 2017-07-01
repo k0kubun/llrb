@@ -1,0 +1,22 @@
+box: k0kubun/llvm38-assert-ruby24
+build:
+  steps:
+    - bundle-install
+    - script:
+        name: clone cruby
+        code: git submodule init && git submodule update
+    # - script:
+    #     name: compile
+    #     code: bundle exec rake insns_bc compile
+    # - script:
+    #     name: rspec
+    #     code: bundle exec rake spec
+    # - script:
+    #     name: bm_loop_while
+    #     code: bin/bm_loop_while
+    # - script:
+    #     name: bm_app_fib
+    #     code: bin/bm_app_fib
+    # - script:
+    #     name: bm_empty_method
+    #     code: bin/bm_empty_method

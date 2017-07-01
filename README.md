@@ -1,8 +1,6 @@
-# Llrb
+# LLRB [![wercker status](https://app.wercker.com/status/71d808ff9de7f4f411714d40f9e99127/s/master "wercker status")](https://app.wercker.com/project/byKey/71d808ff9de7f4f411714d40f9e99127)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/llrb`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+LLRB is a LLVM-based JIT compiler for Ruby.
 
 ## Installation
 
@@ -12,28 +10,165 @@ Add this line to your application's Gemfile:
 gem 'llrb'
 ```
 
-And then execute:
+## Build dependency
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install llrb
+- LLVM/clang 3.8+
+  - `llvm-config` command needs to appear in `$PATH`
 
 ## Usage
+### Compiling method to native code
 
-TODO: Write usage instructions here
+```rb
+require 'llrb'
 
-## Development
+class Hello
+  def world
+    puts "Hello world!"
+  end
+end
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+hello = Hello.new
+LLRB::JIT.precompile(hello, :world)
+hello.world # Executed in native code
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### Dumping LLVM IR
 
-## Contributing
+```rb
+LLRB::JIT.preview(hello, :world)
+; ModuleID = 'llrb'
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/llrb.
+define i64 @precompiled_method(i64) {
+entry:
+  %putstring = call i64 @rb_str_resurrect(i64 94336633338360)
+  %funcall = call i64 (i64, i64, i32, ...) @rb_funcall(i64 %0, i64 15329, i32 1, i64 %putstring)
+  ret i64 %funcall
+}
+
+declare i64 @rb_str_resurrect(i64)
+
+declare i64 @rb_funcall(i64, i64, i32, ...)
+```
+
+## Supported Iseq instructions
+
+89/93 (95.7%)
+
+### nop
+- [x] nop
+
+### variable
+- [ ] getlocal
+- [x] getlocal\_OP\_\_WC\_\_0
+- [ ] getlocal\_OP\_\_WC\_\_1
+- [ ] setlocal
+- [x] setlocal\_OP\_\_WC\_\_0
+- [ ] setlocal\_OP\_\_WC\_\_1
+- [x] getspecial
+- [x] setspecial
+- [x] getinstancevariable
+- [x] setinstancevariable
+- [x] getclassvariable
+- [x] setclassvariable
+- [x] getconstant
+- [x] setconstant
+- [x] getglobal
+- [x] setglobal
+
+### put
+- [x] putnil
+- [x] putself
+- [x] putobject
+- [x] putobject\_OP\_INT2FIX\_O\_0\_C\_
+- [x] putobject\_OP\_INT2FIX\_O\_1\_C\_
+- [x] putspecialobject
+- [x] putiseq
+- [x] putstring
+- [x] concatstrings
+- [x] tostring
+- [x] freezestring
+- [x] toregexp
+- [x] newarray
+- [x] duparray
+- [!] expandarray
+- [x] concatarray
+- [x] splatarray
+- [x] newhash
+- [x] newrange
+
+### stack
+- [x] pop
+- [x] dup
+- [x] dupn
+- [x] swap
+- [!] reverse
+- [!] reput
+- [x] topn
+- [x] setn
+- [x] adjuststack
+
+### setting
+- [x] defined
+- [x] checkmatch
+- [x] checkkeyword
+- [x] trace
+
+### class/module
+- [!] defineclass
+
+### method/iterator
+- [x] send
+- [x] invokesuper
+- [x] invokeblock
+- [x] leave
+
+### optimize
+- [x] opt\_str\_freeze
+- [x] opt\_newarray\_max
+- [x] opt\_newarray\_min
+- [x] opt\_send\_without\_block
+- [!] getinlinecache
+- [!] setinlinecache
+- [!] once
+- [!] opt\_case\_dispatch
+- [x] opt\_plus
+- [x] opt\_minus
+- [x] opt\_mult
+- [x] opt\_div
+- [x] opt\_mod
+- [x] opt\_eq
+- [x] opt\_neq
+- [x] opt\_lt
+- [x] opt\_le
+- [x] opt\_gt
+- [x] opt\_ge
+- [x] opt\_ltlt
+- [x] opt\_aref
+- [x] opt\_aset
+- [x] opt\_aset\_with
+- [x] opt\_aref\_with
+- [x] opt\_length
+- [x] opt\_size
+- [x] opt\_empty\_p
+- [x] opt\_succ
+- [x] opt\_not
+- [x] opt\_regexpmatch1
+- [x] opt\_regexpmatch2
+- [!] opt\_call\_c\_function
+
+### exception
+- [x] throw
+
+### jump
+- [x] jump
+- [x] branchif
+- [x] branchunless
+- [x] branchnil
+
+### joke
+- [!] bitblt
+- [!] answer
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+MIT License
