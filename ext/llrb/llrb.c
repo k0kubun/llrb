@@ -1,13 +1,16 @@
 #include <stdbool.h>
-#include "ruby.h"
+#include "cruby.h"
+#include "cruby_extra/insns.inc"
 
-//static bool
-//llrb_check_already_compiled(const rb_iseq_t *iseq)
-//{
-//  return iseq->body->iseq_size == 3
-//    && iseq->body->iseq_encoded[0] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function]
-//    && iseq->body->iseq_encoded[2] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
-//}
+static bool
+llrb_check_already_compiled(const rb_iseq_t *iseq)
+{
+  return iseq->body->iseq_size == 3
+    && iseq->body->iseq_encoded[0] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_opt_call_c_function]
+    && iseq->body->iseq_encoded[2] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
+}
+
+const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
@@ -15,8 +18,8 @@
 static VALUE
 rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 {
-  //const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  //if (llrb_check_already_compiled(iseq)) return Qfalse;
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  if (llrb_check_already_compiled(iseq)) return Qfalse;
 
   //LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   //LLVMDumpModule(mod);
@@ -30,8 +33,8 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 static VALUE
 rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 {
-  //const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  //if (llrb_check_already_compiled(iseq)) return Qfalse;
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  if (llrb_check_already_compiled(iseq)) return Qfalse;
 
   //LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
   //uint64_t func = llrb_create_native_func(mod, llrb_funcname);
@@ -48,9 +51,8 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 static VALUE
 rb_jit_is_compiled(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 {
-  //const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  //return llrb_check_already_compiled(iseq) ? Qtrue : Qfalse;
-  return Qfalse;
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  return llrb_check_already_compiled(iseq) ? Qtrue : Qfalse;
 }
 
 void
