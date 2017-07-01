@@ -1,3 +1,12 @@
+/*
+ * llrb.c: Has Ruby interface and native code generation.
+ *
+ * LLRB's internal design:
+ *   parser.c:     llrb_parse_iseq()         # ISeq -> Control Flow Graph
+ *   compiler.c:   llrb_compile_iseq()       # Control Flow Graph -> LLVM IR
+ *   optimizer.cc: llrb_optimize_function()  # LLVM IR -> optimized LLVM IR
+ *   llrb.c:       llrb_create_native_func() # optimized LLVM IR -> Native code
+ */
 #include <stdbool.h>
 #include "llvm-c/Core.h"
 #include "llvm-c/ExecutionEngine.h"

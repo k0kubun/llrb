@@ -1,3 +1,8 @@
+/*
+ * funcs.h: Has external function declaration called by JIT-ed code.
+ * TODO: Automatically generate this from something.
+ */
+
 #ifndef LLRB_FUNCS_H
 #define LLRB_FUNCS_H
 

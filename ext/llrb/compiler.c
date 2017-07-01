@@ -1,3 +1,7 @@
+/*
+ * compiler.c: Compiles encoded YARV instructions structured as Control Flow Graph to LLVM IR.
+ */
+
 #include <stdbool.h>
 #include <string.h>
 #include "llvm-c/BitReader.h"
@@ -51,8 +55,6 @@ llrb_compile_prototype(struct llrb_compiler *c, LLVMModuleRef mod)
 static LLVMModuleRef
 llrb_build_initial_module()
 {
-  // return LLVMModuleCreateWithName("llrb");
-
   LLVMMemoryBufferRef buf;
   char *err;
   if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
@@ -64,14 +66,13 @@ llrb_build_initial_module()
     rb_raise(rb_eCompileError, "LLVMParseBitcode2 Failed!");
   }
   LLVMDisposeMemoryBuffer(buf);
-  return ret;
+  return ret; // LLVMModuleCreateWithName("llrb");
 }
 
-LLVMModuleRef
-llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
+// Compiles Control Flow Graph having encoded YARV instructions to LLVM IR.
+static LLVMValueRef
+llrb_compile_cfg(LLVMModuleRef mod, const rb_iseq_t *iseq, const char* funcname)
 {
-  LLVMModuleRef mod = llrb_build_initial_module();
-
   LLVMTypeRef args[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
       LLVMFunctionType(LLVMInt64Type(), args, 2, false));
@@ -82,8 +83,23 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
     .builder = LLVMCreateBuilder(),
     .mod = mod,
   };
-
   llrb_compile_prototype(&compiler, mod);
+
+  return func;
+}
+
+// In this function, LLRB has following dependency tree without mutual dependencies:
+// llrb.c -> compiler.c -> parser.c, optimizer.cc
+//
+// llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.
+LLVMModuleRef
+llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
+{
+  extern void llrb_parse_iseq(const rb_iseq_t *iseq);
+  llrb_parse_iseq(iseq);
+
+  LLVMModuleRef mod = llrb_build_initial_module();
+  LLVMValueRef func = llrb_compile_cfg(mod, iseq, funcname);
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   llrb_optimize_function(mod, func);

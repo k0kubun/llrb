@@ -1,3 +1,7 @@
+/*
+ * cruby.h: Has CRuby's internal data structure definitions including ISeq struct.
+ */
+
 #ifndef LLRB_CRUBY_H
 #define LLRB_CRUBY_H
 

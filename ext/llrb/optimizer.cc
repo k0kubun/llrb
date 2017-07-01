@@ -1,3 +1,17 @@
+/*
+ * optimizer.cc: Optimizes LLVM IR using LLVM Passes.
+ *
+ * This file is created as C++ file for following 2 reasons:
+ *
+ *   1. LLVM needs to be linked by C++ linker, even if we use LLVM-C API.
+ *      C extension is linked using C++ linker if we have *.cc file.
+ *      We should find a better way to do that.
+ *
+ *   2. Just to make it easy to port opt(1)'s code. Sometimes LLVM-C APIs
+ *      don't include C++'s ones. But it looks current implementation
+ *      doesn't depend on such APIs. So this reason can be fixed.
+ *
+ */
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
