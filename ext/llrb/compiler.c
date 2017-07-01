@@ -754,19 +754,6 @@ llrb_compile_insn(struct llrb_compiler *c, struct llrb_stack *stack, const unsig
       copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
       for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
 
-      // If jumping forward (branch_dest > pos) and has value in stack, create phi.
-      if (branch_dest > pos && stack->size > 0) {
-        LLVMValueRef phi = c->blocks[branch_dest].phi;
-        if (phi == 0) {
-          llrb_push_incoming_things(&c->blocks[branch_dest], LLVMGetInsertBlock(c->builder), llrb_stack_pop(stack));
-        } else {
-          LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
-          values[0] = llrb_stack_pop(stack);
-          LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
-          LLVMAddIncoming(phi, values, blocks, 1);
-        }
-      }
-
       llrb_compile_basic_block(c, &copied_stack, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
       llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
       return true;
@@ -1041,8 +1028,8 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
   llrb_init_basic_blocks(&compiler, iseq->body, func);
 
   llrb_compile_basic_block(&compiler, 0, 0);
-  llrb_optimize_function(mod, func);
   //LLVMDumpModule(mod);
+  llrb_optimize_function(mod, func);
   return mod;
 }
 

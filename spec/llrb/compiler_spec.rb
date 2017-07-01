@@ -493,6 +493,24 @@ RSpec.describe 'llrb_compile_iseq' do
       end
     end
 
+    test_compile(true) do |a|
+      1 + if a
+            2
+          end
+    end
+
+    test_compile(true, false) do |a, b|
+      if a
+        2
+      else
+        3
+      end + if b
+              4
+            else
+              5
+            end
+    end
+
     test_compile(false) do |a|
       1 + if a
             2

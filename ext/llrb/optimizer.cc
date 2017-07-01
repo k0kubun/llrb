@@ -3,6 +3,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/CBindingWrapping.h"
+#include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
 
 namespace llrb {
@@ -22,6 +23,7 @@ ApplyFunctionPasses(llvm::Module *mod, llvm::Function *func)
 
   //fpm->add(llvm::createVerifierPass());
 
+  //fpm->add(llvm::createFunctionInliningPass());
   fpm->add(llvm::createReassociatePass());
   fpm->add(llvm::createGVNPass());
   fpm->add(llvm::createCFGSimplificationPass()); // Removes empty basic block.
