@@ -40,14 +40,14 @@ module LLRB
 
     # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @return [Boolean] return true if compiled
-    # private_class_method :compile_iseq
+    private_class_method :compile_iseq
 
     # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @return [Boolean] return true if compiled
-    # private_class_method :preview_iseq
+    private_class_method :preview_iseq
 
     # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @return [Boolean] return true if compiled
-    # private_class_method :is_compiled
+    private_class_method :is_compiled
   end
 end
