@@ -2,19 +2,50 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/MC/SubtargetFeature.h"
 #include "llvm/Support/CBindingWrapping.h"
+#include "llvm/Support/Host.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/Scalar.h"
 
 namespace llrb {
 
-static void
-SetTargetMetadata(llvm::Module *mod)
+static inline std::string GetFeaturesStr()
 {
-  llvm::TargetMachine *targetMachine = llvm::EngineBuilder().selectTarget();
-  mod->setDataLayout(targetMachine->createDataLayout());
-  mod->setTargetTriple(targetMachine->getTargetTriple().getTriple());
+  llvm::SubtargetFeatures ret;
+  llvm::StringMap<bool> features;
+
+  if (llvm::sys::getHostCPUFeatures(features)) {
+    for (auto &feature : features) {
+      ret.AddFeature(feature.first(), feature.second);
+    }
+  }
+
+  return ret.getString();
+}
+
+// Setting function attributes is required for function inlining.
+static void
+SetFunctionAttributes(llvm::Module *mod)
+{
+  std::string cpu = llvm::sys::getHostCPUName();
+  std::string features = GetFeaturesStr();
+
+  for (auto &func : *mod) {
+    auto &ctx = func.getContext();
+    llvm::AttributeSet attrs = func.getAttributes(), newAttrs;
+
+    if (!cpu.empty()) {
+      newAttrs = newAttrs.addAttribute(ctx, llvm::AttributeSet::FunctionIndex, "target-cpu", cpu);
+    }
+    if (!features.empty()) {
+      newAttrs = newAttrs.addAttribute(ctx, llvm::AttributeSet::FunctionIndex, "target-features", features);
+    }
+
+    newAttrs = attrs.addAttributes(ctx, llvm::AttributeSet::FunctionIndex, newAttrs);
+    func.setAttributes(newAttrs);
+  }
 }
 
 static void
@@ -55,7 +86,7 @@ RunModulePasses(llvm::Module *mod)
 static void
 OptimizeFunction(llvm::Module *mod, llvm::Function *func)
 {
-  SetTargetMetadata(mod);
+  SetFunctionAttributes(mod);
   RunFunctionPasses(mod, func);
   RunModulePasses(mod);
 }

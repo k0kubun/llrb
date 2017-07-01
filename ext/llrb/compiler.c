@@ -85,7 +85,7 @@ llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
     .mod = mod,
   };
 
-  if (0) llrb_compile_prototype(&compiler, mod);
+  llrb_compile_prototype(&compiler, mod);
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   llrb_optimize_function(mod, func);

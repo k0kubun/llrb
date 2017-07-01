@@ -26,18 +26,3 @@ llrb_insn_opt_plus(VALUE lhs, VALUE rhs)
   }
   return rb_funcall(lhs, '+', 1, rhs);
 }
-
-VALUE
-llrb_exec(VALUE th, VALUE cfp)
-{
-  llrb_push_result(cfp,
-      llrb_insn_opt_plus(
-        llrb_insn_opt_plus(
-          llrb_insn_opt_plus(
-            llrb_insn_opt_plus((VALUE)3, (VALUE)5),
-            (VALUE)7),
-          (VALUE)9),
-        (VALUE)11)
-      );
-  return cfp;
-}
