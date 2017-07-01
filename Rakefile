@@ -21,6 +21,14 @@ task :insns_ll do
     RbConfig::CONFIG['rubyarchhdrdir'],
   ]
   ruby_cflags = "#{incdirs.map {|d| "-I#{d}" }.join(' ')} #{RbConfig::CONFIG['cflags']}"
+
+  %w[
+    -Wno-packed-bitfield-compat
+    -Wsuggest-attribute=noreturn
+    -Wsuggest-attribute=format
+    -Wno-maybe-uninitialized
+  ].each { |f| ruby_cflags.sub!(f, '') } # caused by compiling ruby with gcc and this with clang.
+
   sh "clang #{ruby_cflags} -O3 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
 end
 
