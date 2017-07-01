@@ -3,8 +3,9 @@
 #include "llvm-c/Core.h"
 #include "llvm-c/ExecutionEngine.h"
 #include "ruby.h"
-#include "parser.h"
 #include "compiler.h"
+#include "insns.inc"
+#include "insns_info.inc"
 #include "functions.h"
 
 static VALUE rb_eCompileError;
@@ -14,6 +15,27 @@ struct llrb_stack {
   unsigned int size;
   unsigned int max;
   LLVMValueRef *body;
+};
+
+// Store metadata of compiled basic blocks
+struct llrb_block_info {
+  LLVMBasicBlockRef block;
+  LLVMValueRef phi;
+  unsigned int block_end;
+  bool compiled;
+
+  // TODO: use proper container for following fields
+  VALUE incoming_values;
+  VALUE incoming_blocks;
+};
+
+// Store compiler's internal state and shared variables
+struct llrb_compiler {
+  const struct rb_iseq_constant_body *body;
+  const char *funcname;
+  LLVMBuilderRef builder;
+  LLVMModuleRef mod;
+  struct llrb_block_info *blocks;
 };
 
 static inline LLVMTypeRef
@@ -77,6 +99,116 @@ llrb_stack_pop(struct llrb_stack *stack)
   }
   stack->size--;
   return stack->body[stack->size];
+}
+
+// Don't use `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
+int rb_vm_insn_addr2insn(const void *addr);
+
+// Return sorted unique Ruby array of BasicBlock start positions like [0, 2, 8].
+//
+// It's constructed in the following rule.
+//   Rule 1: 0 is always included
+//   Rule 2: All TS_OFFSET numers are included
+//   Rule 3: Positions immediately after jump instructions (jump, branchnil, branchif, branchunless, opt_case_dispatch, leave) are included
+static VALUE
+llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
+{
+  // Rule 1
+  VALUE starts = rb_ary_new_capa(1);
+  rb_ary_push(starts, INT2FIX(0));
+
+  for (unsigned int i = 0; i < body->iseq_size;) {
+    int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
+
+    // Rule 2
+    for (int j = 1; j < insn_len(insn); j++) {
+      VALUE op = body->iseq_encoded[i+j];
+      switch (insn_op_type(insn, j-1)) {
+        case TS_OFFSET:
+          rb_ary_push(starts, INT2FIX((int)(i+insn_len(insn)+op)));
+          break;
+      }
+    }
+
+    // Rule 3
+    switch (insn) {
+      case YARVINSN_branchif:
+      case YARVINSN_branchunless:
+      case YARVINSN_branchnil:
+      case YARVINSN_jump:
+      case YARVINSN_opt_case_dispatch:
+      case YARVINSN_throw:
+        if (i+insn_len(insn) < body->iseq_size) {
+          rb_ary_push(starts, INT2FIX(i+insn_len(insn)));
+        }
+        break;
+    }
+
+    i += insn_len(insn);
+  }
+  starts = rb_ary_sort_bang(starts);
+  rb_funcall(starts, rb_intern("uniq!"), 0);
+  return starts;
+}
+
+static void
+llrb_init_basic_blocks(struct llrb_compiler *c, const struct rb_iseq_constant_body *body, LLVMValueRef func)
+{
+  VALUE starts = llrb_basic_block_starts(body);
+
+  for (long i = 0; i < RARRAY_LEN(starts); i++) {
+    long start = FIX2INT(RARRAY_AREF(starts, i));
+    unsigned int block_end;
+
+    VALUE label = rb_str_new_cstr("label_"); // TODO: free?
+    rb_str_catf(label, "%ld", start);
+    LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, RSTRING_PTR(label));
+
+    if (i == RARRAY_LEN(starts)-1) {
+      block_end = (unsigned int)(body->iseq_size-1); // This assumes the end is always "leave". Is it true?
+    } else {
+      block_end = (unsigned int)FIX2INT(RARRAY_AREF(starts, i+1))-1;
+    }
+
+    c->blocks[start] = (struct llrb_block_info){
+      .block = block,
+      .phi = 0,
+      .compiled = false,
+      .block_end = block_end,
+      .incoming_values = rb_ary_new(), // TODO: free?
+      .incoming_blocks = rb_ary_new(), // TODO: free?
+    };
+  }
+}
+
+static void
+llrb_disasm_insns(const struct rb_iseq_constant_body *body)
+{
+  fprintf(stderr, "\n== disasm: LLRB ================================");
+  VALUE starts = llrb_basic_block_starts(body); // TODO: free?
+  for (unsigned int i = 0; i < body->iseq_size;) {
+    if (RTEST(rb_ary_includes(starts, INT2FIX(i)))) {
+      fprintf(stderr, "\n");
+    }
+
+    int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
+    fprintf(stderr, "%04d %-27s [%-4s] ", i, insn_name(insn), insn_op_types(insn));
+
+    for (int j = 1; j < insn_len(insn); j++) {
+      VALUE op = body->iseq_encoded[i+j];
+      switch (insn_op_type(insn, j-1)) {
+        case TS_NUM:
+          fprintf(stderr, "%-4ld ", (rb_num_t)op);
+          break;
+        case TS_OFFSET:
+          fprintf(stderr, "%"PRIdVALUE" ", (VALUE)(i + j + op + 1));
+          break;
+      }
+    }
+    fprintf(stderr, "\n");
+    i += insn_len(insn);
+  }
+  fprintf(stderr, "\nbasic block starts: %s\n", RSTRING_PTR(rb_inspect(starts)));
 }
 
 LLVMValueRef
@@ -882,6 +1014,7 @@ llrb_build_initial_module()
   return ret;
 }
 
+// TODO: Verify LLVM function?
 LLVMModuleRef
 llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
 {
