@@ -20,7 +20,7 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
   // XXX: No need to check leave? leave is always in the end?
 
   // Rule 1
-  VALUE starts = rb_ary_new_capa(1); // `rb_ary_free`d in llrb_create_basic_blocks.
+  VALUE starts = rb_ary_new_capa(1); // Maybe GCed. Freeing this causes Bus Error...
   rb_ary_push(starts, INT2FIX(0));
 
   for (unsigned int i = 0; i < body->iseq_size;) {
@@ -95,7 +95,6 @@ llrb_create_basic_blocks(const struct rb_iseq_constant_body *body, struct llrb_c
       .traversed = false,
     };
   }
-  rb_ary_free(starts);
   RB_GC_GUARD(starts);
 }
 

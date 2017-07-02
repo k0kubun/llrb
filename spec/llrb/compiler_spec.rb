@@ -13,6 +13,7 @@ RSpec.describe 'llrb_compile_iseq' do
     compiled = LLRB::JIT.compile(klass, :test)
     expect(compiled).to eq(true) unless already_compiled
     expect(klass.test(*args.map(&:dup))).to eq(result)
+    GC.start # to increase possibility to hit a bug caused by GC.
   end
 
   def test_error(error, *args, &block)
