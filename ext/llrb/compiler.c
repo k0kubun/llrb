@@ -161,6 +161,7 @@ static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_
 static bool
 llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const unsigned int pos, const int insn, const VALUE *operands, bool *created_br)
 {
+  //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d before %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   *created_br = false;
   switch (insn) {
     case YARVINSN_nop:
@@ -411,8 +412,10 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_send: {
       CALL_INFO ci = (CALL_INFO)operands[0];
       unsigned int stack_size = ci->orig_argc + 1;
+      if (ci->flag & VM_CALL_ARGS_BLOCKARG) stack_size++; // push `&block`
 
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
+      unsigned int arg_size = 6 + stack_size;
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, arg_size);
       args[0] = llrb_get_thread(c);
       args[1] = llrb_get_cfp(c);
       args[2] = llrb_value((VALUE)ci);
@@ -422,7 +425,8 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
         args[6 + i] = llrb_stack_pop(stack);
       }
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_send"), args, 6 + stack_size, "send"));
+
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_send"), args, arg_size, "send"));
       break;
     }
     case YARVINSN_opt_str_freeze: { // TODO: optimize
@@ -492,7 +496,6 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_leave:
       if (stack->size != 1) {
         llrb_dump_cfg(c->body, c->cfg);
-        LLVMDumpModule(c->mod);
         rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", stack->size);
       }
 
@@ -713,6 +716,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
+  //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d after %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   return false;
 }
 

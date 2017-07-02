@@ -350,6 +350,19 @@ RSpec.describe 'llrb_compile_iseq' do
     result = klass.test(1) { 2 }
     expect(LLRB::JIT.compile(klass, :test)).to eq(true)
     expect(klass.test(1) { 2 }).to eq(result)
+
+    test_compile do
+      klass.test(0, &nil)
+    end
+
+    klass2 = Class.new
+    klass2.send(:define_singleton_method, :test) do |&block|
+      klass.test(1, &block)
+    end
+
+    result = klass2.test { 2 }
+    expect(LLRB::JIT.compile(klass2, :test)).to eq(true)
+    expect(klass2.test { 2 }).to eq(result)
   end
 
   specify 'opt_str_freeze' do
