@@ -165,14 +165,16 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
   switch (insn) {
     case YARVINSN_nop:
       break; // nop
-    // //case YARVINSN_getlocal: {
-    // //  ;
-    // //  break;
-    // //}
-    // //case YARVINSN_setlocal: {
-    // //  ;
-    // //  break;
-    // //}
+    case YARVINSN_getlocal: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getlocal", 3, llrb_get_cfp(c),
+            llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1])));
+      break;
+    }
+    case YARVINSN_setlocal: {
+      llrb_call_func(c, "llrb_insn_setlocal", 4, llrb_get_cfp(c),
+          llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1]), llrb_stack_pop(stack));
+      break;
+    }
     case YARVINSN_getspecial: {
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getspecial", 2, llrb_value(operands[0]), llrb_value(operands[1])));
       break;

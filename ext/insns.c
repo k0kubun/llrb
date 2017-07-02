@@ -19,6 +19,19 @@ llrb_insn_getlocal_level1(VALUE cfp_v, lindex_t idx)
   return *(GET_PREV_EP(cfp->ep) - idx);
 }
 
+VALUE
+llrb_insn_getlocal(VALUE cfp_v, lindex_t idx, rb_num_t level)
+{
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+  int i, lev = (int)level;
+  const VALUE *ep = cfp->ep;
+
+  for (i = 0; i < lev; i++) {
+    ep = GET_PREV_EP(ep);
+  }
+  return *(ep - idx);
+}
+
 void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
 void
 llrb_insn_setlocal_level0(VALUE cfp_v, lindex_t idx, VALUE val)
@@ -32,6 +45,19 @@ llrb_insn_setlocal_level1(VALUE cfp_v, lindex_t idx, VALUE val)
 {
   rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
   rb_vm_env_write(GET_PREV_EP(cfp->ep), -(int)idx, val);
+}
+
+void
+llrb_insn_setlocal(VALUE cfp_v, lindex_t idx, rb_num_t level, VALUE val)
+{
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+  int i, lev = (int)level;
+  const VALUE *ep = cfp->ep;
+
+  for (i = 0; i < lev; i++) {
+    ep = GET_PREV_EP(ep);
+  }
+  rb_vm_env_write(ep, -(int)idx, val);
 }
 
 static inline VALUE

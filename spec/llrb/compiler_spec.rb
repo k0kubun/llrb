@@ -28,8 +28,62 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil rescue true }
   end
 
-  # specify 'getlocal' do
-  # specify 'setlocal' do
+  specify 'getlocal' do
+    compiled = false
+    klass1 = Class.new
+    klass1.send(:define_singleton_method, :test) do |&block|
+      compiled = LLRB::JIT.compile_proc(block)
+      block.call
+    end
+
+    klass2 = Class.new
+    klass2.send(:define_singleton_method, :test) do |&block|
+      block.call
+    end
+
+    klass3 = Class.new
+    klass3.send(:define_singleton_method, :test) do
+      a = 3
+      klass2.test do
+        b = 2
+        klass1.test do
+          a * b
+        end
+      end
+    end
+
+    expect(klass3.test).to eq(6)
+    expect(compiled).to eq(true)
+  end
+
+  specify 'setlocal' do
+    compiled = false
+    klass1 = Class.new
+    klass1.send(:define_singleton_method, :test) do |&block|
+      compiled = LLRB::JIT.compile_proc(block)
+      block.call
+    end
+
+    klass2 = Class.new
+    klass2.send(:define_singleton_method, :test) do |&block|
+      block.call
+    end
+
+    klass3 = Class.new
+    klass3.send(:define_singleton_method, :test) do
+      a = 3
+      b = 1
+      klass2.test do
+        klass1.test do
+          b = b * 2
+          a * b
+        end
+      end
+    end
+
+    expect(klass3.test).to eq(6)
+    expect(compiled).to eq(true)
+  end
 
   specify 'getspecial' do
     test_compile { $1 }
