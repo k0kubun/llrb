@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'benchmark/ips'
+require 'optparse'
+require 'llrb'
+
+preview = false
+opt = OptionParser.new
+opt.on('-p') { preview = true }
+opt.parse!(ARGV)
+
+ruby = Class.new
+def ruby.script(n)
+  if n < 3
+    1
+  else
+    script(n-1) + script(n-2)
+  end
+end
+
+llrb = Class.new
+def llrb.script(n)
+  if n < 3
+    1
+  else
+    script(n-1) + script(n-2)
+  end
+end
+LLRB::JIT.preview(llrb, :script) and return if preview
+
+started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
+LLRB::JIT.compile(llrb, :script)
+finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
+puts "Compile Time: #{ "%.2fms" % ((finished_at - started_at) / 1000)}"
+
+Benchmark.ips do |x|
+  x.report('Ruby') { ruby.script(34) }
+  x.report('LLRB') { llrb.script(34) }
+  x.compare!
+end

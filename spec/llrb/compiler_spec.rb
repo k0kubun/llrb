@@ -82,9 +82,10 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil }
   end
 
-  # specify 'putself' do
-  #   test_compile { print }
-  # end
+  specify 'putself' do
+    test_compile { self }
+    test_compile { print }
+  end
 
   specify 'putobject' do
     test_compile { true }
@@ -613,11 +614,11 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { 3 != 2 }
   # end
 
-  # specify 'opt_lt' do
-  #   test_compile { 2 < 3 }
-  #   test_compile { 2 < 2 }
-  #   test_compile { 3 < 2 }
-  # end
+  specify 'opt_lt' do
+    test_compile { 2 < 3 }
+    test_compile { 2 < 2 }
+    test_compile { 3 < 2 }
+  end
 
   # specify 'opt_le' do
   #   test_compile { 2 <= 3 }

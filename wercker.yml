@@ -12,11 +12,14 @@ build:
         name: rspec
         code: bundle exec rake spec
     - script:
-        name: bm_prototype
-        code: bin/bm_prototype
-    # - script:
-    #     name: bm_loop_while
-    #     code: bin/bm_loop_while
-    # - script:
-    #     name: bm_app_fib
-    #     code: bin/bm_app_fib
+        name: bm_loop_while
+        code: bin/bm_loop_while
+    - script:
+        name: bm_plus
+        code: bin/bm_plus
+    - script:
+        name: bm_empty_method
+        code: bin/bm_empty_method
+    - script:
+        name: bm_app_fib
+        code: bin/bm_app_fib

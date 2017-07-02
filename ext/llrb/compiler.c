@@ -66,6 +66,12 @@ llrb_call_func(const struct llrb_compiler *c, const char *funcname, unsigned arg
   return ret;
 }
 
+static inline LLVMValueRef
+llrb_get_self(const struct llrb_compiler *c)
+{
+  return llrb_call_func(c, "llrb_self_from_cfp", 1, llrb_get_cfp(c));
+}
+
 static LLVMValueRef
 llrb_compile_funcall(const struct llrb_compiler *c, struct llrb_stack *stack, ID mid, int argc)
 {
@@ -206,10 +212,10 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_putnil:
       llrb_stack_push(stack, llrb_value(Qnil));
       break;
-    // case YARVINSN_putself: {
-    //   llrb_stack_push(stack, llrb_get_self(c));
-    //   break;
-    // }
+    case YARVINSN_putself: {
+      llrb_stack_push(stack, llrb_get_self(c));
+      break;
+    }
     case YARVINSN_putobject:
       llrb_stack_push(stack, llrb_value(operands[0]));
       break;
@@ -429,22 +435,25 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("min"), 0));
     //   break;
-    // case YARVINSN_opt_send_without_block: {
-    //   CALL_INFO ci = (CALL_INFO)operands[0];
-    //   unsigned int stack_size = ci->orig_argc + 1;
+    case YARVINSN_opt_send_without_block: {
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      unsigned int stack_size = ci->orig_argc + 1;
 
-    //   LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
-    //   args[0] = llrb_get_thread(c);
-    //   args[1] = llrb_get_cfp(c);
-    //   args[2] = llrb_value((VALUE)ci);
-    //   args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
-    //   args[4] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-    //   for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-    //     args[5 + i] = llrb_stack_pop(stack);
-    //   }
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_send_without_block"), args, 5 + stack_size, "opt_send_without_block"));
-    //   break;
-    // }
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size); // `xfree`d in this block.
+      args[0] = llrb_get_thread(c);
+      args[1] = llrb_get_cfp(c);
+      args[2] = llrb_value((VALUE)ci);
+      args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
+      args[4] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+        args[5 + i] = llrb_stack_pop(stack);
+      }
+
+      LLVMValueRef func = llrb_get_function(c->mod, "llrb_insn_opt_send_without_block");
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 5 + stack_size, "opt_send_without_block"));
+      xfree(args);
+      break;
+    }
     // case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
     //   CALL_INFO ci = (CALL_INFO)operands[0];
     //   unsigned int stack_size = ci->orig_argc + 1;
@@ -605,13 +614,12 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // case YARVINSN_opt_neq:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
     //   break;
-    // case YARVINSN_opt_lt: {
-    //   //llrb_stack_push(stack, llrb_compile_funcall(c, stack, '<', 1));
-    //   LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-    //   args[0] = llrb_stack_pop(stack);
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_lt"), args, 2, "opt_lt"));
-    //   break;
-    // }
+    case YARVINSN_opt_lt: {
+      LLVMValueRef rhs = llrb_stack_pop(stack);
+      LLVMValueRef lhs = llrb_stack_pop(stack);
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_lt", 2, lhs, rhs));
+      break;
+    }
     // case YARVINSN_opt_le:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("<="), 1));
     //   break;
