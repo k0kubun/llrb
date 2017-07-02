@@ -3,7 +3,7 @@
  *
  * LLRB's internal design:
  *   parser.c:     llrb_parse_iseq()         # ISeq -> Control Flow Graph
- *   compiler.c:   llrb_compile_iseq()       # Control Flow Graph -> LLVM IR
+ *   compiler.c:   llrb_compile_cfg()        # Control Flow Graph -> LLVM IR
  *   optimizer.cc: llrb_optimize_function()  # LLVM IR -> optimized LLVM IR
  *   llrb.c:       llrb_create_native_func() # optimized LLVM IR -> Native code
  */
@@ -15,7 +15,7 @@
 
 static const char *llrb_funcname = "llrb_exec";
 
-LLVMModuleRef llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname);
+LLVMModuleRef llrb_compile_iseq(const struct rb_iseq_constant_body *body, const char* funcname);
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
 static uint64_t
@@ -65,7 +65,7 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
   if (llrb_check_already_compiled(iseq)) return Qfalse;
 
-  LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
+  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, llrb_funcname);
   LLVMDumpModule(mod);
   LLVMDisposeModule(mod);
   return Qtrue;
@@ -80,7 +80,7 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
   if (llrb_check_already_compiled(iseq)) return Qfalse;
 
-  LLVMModuleRef mod = llrb_compile_iseq(iseq, llrb_funcname);
+  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, llrb_funcname);
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
   LLVMDisposeModule(mod);
   if (!func) {
@@ -113,6 +113,9 @@ Init_llrb(void)
   rb_define_singleton_method(rb_mJIT, "preview_iseq", RUBY_METHOD_FUNC(rb_jit_preview_iseq), 1);
   rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 1);
   rb_define_singleton_method(rb_mJIT, "is_compiled",  RUBY_METHOD_FUNC(rb_jit_is_compiled), 1);
+
+  extern void Init_parser(VALUE rb_mJIT);
+  Init_parser(rb_mJIT);
 
   extern void Init_compiler(VALUE rb_mJIT);
   Init_compiler(rb_mJIT);

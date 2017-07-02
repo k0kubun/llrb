@@ -6,12 +6,14 @@
 #include <string.h>
 #include "llvm-c/BitReader.h"
 #include "llvm-c/Core.h"
+#include "cfg.h"
 #include "cruby.h"
 #include "funcs.h"
 
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
   const struct rb_iseq_constant_body *body;
+  const struct llrb_cfg *cfg;
   LLVMValueRef func;
   LLVMBuilderRef builder;
   LLVMModuleRef mod;
@@ -71,14 +73,15 @@ llrb_build_initial_module()
 
 // Compiles Control Flow Graph having encoded YARV instructions to LLVM IR.
 static LLVMValueRef
-llrb_compile_cfg(LLVMModuleRef mod, const rb_iseq_t *iseq, const char* funcname)
+llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, const struct llrb_cfg *cfg, const char* funcname)
 {
   LLVMTypeRef args[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
       LLVMFunctionType(LLVMInt64Type(), args, 2, false));
 
   struct llrb_compiler compiler = (struct llrb_compiler){
-    .body = iseq->body,
+    .body = body,
+    .cfg = cfg,
     .func = func,
     .builder = LLVMCreateBuilder(),
     .mod = mod,
@@ -93,13 +96,15 @@ llrb_compile_cfg(LLVMModuleRef mod, const rb_iseq_t *iseq, const char* funcname)
 //
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.
 LLVMModuleRef
-llrb_compile_iseq(const rb_iseq_t *iseq, const char* funcname)
+llrb_compile_iseq(const struct rb_iseq_constant_body *body, const char* funcname)
 {
-  extern void llrb_parse_iseq(const rb_iseq_t *iseq);
-  llrb_parse_iseq(iseq);
+  extern void llrb_parse_iseq(const struct rb_iseq_constant_body *body, struct llrb_cfg *result);
+  struct llrb_cfg cfg;
+  llrb_parse_iseq(body, &cfg);
 
   LLVMModuleRef mod = llrb_build_initial_module();
-  LLVMValueRef func = llrb_compile_cfg(mod, iseq, funcname);
+  LLVMValueRef func = llrb_compile_cfg(mod, body, &cfg, funcname);
+  // destruct cfg
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   llrb_optimize_function(mod, func);
