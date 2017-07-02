@@ -96,6 +96,7 @@ llrb_dump_cfg(const struct rb_iseq_constant_body *body, const struct llrb_cfg *c
     fprintf(stderr, "BasicBlock[%d-%d]", block->start, block->end);
 
     if (block->incoming_size > 0) fprintf(stderr, " <- ");
+    if (!block->traversed) fprintf(stderr, " UNREACHABLE");
     for (unsigned int j = 0; j < block->incoming_size; j++) {
       fprintf(stderr, "%d", block->incoming_starts[j]);
       if (j != block->incoming_size-1) {
@@ -140,6 +141,7 @@ llrb_create_basic_blocks(const struct rb_iseq_constant_body *body, struct llrb_c
       .end = llrb_find_block_end(body, start, starts),
       .incoming_size = 0,
       .incoming_starts = 0,
+      .traversed = false,
     };
   }
   RB_GC_GUARD(starts);
@@ -169,37 +171,57 @@ llrb_find_block(struct llrb_cfg *cfg, unsigned int start)
 }
 
 static void
-llrb_set_incoming_blocks(const struct rb_iseq_constant_body *body, struct llrb_cfg *cfg)
+llrb_set_incoming_blocks_by(const struct rb_iseq_constant_body *body, struct llrb_cfg *cfg, struct llrb_basic_block *block)
 {
-  for (unsigned int i = 0; i < cfg->size; i++) {
-    struct llrb_basic_block *block = cfg->blocks + i;
-    struct llrb_basic_block *next_block = 0;
-    if (i < cfg->size-1) next_block = cfg->blocks + (i+1);
+  if (block->traversed) return;
+  block->traversed = true;
 
-    int end_insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[block->end]);
-    switch (end_insn) {
-      case YARVINSN_branchnil:
-      case YARVINSN_branchif:
-      case YARVINSN_branchunless: {
-        VALUE offset = (rb_num_t)body->iseq_encoded[block->end+1];
-        llrb_push_incoming_start(llrb_find_block(cfg, block->end + insn_len(end_insn) + offset), block->start);
-        if (next_block) llrb_push_incoming_start(next_block, block->start);
-        break;
+  struct llrb_basic_block *next_block = 0;
+  struct llrb_basic_block *last_block = cfg->blocks + (cfg->size-1);
+  if (block < last_block) next_block = block + 1;
+
+  int end_insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[block->end]);
+  switch (end_insn) {
+    case YARVINSN_branchnil:
+    case YARVINSN_branchif:
+    case YARVINSN_branchunless: {
+      VALUE offset = (rb_num_t)body->iseq_encoded[block->end+1];
+      struct llrb_basic_block *dest_block = llrb_find_block(cfg, block->end + insn_len(end_insn) + offset);
+      llrb_push_incoming_start(dest_block, block->start);
+      llrb_set_incoming_blocks_by(body, cfg, dest_block);
+
+      if (next_block) {
+        llrb_push_incoming_start(next_block, block->start);
+        llrb_set_incoming_blocks_by(body, cfg, next_block);
       }
-      case YARVINSN_jump: {
-        VALUE offset = (rb_num_t)body->iseq_encoded[block->end+1];
-        llrb_push_incoming_start(llrb_find_block(cfg, block->end + insn_len(end_insn) + offset), block->start);
-        break;
+      break;
+    }
+    case YARVINSN_jump: {
+      VALUE offset = (rb_num_t)body->iseq_encoded[block->end+1];
+      struct llrb_basic_block *dest_block = llrb_find_block(cfg, block->end + insn_len(end_insn) + offset);
+      llrb_push_incoming_start(dest_block, block->start);
+      llrb_set_incoming_blocks_by(body, cfg, dest_block);
+      break;
+    }
+    case YARVINSN_throw: // TODO: should be modified when catch table is implemented
+      break; // no next block
+    //case YARVINSN_opt_case_dispatch: // TODO: MUST be modified when opt_case_dispatch is implemented
+    default: {
+      if (next_block) {
+        llrb_push_incoming_start(next_block, block->start);
+        llrb_set_incoming_blocks_by(body, cfg, next_block);
       }
-      case YARVINSN_throw: // TODO: should be modified when catch table is implemented
-        break; // no next block
-      //case YARVINSN_opt_case_dispatch: // TODO: MUST be modified when opt_case_dispatch is implemented
-      default: {
-        if (next_block) llrb_push_incoming_start(next_block, block->start);
-        break;
-      }
+      break;
     }
   }
+}
+
+// To prevent from creating incoming block from unreachable basic block, this does not loop cfg's basic blocks
+// but traverse insns instead. This may be unnecessary after catch table is implemented...
+static void
+llrb_set_incoming_blocks(const struct rb_iseq_constant_body *body, struct llrb_cfg *cfg)
+{
+  llrb_set_incoming_blocks_by(body, cfg, cfg->blocks);
 }
 
 void
