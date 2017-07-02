@@ -41,6 +41,14 @@ llrb_get_cfp(const struct llrb_compiler *c)
   return LLVMGetParam(c->func, 1);
 }
 
+// In base 2, RTEST is: (v != Qfalse && v != Qnil) -> (v != 0000 && v != 1000) -> (v & 0111) != 0000 -> (v & ~Qnil) != 0
+static LLVMValueRef
+llrb_build_rtest(LLVMBuilderRef builder, LLVMValueRef value)
+{
+  LLVMValueRef masked = LLVMBuildAnd(builder, value, llrb_value(~Qnil), "RTEST_mask");
+  return LLVMBuildICmp(builder, LLVMIntNE, masked, llrb_value(0), "RTEST");
+}
+
 static LLVMValueRef
 llrb_call_func(const struct llrb_compiler *c, const char *funcname, unsigned argc, ...)
 {
@@ -289,9 +297,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_range_new"), args, 3, "newrange"));
     //   break;
     // }
-    // case YARVINSN_pop:
-    //   llrb_stack_pop(stack);
-    //   break;
+    case YARVINSN_pop:
+      llrb_stack_pop(stack);
+      break;
     case YARVINSN_dup: {
       LLVMValueRef value = llrb_stack_pop(stack);
       llrb_stack_push(stack, value);
@@ -496,47 +504,25 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   LLVMBuildBr(c->builder, next_block);
     //   return true;
     // }
-    // case YARVINSN_branchif: {
-    //   unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
-    //   unsigned fallthrough = pos + (unsigned)insn_len(insn);
-    //   LLVMBasicBlockRef branch_dest_block = llrb_build_block(c, branch_dest);
-    //   LLVMBasicBlockRef fallthrough_block = llrb_build_block(c, fallthrough);
+    case YARVINSN_branchif: {
+      unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
+      unsigned fallthrough = pos + (unsigned)insn_len(insn);
+      struct llrb_basic_block *branch_dest_block = llrb_find_block(c->cfg, branch_dest);
+      struct llrb_basic_block *fallthrough_block = llrb_find_block(c->cfg, fallthrough);
 
-    //   LLVMValueRef cond = llrb_stack_pop(stack);
-    //   LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block, fallthrough_block);
+      LLVMValueRef cond = llrb_stack_pop(stack);
+      LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), branch_dest_block->ref, fallthrough_block->ref);
+      *created_br = true;
 
-    //   struct llrb_stack copied_stack = (struct llrb_stack){ .size = stack->size, .max = stack->max };
-    //   copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
-    //   for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
-
-    //   if (copied_stack.size > 0) {
-    //     LLVMValueRef phi = c->blocks[fallthrough].phi;
-    //     if (phi == 0) {
-    //       llrb_push_incoming_things(&c->blocks[fallthrough], LLVMGetInsertBlock(c->builder), llrb_stack_pop(&copied_stack));
-    //     } else {
-    //       LLVMValueRef values[] = { llrb_stack_pop(&copied_stack) };
-    //       LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
-    //       LLVMAddIncoming(phi, values, blocks, 1);
-    //     }
-    //   }
-
-    //   // If jumping forward (branch_dest > pos), create phi. (If jumping back (branch_dest < pos), consider it as loop and don't create phi in that case.)
-    //   if (branch_dest > pos && stack->size > 0) {
-    //     LLVMValueRef phi = c->blocks[branch_dest].phi;
-    //     if (phi == 0) {
-    //       llrb_push_incoming_things(&c->blocks[branch_dest], LLVMGetInsertBlock(c->builder), llrb_stack_pop(stack));
-    //     } else {
-    //       LLVMValueRef *values = ALLOC_N(LLVMValueRef, 1);
-    //       values[0] = llrb_stack_pop(stack);
-    //       LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
-    //       LLVMAddIncoming(phi, values, blocks, 1);
-    //     }
-    //   }
-
-    //   llrb_compile_basic_block(c, &copied_stack, fallthrough);
-    //   llrb_compile_basic_block(c, stack, branch_dest);
-    //   return true;
-    // }
+      struct llrb_stack *branch_dest_stack = llrb_copy_stack(stack); // `llrb_destruct_stack`ed in this block.
+      if (branch_dest_block->incoming_size > 1 && branch_dest_stack->size > 0) {
+        llrb_push_incoming_things(c, branch_dest_block,
+            LLVMGetInsertBlock(c->builder), llrb_stack_pop(branch_dest_stack));
+      }
+      llrb_compile_basic_block(c, branch_dest_block, branch_dest_stack);
+      llrb_destruct_stack(branch_dest_stack);
+      break; // caller `compile_basic_block` compiles fallthrough_block and pushes incoming things to its phi node.
+    }
     // case YARVINSN_branchunless: {
     //   unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
     //   unsigned fallthrough = pos + (unsigned)insn_len(insn);
@@ -573,7 +559,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       }
       llrb_compile_basic_block(c, branch_dest_block, branch_dest_stack);
       llrb_destruct_stack(branch_dest_stack);
-      break; // compile_basic_block compiles fallthrough_block and pushes incoming things to its phi node.
+      break; // caller `compile_basic_block` compiles fallthrough_block and pushes incoming things to its phi node.
     }
     // case YARVINSN_getinlinecache:
     //   llrb_stack_push(stack, llrb_value(Qnil)); // TODO: implement
