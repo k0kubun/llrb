@@ -82,7 +82,7 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 
   LLVMModuleRef mod = llrb_compile_iseq(iseq->body, llrb_funcname);
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
-  LLVMDisposeModule(mod);
+  //LLVMDisposeModule(mod); // This causes SEGV: "corrupted double-linked list".
   if (!func) {
     fprintf(stderr, "Failed to create native function...\n");
     return Qfalse;
