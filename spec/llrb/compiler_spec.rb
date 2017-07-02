@@ -1,5 +1,3 @@
-require 'pry'
-
 RSpec.describe 'llrb_compile_iseq' do
   def test_compile(*args, &block)
     klass = Class.new
@@ -9,7 +7,6 @@ RSpec.describe 'llrb_compile_iseq' do
     # Possibly the same block in a loop is compiled multiple times
     already_compiled = LLRB::JIT.compiled?(klass, :test)
     #LLRB::JIT.preview(klass, :test)
-    #puts "#{RSpec.current_example.location} - #{RSpec.current_example.description}"
     compiled = LLRB::JIT.compile(klass, :test)
     expect(compiled).to eq(true) unless already_compiled
     expect(klass.test(*args.map(&:dup))).to eq(result)
@@ -101,16 +98,28 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { @a = 2 }
   end
 
+  # If we do this via Class.new, it prints warning...
+  class LLRB::ClassVariableTest
+    def self.test_getclassvariable
+      @@a = 1
+      @@a
+    end
+
+    def self.test_setclassvariable
+      @@b = 2
+    end
+  end
+
   specify 'getclassvariable' do
-    result = ClassVariableTest.test_getclassvariable
-    expect(LLRB::JIT.compile(ClassVariableTest, :test_getclassvariable)).to eq(true)
-    expect(ClassVariableTest.test_getclassvariable).to eq(result)
+    result = LLRB::ClassVariableTest.test_getclassvariable
+    expect(LLRB::JIT.compile(LLRB::ClassVariableTest, :test_getclassvariable)).to eq(true)
+    expect(LLRB::ClassVariableTest.test_getclassvariable).to eq(result)
   end
 
   specify 'setclassvariable' do
-    result = ClassVariableTest.test_setclassvariable
-    expect(LLRB::JIT.compile(ClassVariableTest, :test_setclassvariable)).to eq(true)
-    expect(ClassVariableTest.test_setclassvariable).to eq(result)
+    result = LLRB::ClassVariableTest.test_setclassvariable
+    expect(LLRB::JIT.compile(LLRB::ClassVariableTest, :test_setclassvariable)).to eq(true)
+    expect(LLRB::ClassVariableTest.test_setclassvariable).to eq(result)
   end
 
   specify 'getconstant' do

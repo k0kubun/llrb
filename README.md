@@ -52,7 +52,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 
 ## Supported Iseq instructions
 
-93/93 (100.0%)
+87/93 (93.5%)
 
 ### nop
 - [x] nop
@@ -90,7 +90,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] toregexp
 - [x] newarray
 - [x] duparray
-- [!] expandarray
+- [ ] expandarray
 - [x] concatarray
 - [x] splatarray
 - [x] newhash
@@ -101,8 +101,8 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] dup
 - [x] dupn
 - [x] swap
-- [!] reverse
-- [!] reput
+- [ ] reverse
+- [ ] reput
 - [x] topn
 - [x] setn
 - [x] adjuststack
@@ -114,7 +114,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] trace
 
 ### class/module
-- [!] defineclass
+- [ ] defineclass
 
 ### method/iterator
 - [x] send
@@ -127,10 +127,10 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_newarray\_max
 - [x] opt\_newarray\_min
 - [x] opt\_send\_without\_block
-- [!] getinlinecache
-- [!] setinlinecache
-- [!] once
-- [!] opt\_case\_dispatch
+- [x] getinlinecache
+- [x] setinlinecache
+- [ ] once
+- [x] opt\_case\_dispatch
 - [x] opt\_plus
 - [x] opt\_minus
 - [x] opt\_mult
@@ -154,7 +154,7 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] opt\_not
 - [x] opt\_regexpmatch1
 - [x] opt\_regexpmatch2
-- [!] opt\_call\_c\_function
+- [ ] opt\_call\_c\_function
 
 ### exception
 - [x] throw

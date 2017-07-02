@@ -1,5 +1,3 @@
-require 'pry'
-
 RSpec.describe 'llrb_compile_iseq' do
   def test_compile(*args, &block)
     ruby = Class.new
