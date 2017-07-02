@@ -651,9 +651,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // //  ;
     // //  break;
     // //}
-    // case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
-    //   llrb_stack_push(stack, llrb_value(INT2FIX(0)));
-    //   break;
+    case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
+      llrb_stack_push(stack, llrb_value(INT2FIX(0)));
+      break;
     case YARVINSN_putobject_OP_INT2FIX_O_1_C_:
       llrb_stack_push(stack, llrb_value(INT2FIX(1)));
       break;

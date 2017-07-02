@@ -85,13 +85,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { print }
   # end
 
-  # specify 'putobject' do
-  #   test_compile { true }
-  #   test_compile { false }
-  #   test_compile { 100 }
-  #   test_compile { :hello }
-  #   test_compile { (1..2) }
-  # end
+  specify 'putobject' do
+    test_compile { true }
+    test_compile { false }
+    test_compile { 100 }
+    test_compile { :hello }
+    test_compile { (1..2) }
+  end
 
   # specify 'putspecialobject' do
   #   test_compile do
@@ -718,11 +718,11 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # # specify 'setlocal_OP__WC__1' do
 
-  # specify 'putobject_OP_INT2FIX_O_0_C_' do
-  #   test_compile { 0 }
-  # end
+  specify 'putobject_OP_INT2FIX_O_0_C_' do
+    test_compile { 0 }
+  end
 
-  # specify 'putobject_OP_INT2FIX_O_1_C_' do
-  #   test_compile { 1 }
-  # end
+  specify 'putobject_OP_INT2FIX_O_1_C_' do
+    test_compile { 1 }
+  end
 end
