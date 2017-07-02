@@ -27,8 +27,8 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { nil rescue true }
   end
 
-  # # specify 'getlocal' do
-  # # specify 'setlocal' do
+  # specify 'getlocal' do
+  # specify 'setlocal' do
 
   # specify 'getspecial' do
   #   test_compile { $1 }
@@ -582,9 +582,9 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'opt_minus' do
-  #   test_compile(2, 1) { |a, b| a-b }
-  # end
+  specify 'opt_minus' do
+    test_compile(2, 1) { |a, b| a-b }
+  end
 
   # specify 'opt_mult' do
   #   test_compile { 3 * 2 * 1 }
@@ -697,26 +697,26 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { 'true' =~ /true/ }
   # end
 
-  # # specify 'opt_call_c_function' do
+  # specify 'opt_call_c_function' do
 
-  # specify 'getlocal_OP__WC__0' do
-  #   test_compile(1) { |a| a }
-  # end
+  specify 'getlocal_OP__WC__0' do
+    test_compile(1) { |a| a }
+  end
 
-  # # specify 'getlocal_OP__WC__1' do
+  # specify 'getlocal_OP__WC__1' do
 
-  # specify 'setlocal_OP__WC__0' do
-  #   test_compile(1) do |a|
-  #     a = 2
-  #   end
-  #   test_compile do
-  #     a = 4
-  #     b = 3
-  #     a - b
-  #   end
-  # end
+  specify 'setlocal_OP__WC__0' do
+    test_compile(1) do |a|
+      a = 2
+    end
+    test_compile do
+      a = 4
+      b = 3
+      a - b
+    end
+  end
 
-  # # specify 'setlocal_OP__WC__1' do
+  # specify 'setlocal_OP__WC__1' do
 
   specify 'putobject_OP_INT2FIX_O_0_C_' do
     test_compile { 0 }

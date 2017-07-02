@@ -5,19 +5,29 @@
 #pragma clang diagnostic pop
 #include "cruby/probes_helper.h"
 
-//VALUE
-//llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
-//{
-//  return *(cfp->ep - idx);
-//}
-//
-//void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
-//void
-//llrb_insn_setlocal_level0(rb_control_frame_t *cfp, lindex_t idx, VALUE val)
-//{
-//  rb_vm_env_write(cfp->ep, -(int)idx, val);
-//}
-//
+static inline VALUE
+_llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
+{
+  return *(cfp->ep - idx);
+}
+VALUE
+llrb_insn_getlocal_level0(VALUE cfp, lindex_t idx)
+{
+  return _llrb_insn_getlocal_level0((rb_control_frame_t *)cfp, idx);
+}
+
+void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
+static inline void
+_llrb_insn_setlocal_level0(rb_control_frame_t *cfp, lindex_t idx, VALUE val)
+{
+  rb_vm_env_write(cfp->ep, -(int)idx, val);
+}
+void
+llrb_insn_setlocal_level0(VALUE cfp, lindex_t idx, VALUE val)
+{
+  return _llrb_insn_setlocal_level0((rb_control_frame_t *)cfp, idx, val);
+}
+
 //// TODO: This can be optimized on runtime...
 //VALUE
 //llrb_self_from_cfp(rb_control_frame_t *cfp)
@@ -173,15 +183,15 @@ llrb_insn_opt_plus(VALUE lhs, VALUE rhs)
   return rb_funcall(lhs, '+', 1, rhs);
 }
 
-//VALUE
-//llrb_insn_opt_minus(VALUE lhs, VALUE rhs)
-//{
-//  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_MINUS, INTEGER_REDEFINED_OP_FLAG)) {
-//    return LONG2NUM(FIX2LONG(lhs) - FIX2LONG(rhs));
-//  }
-//  return rb_funcall(lhs, '-', 1, rhs);
-//}
-//
+VALUE
+llrb_insn_opt_minus(VALUE lhs, VALUE rhs)
+{
+  if (FIXNUM_2_P(lhs, rhs) && BASIC_OP_UNREDEFINED_P(BOP_MINUS, INTEGER_REDEFINED_OP_FLAG)) {
+    return LONG2NUM(FIX2LONG(lhs) - FIX2LONG(rhs));
+  }
+  return rb_funcall(lhs, '-', 1, rhs);
+}
+
 //VALUE
 //llrb_insn_opt_lt(VALUE lhs, VALUE rhs)
 //{
@@ -303,7 +313,6 @@ _llrb_insn_trace(rb_thread_t *th, rb_control_frame_t *cfp, rb_event_flag_t flag,
   // Especially for :line event. We may need to update program counter.
   EXEC_EVENT_HOOK(th, flag, cfp->self, 0, 0, 0 /* id and klass are resolved at callee */, val);
 }
-
 void
 llrb_insn_trace(VALUE th, VALUE cfp, rb_event_flag_t flag, VALUE val)
 {
