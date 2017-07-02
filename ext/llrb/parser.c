@@ -5,13 +5,8 @@
 #include <stdio.h>
 #include "cfg.h"
 #include "cruby.h"
-#include "cruby_extra/insns.inc"
-#include "cruby_extra/insns_info.inc"
 
 static VALUE rb_eParseError;
-
-// Not using `rb_iseq_original_iseq` to avoid unnecessary memory allocation.
-extern int rb_vm_insn_addr2insn(const void *addr);
 
 // Return sorted unique Ruby array of Basic Block start positions. Example: [0, 2, 8].
 //
@@ -22,6 +17,8 @@ extern int rb_vm_insn_addr2insn(const void *addr);
 static VALUE
 llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
+  // XXX: No need to check leave? leave is always in the end?
+
   // Rule 1
   VALUE starts = rb_ary_new_capa(1);
   rb_ary_push(starts, INT2FIX(0));
@@ -61,52 +58,6 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
   starts = rb_ary_sort_bang(starts);
   rb_funcall(starts, rb_intern("uniq!"), 0);
   return starts;
-}
-
-static void
-llrb_disasm_insns(const struct rb_iseq_constant_body *body, unsigned int start, unsigned int end)
-{
-  for (unsigned int i = start; i <= end;) {
-    int insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[i]);
-    fprintf(stderr, "  %04d %-27s [%-4s] ", i, insn_name(insn), insn_op_types(insn));
-
-    for (int j = 1; j < insn_len(insn); j++) {
-      VALUE op = body->iseq_encoded[i+j];
-      switch (insn_op_type(insn, j-1)) {
-        case TS_NUM:
-          fprintf(stderr, "%-4ld ", (rb_num_t)op);
-          break;
-        case TS_OFFSET:
-          fprintf(stderr, "%"PRIdVALUE" ", (VALUE)(i + j + op + 1));
-          break;
-      }
-    }
-    fprintf(stderr, "\n");
-    i += insn_len(insn);
-  }
-  fprintf(stderr, "\n");
-}
-
-static void
-llrb_dump_cfg(const struct rb_iseq_constant_body *body, const struct llrb_cfg *cfg)
-{
-  fprintf(stderr, "\n== cfg: LLRB ================================\n");
-  for (unsigned int i = 0; i < cfg->size; i++) {
-    struct llrb_basic_block *block = cfg->blocks + i;
-    fprintf(stderr, "BasicBlock[%d-%d]", block->start, block->end);
-
-    if (block->incoming_size > 0) fprintf(stderr, " <- ");
-    if (!block->traversed) fprintf(stderr, " UNREACHABLE");
-    for (unsigned int j = 0; j < block->incoming_size; j++) {
-      fprintf(stderr, "%d", block->incoming_starts[j]);
-      if (j != block->incoming_size-1) {
-        fprintf(stderr, ", ");
-      }
-    }
-
-    fprintf(stderr, "\n");
-    llrb_disasm_insns(body, block->start, block->end);
-  }
 }
 
 static unsigned int
@@ -180,6 +131,7 @@ llrb_set_incoming_blocks_by(const struct rb_iseq_constant_body *body, struct llr
   struct llrb_basic_block *last_block = cfg->blocks + (cfg->size-1);
   if (block < last_block) next_block = block + 1;
 
+  // XXX: No need to check leave? leave is always in the end?
   int end_insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[block->end]);
   switch (end_insn) {
     case YARVINSN_branchnil:
@@ -229,7 +181,7 @@ llrb_parse_iseq(const struct rb_iseq_constant_body *body, struct llrb_cfg *cfg)
 {
   llrb_create_basic_blocks(body, cfg);
   llrb_set_incoming_blocks(body, cfg);
-  if (1) llrb_dump_cfg(body, cfg);
+  if (0) llrb_dump_cfg(body, cfg);
 }
 
 void

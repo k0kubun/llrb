@@ -1,10 +1,11 @@
 /*
- * funcs.h: Has external function declaration called by JIT-ed code.
+ * compiler/funcs.h: External function declaration called by JIT-ed code.
+ * This header is used only by compiler.c.
  * TODO: Automatically generate this from something.
  */
 
-#ifndef LLRB_FUNCS_H
-#define LLRB_FUNCS_H
+#ifndef LLRB_COMPILER_FUNCS_H
+#define LLRB_COMPILER_FUNCS_H
 
 #define LLRB_EXTERN_FUNC_MAX_ARGC 6
 struct llrb_extern_func {
@@ -62,8 +63,6 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
 };
 static size_t llrb_extern_func_num = sizeof(llrb_extern_funcs) / sizeof(struct llrb_extern_func);
 
-static VALUE rb_eCompileError;
-
 static inline LLVMTypeRef
 llrb_num_to_type(unsigned int num)
 {
@@ -101,4 +100,4 @@ llrb_get_function(LLVMModuleRef mod, const char *name)
   rb_raise(rb_eCompileError, "'%s' is not defined in llrb_extern_funcs", name);
 }
 
-#endif // LLRB_FUNCS_H
+#endif // LLRB_COMPILER_FUNCS_H
