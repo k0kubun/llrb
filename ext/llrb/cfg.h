@@ -12,7 +12,7 @@ struct llrb_basic_block {
   unsigned int start;            // Start index of ISeq body's iseq_encoded.
   unsigned int end;              // End index of ISeq body's iseq_encoded.
   unsigned int incoming_size;    // Size of incoming_starts.
-  unsigned int *incoming_starts; // Start indices of incoming basic blocks.
+  unsigned int *incoming_starts; // Start indices of incoming basic blocks. This buffer is freed by llrb_destruct_cfg.
   bool traversed; // Used by `llrb_set_incoming_blocks_by` to prevent infinite recursion by circular reference.
 
   // Fields set by compiler:
@@ -21,7 +21,7 @@ struct llrb_basic_block {
 
 // Holds Control-Flow-Graph-like data structure. Actually it's a buffer of graph nodes.
 struct llrb_cfg {
-  struct llrb_basic_block* blocks;
+  struct llrb_basic_block* blocks; // This buffer is freed by llrb_destruct_cfg.
   unsigned int size;
 };
 

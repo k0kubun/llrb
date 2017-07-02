@@ -20,7 +20,7 @@ llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
   // XXX: No need to check leave? leave is always in the end?
 
   // Rule 1
-  VALUE starts = rb_ary_new_capa(1);
+  VALUE starts = rb_ary_new_capa(1); // `rb_ary_free`d in llrb_create_basic_blocks.
   rb_ary_push(starts, INT2FIX(0));
 
   for (unsigned int i = 0; i < body->iseq_size;) {
@@ -95,6 +95,7 @@ llrb_create_basic_blocks(const struct rb_iseq_constant_body *body, struct llrb_c
       .traversed = false,
     };
   }
+  rb_ary_free(starts);
   RB_GC_GUARD(starts);
 }
 
@@ -103,10 +104,10 @@ llrb_push_incoming_start(struct llrb_basic_block *block, unsigned int start)
 {
   block->incoming_size++;
   if (block->incoming_size == 1) {
-    block->incoming_starts = (unsigned int *)xmalloc(sizeof(unsigned int));
+    block->incoming_starts = (unsigned int *)xmalloc(sizeof(unsigned int)); // freed in llrb_destruct_cfg
   } else {
     block->incoming_starts = (unsigned int *)xrealloc(
-        block->incoming_starts, block->incoming_size * sizeof(unsigned int));
+        block->incoming_starts, block->incoming_size * sizeof(unsigned int)); // freed in llrb_destruct_cfg
   }
   block->incoming_starts[block->incoming_size-1] = start;
 }

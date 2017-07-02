@@ -2,6 +2,7 @@
  * compiler.c: Compiles encoded YARV instructions structured as Control Flow Graph to LLVM IR.
  */
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
 #include "llvm-c/BitReader.h"
@@ -40,39 +41,21 @@ llrb_get_cfp(const struct llrb_compiler *c)
   return LLVMGetParam(c->func, 1);
 }
 
-static LLVMModuleRef
-llrb_build_initial_module()
+static LLVMValueRef
+llrb_call_func(const struct llrb_compiler *c, const char *funcname, unsigned argc, ...)
 {
-  LLVMMemoryBufferRef buf;
-  char *err;
-  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
-    rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, argc); // `xfree`d in the end of this function.
+
+  va_list ar;
+  va_start(ar, argc);
+  for (unsigned i = 0; i < argc; i++) {
+    args[i] = va_arg(ar, LLVMValueRef);
   }
+  va_end(ar);
 
-  LLVMModuleRef ret;
-  if (LLVMParseBitcode2(buf, &ret)) {
-    rb_raise(rb_eCompileError, "LLVMParseBitcode2 Failed!");
-  }
-  LLVMDisposeMemoryBuffer(buf);
-  return ret; // LLVMModuleCreateWithName("llrb");
-}
-
-//static LLVMValueRef
-//llrb_plus(const struct llrb_compiler *c, LLVMValueRef lhs, LLVMValueRef rhs)
-//{
-//  LLVMValueRef args[] = { lhs, rhs };
-//  return LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_plus"), args, 2, "");
-//}
-
-static LLVMBasicBlockRef
-llrb_build_basic_block(const struct llrb_compiler *c, const struct llrb_basic_block *basic_block)
-{
-  VALUE label = rb_str_new_cstr("label_");
-  rb_str_catf(label, "%d", basic_block->start);
-
-  LLVMBasicBlockRef block = LLVMAppendBasicBlock(c->func, RSTRING_PTR(label));
-  rb_str_free(label);
-  return block;
+  LLVMValueRef ret = LLVMBuildCall(c->builder, llrb_get_function(c->mod, funcname), args, argc, "");
+  xfree(args);
+  return ret;
 }
 
 // @return true if the IR compiled from given insn includes `ret` instruction. In that case, next block won't be compiled.
@@ -330,9 +313,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_trace: {
       rb_event_flag_t flag = (rb_event_flag_t)((rb_num_t)operands[0]);
       LLVMValueRef val = (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? stack->body[stack->size-1] : llrb_value(Qundef);
-
-      LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), LLVMConstInt(LLVMInt32Type(), flag, false), val };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_trace"), args, 4, "");
+      llrb_call_func(c, "llrb_insn_trace", 4, llrb_get_thread(c), llrb_get_cfp(c), LLVMConstInt(LLVMInt32Type(), flag, false), val);
       break;
     }
     // //case YARVINSN_defineclass: {
@@ -424,8 +405,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
         rb_raise(rb_eCompileError, "unexpected stack size at leave: %d", stack->size);
       }
 
-      LLVMValueRef args[] = { llrb_get_cfp(c), llrb_stack_pop(stack) };
-      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_push_result"), args, 2, "");
+      llrb_call_func(c, "llrb_push_result", 2, llrb_get_cfp(c), llrb_stack_pop(stack));
       LLVMBuildRet(c->builder, llrb_get_cfp(c));
       return true;
     // case YARVINSN_throw: {
@@ -552,10 +532,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_pop(stack); // TODO: implement
     //   break;
     case YARVINSN_opt_plus: {
-      //llrb_stack_push(stack, llrb_compile_funcall(c, stack, '+', 1));
-      LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-      args[0] = llrb_stack_pop(stack);
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_plus"), args, 2, "opt_plus"));
+      LLVMValueRef rhs = llrb_stack_pop(stack);
+      LLVMValueRef lhs = llrb_stack_pop(stack);
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_plus", 2, lhs, rhs));
       break;
     }
     // case YARVINSN_opt_minus: {
@@ -679,11 +658,22 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_value(INT2FIX(1)));
       break;
     default:
-      //llrb_disasm_insns(c->body);
+      llrb_dump_cfg(c->body, c->cfg);
       rb_raise(rb_eCompileError, "Unhandled insn at llrb_compile_insn: %s", insn_name(insn));
       break;
   }
   return false;
+}
+
+static LLVMBasicBlockRef
+llrb_build_basic_block(const struct llrb_compiler *c, const struct llrb_basic_block *basic_block)
+{
+  VALUE label = rb_str_new_cstr("label_"); // `rb_str_free`d in the end of this function.
+  rb_str_catf(label, "%d", basic_block->start);
+
+  LLVMBasicBlockRef block = LLVMAppendBasicBlock(c->func, RSTRING_PTR(label));
+  rb_str_free(label);
+  return block;
 }
 
 static void
@@ -728,7 +718,7 @@ llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, st
     .mod = mod,
   };
   struct llrb_stack stack = (struct llrb_stack){
-    .body = xcalloc(body->stack_max, sizeof(LLVMValueRef)),
+    .body = ALLOC_N(LLVMValueRef, body->stack_max), // `xfree`d in the end of this function.
     .size = 0,
     .max  = body->stack_max,
   };
@@ -736,7 +726,36 @@ llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, st
   // To simulate YARV stack, we need to traverse CFG again here instead of loop from start to end.
   llrb_compile_basic_block(&compiler, cfg->blocks, &stack);
 
+  xfree(stack.body);
   return func;
+}
+
+// This sweaps memory `xmalloc`ed by llrb_create_basic_blocks.
+static void
+llrb_destruct_cfg(struct llrb_cfg *cfg)
+{
+  for (unsigned int i = 0; i < cfg->size; i++) {
+    struct llrb_basic_block *block = cfg->blocks + i;
+    xfree(block->incoming_starts);
+  }
+  xfree(cfg->blocks);
+}
+
+static LLVMModuleRef
+llrb_build_initial_module()
+{
+  LLVMMemoryBufferRef buf;
+  char *err;
+  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
+    rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
+  }
+
+  LLVMModuleRef ret;
+  if (LLVMParseBitcode2(buf, &ret)) {
+    rb_raise(rb_eCompileError, "LLVMParseBitcode2 Failed!");
+  }
+  LLVMDisposeMemoryBuffer(buf);
+  return ret; // LLVMModuleCreateWithName("llrb");
 }
 
 // In this function, LLRB has following dependency tree without mutual dependencies:
@@ -752,13 +771,14 @@ llrb_compile_iseq(const struct rb_iseq_constant_body *body, const char* funcname
 
   LLVMModuleRef mod = llrb_build_initial_module();
   LLVMValueRef func = llrb_compile_cfg(mod, body, &cfg, funcname);
-  // TODO: destruct cfg
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   if (1) llrb_optimize_function(mod, func);
 
   if (0) llrb_dump_cfg(body, &cfg);
   if (0) LLVMDumpModule(mod);
+
+  llrb_destruct_cfg(&cfg);
   return mod;
 }
 
