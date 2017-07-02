@@ -382,17 +382,17 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'jump' do
-  #   test_compile(true) { |a| 1 if a }
-  #   test_compile(nil) { |a| while a; end }
-  # end
+  #specify 'jump' do
+  #  test_compile(true) { |a| 1 if a }
+  #  test_compile(nil) { |a| while a; end }
+  #end
 
   specify 'branchif' do
     test_compile(false, 1) { |a, b| a || b }
     test_compile(1, 2) { |a, b| a || b }
-    #test_compile(false) do |a|
-    #  1+1 while a
-    #end
+    test_compile(false) do |a|
+      1+1 while a
+    end
   end
 
   # specify 'branchunless' do

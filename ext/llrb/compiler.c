@@ -481,29 +481,19 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   return true;
     //   break;
     // }
-    // case YARVINSN_jump: {
-    //   unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
-    //   LLVMBasicBlockRef next_block = llrb_build_block(c, dest);
+    case YARVINSN_jump: {
+      unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
+      struct llrb_basic_block *next_block = llrb_find_block(c->cfg, dest);
 
-    //   // If stack is empty, don't create phi.
-    //   if (stack->size == 0) {
-    //     LLVMBuildBr(c->builder, next_block);
-    //     llrb_compile_basic_block(c, 0, dest);
-    //     return true;
-    //   }
+      LLVMBuildBr(c->builder, next_block->ref);
+      *created_br = true;
 
-    //   LLVMValueRef phi = c->blocks[dest].phi;
-    //   if (phi == 0) {
-    //     llrb_push_incoming_things(&c->blocks[dest], LLVMGetInsertBlock(c->builder), llrb_stack_pop(stack));
-    //   } else {
-    //     LLVMValueRef values[] = { llrb_stack_pop(stack) };
-    //     LLVMBasicBlockRef blocks[] = { LLVMGetInsertBlock(c->builder) };
-    //     LLVMAddIncoming(phi, values, blocks, 1);
-    //   }
-
-    //   LLVMBuildBr(c->builder, next_block);
-    //   return true;
-    // }
+      if (next_block->incoming_size > 1 && stack->size > 0) {
+        llrb_push_incoming_things(c, next_block, LLVMGetInsertBlock(c->builder), llrb_stack_pop(stack));
+      }
+      llrb_compile_basic_block(c, next_block, stack);
+      return true;
+    }
     case YARVINSN_branchif: {
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
