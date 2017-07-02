@@ -510,16 +510,15 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_call_func(c, "llrb_push_result", 2, llrb_get_cfp(c), llrb_stack_pop(stack));
       LLVMBuildRet(c->builder, llrb_get_cfp(c));
       return true;
-    // case YARVINSN_throw: {
-    //   LLVMValueRef args[] = { llrb_get_thread(c), llrb_get_cfp(c), llrb_value((rb_num_t)operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_throw"), args, 4, "");
+    case YARVINSN_throw: {
+      llrb_call_func(c, "llrb_insn_throw", 4, llrb_get_thread(c), llrb_get_cfp(c),
+          llrb_value((rb_num_t)operands[0]), llrb_stack_pop(stack));
 
-    //   // In opt_call_c_function, if we return 0, we can throw error fron th->errinfo.
-    //   // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2147-L2151
-    //   LLVMBuildRet(c->builder, llrb_value(0));
-    //   return true;
-    //   break;
-    // }
+      // In opt_call_c_function, if we return 0, we can throw error fron th->errinfo.
+      // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L2147-L2151
+      LLVMBuildRet(c->builder, llrb_value(0));
+      return true;
+    }
     case YARVINSN_jump: {
       unsigned dest = pos + (unsigned)insn_len(insn) + operands[0];
       struct llrb_basic_block *next_block = llrb_find_block(c->cfg, dest);

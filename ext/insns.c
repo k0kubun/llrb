@@ -240,14 +240,16 @@ llrb_push_result(VALUE cfp, VALUE result)
   _llrb_push_result((rb_control_frame_t *)cfp, result);
 }
 
-//VALUE vm_throw(rb_thread_t *th, rb_control_frame_t *reg_cfp, rb_num_t throw_state, VALUE throwobj);
-//void
-//llrb_insn_throw(rb_thread_t *th, rb_control_frame_t *cfp, rb_num_t throw_state, VALUE throwobj)
-//{
-//  RUBY_VM_CHECK_INTS(th);
-//  th->errinfo = vm_throw(th, cfp, throw_state, throwobj);
-//}
-//
+VALUE vm_throw(rb_thread_t *th, rb_control_frame_t *reg_cfp, rb_num_t throw_state, VALUE throwobj);
+void
+llrb_insn_throw(VALUE th_value, VALUE cfp_value, rb_num_t throw_state, VALUE throwobj)
+{
+  rb_thread_t *th = (rb_thread_t *)th_value;
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_value;
+  RUBY_VM_CHECK_INTS(th);
+  th->errinfo = vm_throw(th, cfp, throw_state, throwobj);
+}
+
 //// TODO: Use vm_check_keyword after Ruby 2.5
 //VALUE
 //llrb_insn_checkkeyword(rb_control_frame_t *cfp, lindex_t kw_bits_index, rb_num_t keyword_index)
