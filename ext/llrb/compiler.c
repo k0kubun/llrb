@@ -686,19 +686,20 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getlocal_level0", 2, llrb_get_cfp(c), llrb_value((lindex_t)operands[0])));
       break;
     }
-    //case YARVINSN_getlocal_OP__WC__1: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_getlocal_OP__WC__1: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getlocal_level1", 2, llrb_get_cfp(c), llrb_value((lindex_t)operands[0])));
+      break;
+    }
     case YARVINSN_setlocal_OP__WC__0: {
       LLVMValueRef idx = llrb_value((lindex_t)operands[0]);
       llrb_call_func(c, "llrb_insn_setlocal_level0", 3, llrb_get_cfp(c), idx, llrb_stack_pop(stack));
       break;
     }
-    //case YARVINSN_setlocal_OP__WC__1: {
-    //  ;
-    //  break;
-    //}
+    case YARVINSN_setlocal_OP__WC__1: {
+      LLVMValueRef idx = llrb_value((lindex_t)operands[0]);
+      llrb_call_func(c, "llrb_insn_setlocal_level1", 3, llrb_get_cfp(c), idx, llrb_stack_pop(stack));
+      break;
+    }
     case YARVINSN_putobject_OP_INT2FIX_O_0_C_:
       llrb_stack_push(stack, llrb_value(INT2FIX(0)));
       break;

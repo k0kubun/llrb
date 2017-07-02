@@ -25,6 +25,8 @@
 #define FLONUM_2_P(a, b) 0
 #endif
 
+#define GET_PREV_EP(ep)                ((VALUE *)((ep)[VM_ENV_DATA_INDEX_SPECVAL] & ~0x03))
+
 /* end vm_insnhelper.h */
 
 #endif // LLRB_CRUBY_H

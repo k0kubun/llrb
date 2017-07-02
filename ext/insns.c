@@ -5,27 +5,33 @@
 #pragma clang diagnostic pop
 #include "cruby/probes_helper.h"
 
-static inline VALUE
-_llrb_insn_getlocal_level0(rb_control_frame_t *cfp, lindex_t idx)
+VALUE
+llrb_insn_getlocal_level0(VALUE cfp_v, lindex_t idx)
 {
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
   return *(cfp->ep - idx);
 }
+
 VALUE
-llrb_insn_getlocal_level0(VALUE cfp, lindex_t idx)
+llrb_insn_getlocal_level1(VALUE cfp_v, lindex_t idx)
 {
-  return _llrb_insn_getlocal_level0((rb_control_frame_t *)cfp, idx);
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+  return *(GET_PREV_EP(cfp->ep) - idx);
 }
 
 void rb_vm_env_write(const VALUE *ep, int index, VALUE v);
-static inline void
-_llrb_insn_setlocal_level0(rb_control_frame_t *cfp, lindex_t idx, VALUE val)
+void
+llrb_insn_setlocal_level0(VALUE cfp_v, lindex_t idx, VALUE val)
 {
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
   rb_vm_env_write(cfp->ep, -(int)idx, val);
 }
+
 void
-llrb_insn_setlocal_level0(VALUE cfp, lindex_t idx, VALUE val)
+llrb_insn_setlocal_level1(VALUE cfp_v, lindex_t idx, VALUE val)
 {
-  return _llrb_insn_setlocal_level0((rb_control_frame_t *)cfp, idx, val);
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+  rb_vm_env_write(GET_PREV_EP(cfp->ep), -(int)idx, val);
 }
 
 static inline VALUE

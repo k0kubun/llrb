@@ -705,7 +705,25 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(1) { |a| a }
   end
 
-  # specify 'getlocal_OP__WC__1' do
+  specify 'getlocal_OP__WC__1' do
+    compiled = false
+    klass1 = Class.new
+    klass1.send(:define_singleton_method, :test) do |&block|
+      compiled = LLRB::JIT.compile_proc(block)
+      block.call
+    end
+
+    klass2 = Class.new
+    klass2.send(:define_singleton_method, :test) do
+      a = 1
+      klass1.test do
+        a * 2
+      end
+    end
+
+    expect(klass2.test).to eq(2)
+    expect(compiled).to eq(true)
+  end
 
   specify 'setlocal_OP__WC__0' do
     test_compile(1) do |a|
@@ -718,7 +736,27 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'setlocal_OP__WC__1' do
+  specify 'setlocal_OP__WC__1' do
+    compiled = false
+    klass1 = Class.new
+    klass1.send(:define_singleton_method, :test) do |&block|
+      compiled = LLRB::JIT.compile_proc(block)
+      block.call
+    end
+
+    klass2 = Class.new
+    klass2.send(:define_singleton_method, :test) do
+      a = 2
+      b = 1
+      klass1.test do
+        b = b + 2
+        a * b
+      end
+    end
+
+    expect(klass2.test).to eq(6)
+    expect(compiled).to eq(true)
+  end
 
   specify 'putobject_OP_INT2FIX_O_0_C_' do
     test_compile { 0 }

@@ -8,8 +8,11 @@ module LLRB
     # @param [String,Symbol] method - precompiled method name
     # @return [Boolean] - return true if precompiled
     def self.compile(recv, name)
-      method = recv.method(name)
-      iseqw = RubyVM::InstructionSequence.of(method)
+      compile_proc(recv.method(name))
+    end
+
+    def self.compile_proc(func)
+      iseqw = RubyVM::InstructionSequence.of(func)
       return false if iseqw.nil? # method defined with C function can't be compiled
 
       compile_iseq(iseqw)
