@@ -33,4 +33,11 @@ llrb_stack_pop(struct llrb_stack *stack)
   return stack->body[stack->size];
 }
 
+static inline LLVMValueRef
+llrb_stack_topn(struct llrb_stack *stack, unsigned int n)
+{
+  unsigned int last = stack->size - 1;
+  return stack->body[last - n];
+}
+
 #endif // LLRB_COMPILER_STACK_H

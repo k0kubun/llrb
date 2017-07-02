@@ -149,15 +149,15 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { [*''] }
   # end
 
-  # specify 'newhash' do
-  #   test_compile(1) do |a|
-  #     { a: a }
-  #   end
+  specify 'newhash' do
+    test_compile(1) do |a|
+      { a: a }
+    end
 
-  #   test_compile(1, 2) do |a, b|
-  #     { a: a, b: b }.to_a
-  #   end
-  # end
+    test_compile(1, 2) do |a, b|
+      { a: a, b: b }.to_a
+    end
+  end
 
   # specify 'newrange' do
   #   test_compile(1) do |x|
@@ -183,23 +183,23 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'swap' do
-  #   test_compile do
-  #     {}['true'] = true
-  #   end
-  # end
+  specify 'swap' do
+    test_compile do
+      {}['true'] = true
+    end
+  end
 
-  # #specify 'reverse' do
-  # #  test_compile do
-  # #    q, (w, e), r = 1, [2, 3], 4; e == 3
-  # #  end
-  # #end
+  #specify 'reverse' do
+  #  test_compile do
+  #    q, (w, e), r = 1, [2, 3], 4; e == 3
+  #  end
+  #end
 
   # specify 'reput' do
 
-  # specify 'topn' do
-  #   test_compile { {}['true'] = true }
-  # end
+  specify 'topn' do
+    test_compile { {}['true'] = true }
+  end
 
   specify 'setn' do
     test_compile { [nil][0] = 1 }
@@ -653,15 +653,15 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [nil][0] = 1 }
   end
 
-  # specify 'opt_aset_with' do
-  #   test_compile { {}['true'] = true }
-  # end
+  specify 'opt_aset_with' do
+    test_compile { {}['true'] = true }
+  end
 
-  # specify 'opt_aref_with' do
-  #   test_compile(100) do |x|
-  #     { 'true' => x }['true']
-  #   end
-  # end
+  specify 'opt_aref_with' do
+    test_compile(100) do |x|
+      { 'true' => x }['true']
+    end
+  end
 
   specify 'opt_length' do
     test_compile { [1, nil, false].length }

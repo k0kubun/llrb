@@ -307,23 +307,23 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_splatarray"), args, 2, "splatarray"));
     //   break;
     // }
-    // case YARVINSN_newhash: {
-    //   LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
-    //   LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);
-    //   for (int i = 0; i < (int)operands[0] / 2; i++) {
-    //     values[i] = llrb_stack_pop(stack);
-    //     keys[i]   = llrb_stack_pop(stack);
-    //   }
+    case YARVINSN_newhash: {
+      LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
+      LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);
+      for (int i = 0; i < (int)operands[0] / 2; i++) {
+        values[i] = llrb_stack_pop(stack);
+        keys[i]   = llrb_stack_pop(stack);
+      }
 
-    //   LLVMValueRef result = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_hash_new"), 0, 0, "newhash");
-    //   // reverse set
-    //   for (int i = (int)operands[0] / 2 - 1; 0 <= i; i--) {
-    //     LLVMValueRef args[] = { result, keys[i], values[i] };
-    //     LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_hash_aset"), args, 3, "newhash_aset");
-    //   }
-    //   llrb_stack_push(stack, result);
-    //   break;
-    // }
+      LLVMValueRef result = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_hash_new"), 0, 0, "newhash");
+      // reverse set
+      for (int i = (int)operands[0] / 2 - 1; 0 <= i; i--) {
+        LLVMValueRef args[] = { result, keys[i], values[i] };
+        LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_hash_aset"), args, 3, "newhash_aset");
+      }
+      llrb_stack_push(stack, result);
+      break;
+    }
     // case YARVINSN_newrange: {
     //   LLVMValueRef high = llrb_stack_pop(stack);
     //   LLVMValueRef low  = llrb_stack_pop(stack);
@@ -355,32 +355,32 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   }
     //   break;
     // }
-    // case YARVINSN_swap: {
-    //   LLVMValueRef first  = llrb_stack_pop(stack);
-    //   LLVMValueRef second = llrb_stack_pop(stack);
-    //   llrb_stack_push(stack, first);
-    //   llrb_stack_push(stack, second);
-    //   break;
-    // }
-    // //case YARVINSN_reverse: {
-    // //  rb_num_t n = (rb_num_t)operands[0];
-    // //  unsigned int last = stack->size - 1;
-    // //  unsigned int top_i = last - n;
+    case YARVINSN_swap: {
+      LLVMValueRef first  = llrb_stack_pop(stack);
+      LLVMValueRef second = llrb_stack_pop(stack);
+      llrb_stack_push(stack, first);
+      llrb_stack_push(stack, second);
+      break;
+    }
+    //case YARVINSN_reverse: {
+    //  rb_num_t n = (rb_num_t)operands[0];
+    //  unsigned int last = stack->size - 1;
+    //  unsigned int top_i = last - n;
 
-    // //  for (rb_num_t i = 0; i < n/2; i++) {
-    // //    LLVMValueRef v0 = stack->body[top_i+i];
-    // //    LLVMValueRef v1 = stack->body[last-i];
-    // //    stack->body[top_i+i] = v1;
-    // //    stack->body[last-i]  = v0;
-    // //  }
-    // //  break;
-    // //}
-    // //case YARVINSN_reput:
-    // //  break; // none
-    // case YARVINSN_topn: {
-    //   llrb_stack_push(stack, llrb_topn(stack, (unsigned int)operands[0]));
-    //   break;
-    // }
+    //  for (rb_num_t i = 0; i < n/2; i++) {
+    //    LLVMValueRef v0 = stack->body[top_i+i];
+    //    LLVMValueRef v1 = stack->body[last-i];
+    //    stack->body[top_i+i] = v1;
+    //    stack->body[last-i]  = v0;
+    //  }
+    //  break;
+    //}
+    //case YARVINSN_reput:
+    //  break; // none
+    case YARVINSN_topn: {
+      llrb_stack_push(stack, llrb_stack_topn(stack, (unsigned int)operands[0]));
+      break;
+    }
     case YARVINSN_setn: {
       rb_num_t last = (rb_num_t)stack->size - 1;
       stack->body[last - (rb_num_t)operands[0]] = stack->body[last];
@@ -651,27 +651,24 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_opt_aset:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("[]="), 2));
       break;
-    // case YARVINSN_opt_aset_with: {
-    //   LLVMValueRef value = llrb_stack_pop(stack);
-    //   LLVMValueRef recv  = llrb_stack_pop(stack);
+    case YARVINSN_opt_aset_with: {
+      LLVMValueRef value = llrb_stack_pop(stack);
+      LLVMValueRef recv  = llrb_stack_pop(stack);
+      LLVMValueRef str   = llrb_call_func(c, "rb_str_resurrect", 1, llrb_value(operands[2]));
 
-    //   LLVMValueRef resurrect_args[] = { llrb_value(operands[2]) };
-    //   LLVMValueRef str = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), resurrect_args, 1, "opt_aset_with_3");
+      // Not using llrb_compile_funcall to prevent stack overflow
+      llrb_stack_push(stack, llrb_call_func(c, "rb_funcall", 5, recv,
+            llrb_value(rb_intern("[]=")), LLVMConstInt(LLVMInt32Type(), 2, true), str, value));
+      break;
+    }
+    case YARVINSN_opt_aref_with: {
+      LLVMValueRef str = llrb_call_func(c, "rb_str_resurrect", 1, llrb_value(operands[2]));
 
-    //   // Not using llrb_compile_funcall to prevent stack overflow
-    //   LLVMValueRef args[] = { recv, llrb_value(rb_intern("[]=")), LLVMConstInt(LLVMInt32Type(), 2, true), str, value };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 5, "opt_aset_with"));
-    //   break;
-    // }
-    // case YARVINSN_opt_aref_with: {
-    //   LLVMValueRef resurrect_args[] = { llrb_value(operands[2]) };
-    //   LLVMValueRef str = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), resurrect_args, 1, "opt_aref_with_3");
-
-    //   // Not using llrb_compile_funcall to prevent stack overflow
-    //   LLVMValueRef args[] = { llrb_stack_pop(stack), llrb_value(rb_intern("[]")), LLVMConstInt(LLVMInt32Type(), 1, true), str };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 4, "opt_aref_with"));
-    //   break;
-    // }
+      // Not using llrb_compile_funcall to prevent stack overflow
+      llrb_stack_push(stack, llrb_call_func(c, "rb_funcall", 4, llrb_stack_pop(stack),
+            llrb_value(rb_intern("[]")), LLVMConstInt(LLVMInt32Type(), 1, true), str));
+      break;
+    }
     case YARVINSN_opt_length:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("length"), 0));
       break;
