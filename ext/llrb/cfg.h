@@ -6,6 +6,7 @@
 #define LLRB_CFG_H
 
 #include <stdbool.h>
+#include "llvm-c/Core.h"
 
 struct llrb_basic_block {
   // Fields set by parser:
@@ -13,10 +14,12 @@ struct llrb_basic_block {
   unsigned int end;              // End index of ISeq body's iseq_encoded.
   unsigned int incoming_size;    // Size of incoming_starts.
   unsigned int *incoming_starts; // Start indices of incoming basic blocks. This buffer is freed by llrb_destruct_cfg.
-  bool traversed; // Used by `llrb_set_incoming_blocks_by` to prevent infinite recursion by circular reference.
+  bool traversed;                // Prevents infinite loop in `llrb_set_incoming_blocks_by` and used by compiler to judge reachable or not.
 
   // Fields set by compiler:
-  bool compiled;
+  LLVMBasicBlockRef ref;         // LLVM's actual BasicBlock reference. This value is always available after `llrb_init_cfg_for_compile` is called.
+  LLVMValueRef phi;              // Phi node to collect incoming values. This will be created if incoming_size > 1 and compiled time's stack size > 0.
+  bool compiled;                 // Prevents infinite loop in `llrb_compile_basic_block`.
 };
 
 // Holds Control-Flow-Graph-like data structure. Actually it's a buffer of graph nodes.

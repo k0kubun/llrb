@@ -171,9 +171,9 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile(false, 1) { |a, b| a || b }
   # end
 
-  # specify 'dup' do
-  #   test_compile(1) { |a| a&.+(2) }
-  # end
+  specify 'dup' do
+    test_compile(1) { |a| a&.+(2) }
+  end
 
   # specify 'dupn' do
   #   test_compile(Class.new) do |klass|
@@ -550,12 +550,12 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'branchnil' do
-  #   test_compile(1) { |a| a&.+(2) }
-  #   test_compile(nil) { |a| a&.+(2) }
-  #   test_compile(1) { |a| 2 + a&.+(3) + 4 }
-  #   test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
-  # end
+  specify 'branchnil' do
+    test_compile(1) { |a| a&.+(2) }
+    test_compile(nil) { |a| a&.+(2) }
+    test_compile(1) { |a| 2 + a&.+(3) + 4 }
+    test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
+  end
 
   # specify 'getinlinecache' do
   #   test_compile { Struct }
