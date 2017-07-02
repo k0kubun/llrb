@@ -261,42 +261,42 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'checkkeyword' do
-  #   test_compile(x: true) do |x: rand|
-  #     x
-  #   end
-  # end
+  #specify 'checkkeyword' do
+  #  test_compile(x: true) do |x: rand|
+  #    x
+  #  end
+  #end
 
-  # specify 'trace' do
-  #   test_compile { nil }
-  # end
+  specify 'trace' do
+    test_compile { nil }
+  end
 
-  # # specify 'defineclass' do
+  # specify 'defineclass' do
 
-  # specify 'send' do
-  #   test_compile do
-  #     1.times { 2 }
-  #   end
+  specify 'send' do
+    test_compile do
+      1.times { 2 }
+    end
 
-  #   test_compile do
-  #     [1, 2].inject([]) do |ary, i|
-  #       ary << i
-  #     end
-  #   end
+    test_compile do
+      [1, 2].inject([]) do |ary, i|
+        ary << i
+      end
+    end
 
-  #   klass = Class.new {
-  #     def self.test(a)
-  #       if a > 0
-  #         test(a-1) { 1 } + yield
-  #       else
-  #         0
-  #       end
-  #     end
-  #   }
-  #   result = klass.test(1) { 2 }
-  #   expect(LLRB::JIT.compile(klass, :test)).to eq(true)
-  #   expect(klass.test(1) { 2 }).to eq(result)
-  # end
+    klass = Class.new {
+      def self.test(a)
+        if a > 0
+          test(a-1) { 1 } + yield
+        else
+          0
+        end
+      end
+    }
+    result = klass.test(1) { 2 }
+    expect(LLRB::JIT.compile(klass, :test)).to eq(true)
+    expect(klass.test(1) { 2 }).to eq(result)
+  end
 
   specify 'opt_str_freeze' do
     test_compile { "foo".freeze }
@@ -330,35 +330,35 @@ RSpec.describe 'llrb_compile_iseq' do
     expect(klass.test(1)).to eq(result)
   end
 
-  # specify 'invokesuper' do
-  #   mod = Module.new {
-  #     def test
-  #       super
-  #     end
-  #   }
-  #   klass = Class.new {
-  #     prepend mod
-  #     def test
-  #       1
-  #     end
-  #   }
-  #   object = klass.new
-  #   result = object.test
-  #   expect(LLRB::JIT.compile(object, :test)).to eq(true)
-  #   expect(object.test).to eq(result)
-  # end
+  specify 'invokesuper' do
+    mod = Module.new {
+      def test
+        super
+      end
+    }
+    klass = Class.new {
+      prepend mod
+      def test
+        1
+      end
+    }
+    object = klass.new
+    result = object.test
+    expect(LLRB::JIT.compile(object, :test)).to eq(true)
+    expect(object.test).to eq(result)
+  end
 
-  # specify 'invokeblock' do
-  #   klass = Class.new {
-  #     def test
-  #       1 + yield + 3
-  #     end
-  #   }
-  #   object = klass.new
-  #   result = object.test { 2 }
-  #   expect(LLRB::JIT.compile(object, :test)).to eq(true)
-  #   expect(object.test { 2 }).to eq(result)
-  # end
+  specify 'invokeblock' do
+    klass = Class.new {
+      def test
+        1 + yield + 3
+      end
+    }
+    object = klass.new
+    result = object.test { 2 }
+    expect(LLRB::JIT.compile(object, :test)).to eq(true)
+    expect(object.test { 2 }).to eq(result)
+  end
 
   specify 'leave' do
     test_compile { nil }

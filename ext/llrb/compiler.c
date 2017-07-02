@@ -404,11 +404,11 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkmatch", 3, target, pattern, flag));
       break;
     }
-    // case YARVINSN_checkkeyword: {
-    //   LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkkeyword"), args, 3, "checkkeyword"));
-    //   break;
-    // }
+    //case YARVINSN_checkkeyword: {
+    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkkeyword", 3, llrb_get_cfp(c),
+    //        llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1])));
+    //  break;
+    //}
     case YARVINSN_trace: {
       rb_event_flag_t flag = (rb_event_flag_t)((rb_num_t)operands[0]);
       LLVMValueRef val = (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? stack->body[stack->size-1] : llrb_value(Qundef);
@@ -419,23 +419,23 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //  ;
     //  break;
     //}
-    // case YARVINSN_send: {
-    //   CALL_INFO ci = (CALL_INFO)operands[0];
-    //   unsigned int stack_size = ci->orig_argc + 1;
+    case YARVINSN_send: {
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      unsigned int stack_size = ci->orig_argc + 1;
 
-    //   LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
-    //   args[0] = llrb_get_thread(c);
-    //   args[1] = llrb_get_cfp(c);
-    //   args[2] = llrb_value((VALUE)ci);
-    //   args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
-    //   args[4] = llrb_value((VALUE)((ISEQ)operands[2]));
-    //   args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-    //   for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-    //     args[6 + i] = llrb_stack_pop(stack);
-    //   }
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_send"), args, 6 + stack_size, "send"));
-    //   break;
-    // }
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
+      args[0] = llrb_get_thread(c);
+      args[1] = llrb_get_cfp(c);
+      args[2] = llrb_value((VALUE)ci);
+      args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
+      args[4] = llrb_value((VALUE)((ISEQ)operands[2]));
+      args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+        args[6 + i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_send"), args, 6 + stack_size, "send"));
+      break;
+    }
     case YARVINSN_opt_str_freeze: { // TODO: optimize
       llrb_stack_push(stack, llrb_call_func(c, "rb_funcall", 3, llrb_value(operands[0]),
             llrb_value(rb_intern("freeze")), LLVMConstInt(LLVMInt32Type(), 0, true)));
@@ -468,38 +468,38 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       xfree(args);
       break;
     }
-    // case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
-    //   CALL_INFO ci = (CALL_INFO)operands[0];
-    //   unsigned int stack_size = ci->orig_argc + 1;
+    case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      unsigned int stack_size = ci->orig_argc + 1;
 
-    //   LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
-    //   args[0] = llrb_get_thread(c);
-    //   args[1] = llrb_get_cfp(c);
-    //   args[2] = llrb_value((VALUE)ci);
-    //   args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
-    //   args[4] = llrb_value((VALUE)((ISEQ)operands[2]));
-    //   args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-    //   for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-    //     args[6 + i] = llrb_stack_pop(stack);
-    //   }
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "invokesuper"));
-    //   break;
-    // }
-    // case YARVINSN_invokeblock: {
-    //   CALL_INFO ci = (CALL_INFO)operands[0];
-    //   unsigned int stack_size = ci->orig_argc;
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size);
+      args[0] = llrb_get_thread(c);
+      args[1] = llrb_get_cfp(c);
+      args[2] = llrb_value((VALUE)ci);
+      args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
+      args[4] = llrb_value((VALUE)((ISEQ)operands[2]));
+      args[5] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+        args[6 + i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokesuper"), args, 6 + stack_size, "invokesuper"));
+      break;
+    }
+    case YARVINSN_invokeblock: {
+      CALL_INFO ci = (CALL_INFO)operands[0];
+      unsigned int stack_size = ci->orig_argc;
 
-    //   LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4 + stack_size);
-    //   args[0] = llrb_get_thread(c);
-    //   args[1] = llrb_get_cfp(c);
-    //   args[2] = llrb_value((VALUE)ci);
-    //   args[3] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-    //   for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-    //     args[4 + i] = llrb_stack_pop(stack);
-    //   }
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokeblock"), args, 4 + stack_size, "invokeblock"));
-    //   break;
-    // }
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 4 + stack_size);
+      args[0] = llrb_get_thread(c);
+      args[1] = llrb_get_cfp(c);
+      args[2] = llrb_value((VALUE)ci);
+      args[3] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
+      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
+        args[4 + i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_invokeblock"), args, 4 + stack_size, "invokeblock"));
+      break;
+    }
     case YARVINSN_leave:
       if (stack->size != 1) {
         llrb_dump_cfg(c->body, c->cfg);
