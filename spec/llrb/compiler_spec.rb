@@ -39,13 +39,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { true if nil.nil?..nil.nil? }
   # end
 
-  # specify 'getinstancevariable' do
-  #   test_compile { @a = 1; @a }
-  # end
+  specify 'getinstancevariable' do
+    test_compile { @a = 1; @a }
+  end
 
-  # specify 'setinstancevariable' do
-  #   test_compile { @a = 2 }
-  # end
+  specify 'setinstancevariable' do
+    test_compile { @a = 2 }
+  end
 
   # specify 'getclassvariable' do
   #   result = ClassVariableTest.test_getclassvariable
@@ -69,14 +69,14 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'getglobal' do
-  #   $llrb_gvar_get = 1
-  #   test_compile { $llrb_gvar_get }
-  # end
+  #specify 'getglobal' do
+  #  $llrb_gvar_get = 1
+  #  test_compile { $llrb_gvar_get }
+  #end
 
-  # specify 'setglobal' do
-  #   test_compile { $llrb_gvar_set = 2 }
-  # end
+  #specify 'setglobal' do
+  #  test_compile { $llrb_gvar_set = 2 }
+  #end
 
   specify 'putnil' do
     test_compile { nil }

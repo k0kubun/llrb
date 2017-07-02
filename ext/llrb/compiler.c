@@ -183,16 +183,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "");
     //   break;
     // }
-    // case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
-    //   LLVMValueRef args[] = { llrb_get_self(c), llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_get"), args, 2, "getinstancevariable"));
-    //   break;
-    // }
-    // case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
-    //   LLVMValueRef args[] = { llrb_get_self(c), llrb_value(operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ivar_set"), args, 3, "");
-    //   break;
-    // }
+    case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
+      llrb_stack_push(stack, llrb_call_func(c, "rb_ivar_get", 2, llrb_get_self(c), llrb_value(operands[0])));
+      break;
+    }
+    case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
+      llrb_call_func(c, "rb_ivar_set", 3, llrb_get_self(c), llrb_value(operands[0]), llrb_stack_pop(stack));
+      break;
+    }
     // case YARVINSN_getclassvariable: {
     //   LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value(operands[0]) };
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getclassvariable"), args, 2, "getclassvariable"));
@@ -214,16 +212,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
       break;
     }
-    // case YARVINSN_getglobal: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_get"), args, 1, "getglobal"));
-    //   break;
-    // }
-    // case YARVINSN_setglobal: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_set"), args, 2, "setglobal");
-    //   break;
-    // }
+    //case YARVINSN_getglobal: {
+    //  llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_get", 1, llrb_value(operands[0])));
+    //  break;
+    //}
+    //case YARVINSN_setglobal: {
+    //  llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_set", 2, llrb_value(operands[0]), llrb_stack_pop(stack)));
+    //  break;
+    //}
     case YARVINSN_putnil:
       llrb_stack_push(stack, llrb_value(Qnil));
       break;
