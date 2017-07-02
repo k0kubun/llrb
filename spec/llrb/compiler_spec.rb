@@ -63,11 +63,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { RubyVM::InstructionSequence }
   end
 
-  # specify 'setconstant' do
-  #   test_compile(Class.new) do |klass|
-  #     klass::X = true
-  #   end
-  # end
+  specify 'setconstant' do
+    test_compile(Class.new) do |klass|
+      klass::X = true
+    end
+  end
 
   # specify 'getglobal' do
   #   $llrb_gvar_get = 1
@@ -177,11 +177,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(1) { |a| a&.+(2) }
   end
 
-  # specify 'dupn' do
-  #   test_compile(Class.new) do |klass|
-  #     klass::X ||= true
-  #   end
-  # end
+  specify 'dupn' do
+    test_compile(Class.new) do |klass|
+      klass::X ||= true
+    end
+  end
 
   specify 'swap' do
     test_compile do
@@ -205,17 +205,17 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [nil][0] = 1 }
   end
 
-  # specify 'adjuststack' do
-  #   test_compile([true]) do |x|
-  #     x[0] ||= nil
-  #     x[0]
-  #   end
-  # end
+  specify 'adjuststack' do
+    test_compile([true]) do |x|
+      x[0] ||= nil
+      x[0]
+    end
+  end
 
-  # specify 'defined' do
-  #   test_compile { defined?(a) }
-  #   test_compile(1) { |a| defined?(a) }
-  # end
+  specify 'defined' do
+    test_compile { defined?(a) }
+    test_compile(1) { |a| defined?(a) }
+  end
 
   # specify 'checkmatch' do
   #   [0, 1].each do |aa|

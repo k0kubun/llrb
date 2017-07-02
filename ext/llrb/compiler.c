@@ -208,12 +208,12 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
             llrb_stack_pop(stack), llrb_value(operands[0]), LLVMConstInt(LLVMInt32Type(), 0, true)));
       break;
     }
-    // case YARVINSN_setconstant: {
-    //   LLVMValueRef cbase = llrb_stack_pop(stack);
-    //   LLVMValueRef args[] = { llrb_get_self(c), cbase, llrb_value(operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
-    //   break;
-    // }
+    case YARVINSN_setconstant: {
+      LLVMValueRef cbase = llrb_stack_pop(stack);
+      LLVMValueRef args[] = { llrb_get_self(c), cbase, llrb_value(operands[0]), llrb_stack_pop(stack) };
+      LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
+      break;
+    }
     // case YARVINSN_getglobal: {
     //   LLVMValueRef args[] = { llrb_value(operands[0]) };
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_get"), args, 1, "getglobal"));
@@ -340,20 +340,21 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, value);
       break;
     }
-    // case YARVINSN_dupn: {
-    //   LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0]);
-    //   for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
-    //     values[i] = llrb_stack_pop(stack); // FIXME: obviously no need to pop
-    //   }
+    case YARVINSN_dupn: {
+      LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0]); // `xfree`d in this block.
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        values[i] = llrb_stack_pop(stack); // FIXME: obviously no need to pop
+      }
 
-    //   for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
-    //     llrb_stack_push(stack, values[operands[0] - 1 - i]);
-    //   }
-    //   for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
-    //     llrb_stack_push(stack, values[operands[0] - 1 - i]);
-    //   }
-    //   break;
-    // }
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_push(stack, values[operands[0] - 1 - i]);
+      }
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_push(stack, values[operands[0] - 1 - i]);
+      }
+      xfree(values);
+      break;
+    }
     case YARVINSN_swap: {
       LLVMValueRef first  = llrb_stack_pop(stack);
       LLVMValueRef second = llrb_stack_pop(stack);
@@ -385,17 +386,17 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       stack->body[last - (rb_num_t)operands[0]] = stack->body[last];
       break;
     }
-    // case YARVINSN_adjuststack: {
-    //   for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
-    //     llrb_stack_pop(stack);
-    //   }
-    //   break;
-    // }
-    // case YARVINSN_defined: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]), llrb_value(operands[1]), llrb_value(operands[2]), llrb_stack_pop(stack) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_defined"), args, 4, "defined"));
-    //   break;
-    // }
+    case YARVINSN_adjuststack: {
+      for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
+        llrb_stack_pop(stack);
+      }
+      break;
+    }
+    case YARVINSN_defined: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_defined", 4, llrb_value(operands[0]),
+            llrb_value(operands[1]), llrb_value(operands[2]), llrb_stack_pop(stack)));
+      break;
+    }
     case YARVINSN_checkmatch: {
       LLVMValueRef pattern = llrb_stack_pop(stack);
       LLVMValueRef target =llrb_stack_pop(stack);

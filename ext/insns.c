@@ -39,29 +39,27 @@ llrb_self_from_cfp(VALUE cfp)
   return _llrb_self_from_cfp((rb_control_frame_t *)cfp);
 }
 
-//static inline void
-//vm_check_if_namespace(VALUE klass)
-//{
-//  if (!RB_TYPE_P(klass, T_CLASS) && !RB_TYPE_P(klass, T_MODULE)) {
-//    rb_raise(rb_eTypeError, "%+"PRIsVALUE" is not a class/module", klass);
-//  }
-//}
-//
-//static inline void
-//vm_ensure_not_refinement_module(VALUE self)
-//{
-//  if (RB_TYPE_P(self, T_MODULE) && FL_TEST(self, RMODULE_IS_REFINEMENT)) {
-//    rb_warn("not defined at the refinement, but at the outer class/module");
-//  }
-//}
-//
-//// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L201-L223
-//void
-//llrb_insn_setconstant(VALUE self, VALUE cbase, ID id, VALUE val) {
-//  vm_check_if_namespace(cbase);
-//  vm_ensure_not_refinement_module(self);
-//  rb_const_set(cbase, id, val);
-//}
+static inline void
+vm_check_if_namespace(VALUE klass)
+{
+  if (!RB_TYPE_P(klass, T_CLASS) && !RB_TYPE_P(klass, T_MODULE)) {
+    rb_raise(rb_eTypeError, "%+"PRIsVALUE" is not a class/module", klass);
+  }
+}
+static inline void
+vm_ensure_not_refinement_module(VALUE self)
+{
+  if (RB_TYPE_P(self, T_MODULE) && FL_TEST(self, RMODULE_IS_REFINEMENT)) {
+    rb_warn("not defined at the refinement, but at the outer class/module");
+  }
+}
+// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L201-L223
+void
+llrb_insn_setconstant(VALUE self, VALUE cbase, ID id, VALUE val) {
+  vm_check_if_namespace(cbase);
+  vm_ensure_not_refinement_module(self);
+  rb_const_set(cbase, id, val);
+}
 
 // NOTE: There's optimization chance to check flag beforehand.
 // TODO: Use `vm_check_match` after Ruby 2.5.
@@ -142,15 +140,15 @@ llrb_insn_concatstrings(size_t num, ...) {
 //  }
 //  return tmp;
 //}
-//
-//VALUE vm_defined(rb_thread_t *th, rb_control_frame_t *reg_cfp, rb_num_t op_type, VALUE obj, VALUE needstr, VALUE v);
-//VALUE
-//llrb_insn_defined(rb_num_t op_type, VALUE obj, VALUE needstr, VALUE v)
-//{
-//  rb_thread_t *th = GET_THREAD();
-//  return vm_defined(th, th->cfp, op_type, obj, needstr, v);
-//}
-//
+
+VALUE vm_defined(rb_thread_t *th, rb_control_frame_t *reg_cfp, rb_num_t op_type, VALUE obj, VALUE needstr, VALUE v);
+VALUE
+llrb_insn_defined(rb_num_t op_type, VALUE obj, VALUE needstr, VALUE v)
+{
+  rb_thread_t *th = GET_THREAD();
+  return vm_defined(th, th->cfp, op_type, obj, needstr, v);
+}
+
 //VALUE vm_getspecial(rb_thread_t *th, const VALUE *lep, rb_num_t key, rb_num_t type);
 //VALUE
 //llrb_insn_getspecial(rb_num_t key, rb_num_t type)
