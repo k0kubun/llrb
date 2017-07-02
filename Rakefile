@@ -32,7 +32,7 @@ task :insns_ll do
   ].each { |f| ruby_cflags.sub!(f, '') } # maybe caused by compiling ruby with gcc and this with clang.
 
   debug_flag = "-Xclang -print-stats" if false
-  sh "clang #{ruby_cflags} #{debug_flag} -O1 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
+  sh "clang #{ruby_cflags} #{debug_flag} -O2 -S -emit-llvm -o #{__dir__}/ext/insns.ll #{__dir__}/ext/insns.c"
 end
 
 desc 'Compile insns.ll to insns.bc'

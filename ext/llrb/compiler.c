@@ -173,16 +173,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // //  ;
     // //  break;
     // //}
-    // case YARVINSN_getspecial: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]), llrb_value(operands[1]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getspecial"), args, 2, "getspecial"));
-    //   break;
-    // }
-    // case YARVINSN_setspecial: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setspecial"), args, 2, "");
-    //   break;
-    // }
+    case YARVINSN_getspecial: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getspecial", 2, llrb_value(operands[0]), llrb_value(operands[1])));
+      break;
+    }
+    case YARVINSN_setspecial: {
+      llrb_call_func(c, "llrb_insn_setspecial", 2, llrb_value(operands[0]), llrb_stack_pop(stack));
+      break;
+    }
     case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
       llrb_stack_push(stack, llrb_call_func(c, "rb_ivar_get", 2, llrb_get_self(c), llrb_value(operands[0])));
       break;
@@ -191,16 +189,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_call_func(c, "rb_ivar_set", 3, llrb_get_self(c), llrb_value(operands[0]), llrb_stack_pop(stack));
       break;
     }
-    // case YARVINSN_getclassvariable: {
-    //   LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_getclassvariable"), args, 2, "getclassvariable"));
-    //   break;
-    // }
-    // case YARVINSN_setclassvariable: {
-    //   LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value(operands[0]), llrb_stack_pop(stack) };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setclassvariable"), args, 3, "");
-    //   break;
-    // }
+    case YARVINSN_getclassvariable: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getclassvariable", 2, llrb_get_cfp(c), llrb_value(operands[0])));
+      break;
+    }
+    case YARVINSN_setclassvariable: {
+      llrb_call_func(c, "llrb_insn_setclassvariable", 3, llrb_get_cfp(c), llrb_value(operands[0]), llrb_stack_pop(stack));
+      break;
+    }
     case YARVINSN_getconstant: {
       llrb_stack_push(stack, llrb_call_func(c, "vm_get_ev_const", 4, llrb_get_thread(c),
             llrb_stack_pop(stack), llrb_value(operands[0]), LLVMConstInt(LLVMInt32Type(), 0, true)));
@@ -212,14 +208,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
       break;
     }
-    //case YARVINSN_getglobal: {
-    //  llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_get", 1, llrb_value(operands[0])));
-    //  break;
-    //}
-    //case YARVINSN_setglobal: {
-    //  llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_set", 2, llrb_value(operands[0]), llrb_stack_pop(stack)));
-    //  break;
-    //}
+    case YARVINSN_getglobal: {
+      llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_get", 1, llrb_value(operands[0])));
+      break;
+    }
+    case YARVINSN_setglobal: {
+      llrb_call_func(c, "rb_gvar_set", 2, llrb_value(operands[0]), llrb_stack_pop(stack));
+      break;
+    }
     case YARVINSN_putnil:
       llrb_stack_push(stack, llrb_value(Qnil));
       break;
@@ -230,14 +226,13 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_putobject:
       llrb_stack_push(stack, llrb_value(operands[0]));
       break;
-    // case YARVINSN_putspecialobject: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_putspecialobject"), args, 1, "putspecialobject"));
-    //   break;
-    // }
-    // case YARVINSN_putiseq:
-    //   llrb_stack_push(stack, llrb_value(operands[0]));
-    //   break;
+    case YARVINSN_putspecialobject: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_putspecialobject", 1, llrb_value(operands[0])));
+      break;
+    }
+    case YARVINSN_putiseq:
+      llrb_stack_push(stack, llrb_value(operands[0]));
+      break;
     case YARVINSN_putstring: {
       llrb_stack_push(stack, llrb_call_func(c, "rb_str_resurrect", 1, llrb_value(operands[0])));
       break;
@@ -289,16 +284,16 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //  }
     //  break;
     //}
-    //case YARVINSN_concatarray: {
-    //  LLVMValueRef ary2st = llrb_stack_pop(stack);
-    //  LLVMValueRef ary1   = llrb_stack_pop(stack);
-    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_concatarray", 2, ary1, ary2st));
-    //  break;
-    //}
-    //case YARVINSN_splatarray: {
-    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_splatarray", 2, llrb_stack_pop(stack), llrb_value(operands[0])));
-    //  break;
-    //}
+    case YARVINSN_concatarray: {
+      LLVMValueRef ary2st = llrb_stack_pop(stack);
+      LLVMValueRef ary1   = llrb_stack_pop(stack);
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_concatarray", 2, ary1, ary2st));
+      break;
+    }
+    case YARVINSN_splatarray: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_splatarray", 2, llrb_stack_pop(stack), llrb_value(operands[0])));
+      break;
+    }
     case YARVINSN_newhash: {
       LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
       LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);
@@ -396,11 +391,11 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkmatch", 3, target, pattern, flag));
       break;
     }
-    //case YARVINSN_checkkeyword: {
-    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkkeyword", 3, llrb_get_cfp(c),
-    //        llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1])));
-    //  break;
-    //}
+    case YARVINSN_checkkeyword: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkkeyword", 3, llrb_get_cfp(c),
+            llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1])));
+      break;
+    }
     case YARVINSN_trace: {
       rb_event_flag_t flag = (rb_event_flag_t)((rb_num_t)operands[0]);
       LLVMValueRef val = (flag & (RUBY_EVENT_RETURN | RUBY_EVENT_B_RETURN)) ? stack->body[stack->size-1] : llrb_value(Qundef);

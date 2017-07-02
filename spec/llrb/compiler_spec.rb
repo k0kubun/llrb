@@ -31,13 +31,13 @@ RSpec.describe 'llrb_compile_iseq' do
   # specify 'getlocal' do
   # specify 'setlocal' do
 
-  # specify 'getspecial' do
-  #   test_compile { $1 }
-  # end
+  specify 'getspecial' do
+    test_compile { $1 }
+  end
 
-  # specify 'setspecial' do
-  #   test_compile { true if nil.nil?..nil.nil? }
-  # end
+  specify 'setspecial' do
+    test_compile { true if nil.nil?..nil.nil? }
+  end
 
   specify 'getinstancevariable' do
     test_compile { @a = 1; @a }
@@ -47,17 +47,17 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { @a = 2 }
   end
 
-  # specify 'getclassvariable' do
-  #   result = ClassVariableTest.test_getclassvariable
-  #   expect(LLRB::JIT.compile(ClassVariableTest, :test_getclassvariable)).to eq(true)
-  #   expect(ClassVariableTest.test_getclassvariable).to eq(result)
-  # end
+  specify 'getclassvariable' do
+    result = ClassVariableTest.test_getclassvariable
+    expect(LLRB::JIT.compile(ClassVariableTest, :test_getclassvariable)).to eq(true)
+    expect(ClassVariableTest.test_getclassvariable).to eq(result)
+  end
 
-  # specify 'setclassvariable' do
-  #   result = ClassVariableTest.test_setclassvariable
-  #   expect(LLRB::JIT.compile(ClassVariableTest, :test_setclassvariable)).to eq(true)
-  #   expect(ClassVariableTest.test_setclassvariable).to eq(result)
-  # end
+  specify 'setclassvariable' do
+    result = ClassVariableTest.test_setclassvariable
+    expect(LLRB::JIT.compile(ClassVariableTest, :test_setclassvariable)).to eq(true)
+    expect(ClassVariableTest.test_setclassvariable).to eq(result)
+  end
 
   specify 'getconstant' do
     test_compile { RubyVM::InstructionSequence }
@@ -69,14 +69,14 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  #specify 'getglobal' do
-  #  $llrb_gvar_get = 1
-  #  test_compile { $llrb_gvar_get }
-  #end
+  specify 'getglobal' do
+    $llrb_gvar_get = 1
+    test_compile { $llrb_gvar_get }
+  end
 
-  #specify 'setglobal' do
-  #  test_compile { $llrb_gvar_set = 2 }
-  #end
+  specify 'setglobal' do
+    test_compile { $llrb_gvar_set = 2 }
+  end
 
   specify 'putnil' do
     test_compile { nil }
@@ -95,20 +95,20 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { (1..2) }
   end
 
-  # specify 'putspecialobject' do
-  #   test_compile do
-  #     def answer; 42; end
-  #   end
-  # end
+  specify 'putspecialobject' do
+    test_compile do
+      def answer; 42; end
+    end
+  end
 
-  # specify 'putiseq' do
-  #   test_compile do
-  #     def self.concatenate(hello, world)
-  #       hello + world
-  #     end
-  #     concatenate("hello", "world")
-  #   end
-  # end
+  specify 'putiseq' do
+    test_compile do
+      def self.concatenate(hello, world)
+        hello + world
+      end
+      concatenate("hello", "world")
+    end
+  end
 
   specify 'putstring' do
     test_compile { "hello" }
@@ -140,14 +140,14 @@ RSpec.describe 'llrb_compile_iseq' do
   #  test_compile { y = [ true, false, nil ]; x, = y; x }
   #end
 
-  #specify 'concatarray' do
-  #  test_compile { ["t", "r", *x = "u", "e"].join }
-  #end
+  specify 'concatarray' do
+    test_compile { ["t", "r", *x = "u", "e"].join }
+  end
 
-  #specify 'splatarray' do
-  #  test_compile { [*(1..2)] }
-  #  test_compile { [*''] }
-  #end
+  specify 'splatarray' do
+    test_compile { [*(1..2)] }
+    test_compile { [*''] }
+  end
 
   specify 'newhash' do
     test_compile(1) do |a|
@@ -169,9 +169,9 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'pop' do
-  #   test_compile(false, 1) { |a, b| a || b }
-  # end
+  specify 'pop' do
+    test_compile(false, 1) { |a, b| a || b }
+  end
 
   specify 'dup' do
     test_compile(1) { |a| a&.+(2) }
@@ -217,55 +217,55 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(1) { |a| defined?(a) }
   end
 
-  # specify 'checkmatch' do
-  #   [0, 1].each do |aa|
-  #     test_compile(aa) do |a|
-  #       case a
-  #       when 1
-  #         2
-  #       else
-  #         3
-  #       end
-  #     end
-  #   end
+  specify 'checkmatch' do
+    [0, 1].each do |aa|
+      test_compile(aa) do |a|
+        case a
+        when 1
+          2
+        else
+          3
+        end
+      end
+    end
 
-  #   test_compile(1) do |a|
-  #     1000 + case a
-  #            when 1
-  #              100
-  #            end
-  #   end
+    test_compile(1) do |a|
+      1000 + case a
+             when 1
+               100
+             end
+    end
 
-  #   test_compile(3) do |a|
-  #     case a
-  #     when 1
-  #       100
-  #     when 3
-  #     end
-  #   end
+    test_compile(3) do |a|
+      case a
+      when 1
+        100
+      when 3
+      end
+    end
 
-  #   test_compile(3, 2) do |a, b|
-  #     1000 + case a
-  #            when 1
-  #              100
-  #            when 2
-  #              200
-  #            when 3
-  #              300 + case b
-  #                    when 4
-  #                      400
-  #                    else
-  #                      500
-  #                    end + 600
-  #            end + 700
-  #   end
-  # end
+    test_compile(3, 2) do |a, b|
+      1000 + case a
+             when 1
+               100
+             when 2
+               200
+             when 3
+               300 + case b
+                     when 4
+                       400
+                     else
+                       500
+                     end + 600
+             end + 700
+    end
+  end
 
-  #specify 'checkkeyword' do
-  #  test_compile(x: true) do |x: rand|
-  #    x
-  #  end
-  #end
+  specify 'checkkeyword' do
+    test_compile(x: true) do |x: rand|
+      x
+    end
+  end
 
   specify 'trace' do
     test_compile { nil }
