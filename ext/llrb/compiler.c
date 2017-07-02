@@ -264,22 +264,21 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "rb_str_freeze", 1, llrb_stack_pop(stack))); // TODO: inline
       break;
     }
-    // case YARVINSN_toregexp: {
-    //   rb_num_t cnt = operands[1];
-    //   LLVMValueRef *args1 = ALLOC_N(LLVMValueRef, cnt+1);
-    //   args1[0] = LLVMConstInt(LLVMInt64Type(), (long)cnt, true);
-    //   for (rb_num_t i = 0; i < cnt; i++) {
-    //     args1[1+i] = llrb_stack_pop(stack);
-    //   }
-    //   LLVMValueRef ary = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_new_from_args"), args1, 1+cnt, "toregexp");
+    case YARVINSN_toregexp: {
+      rb_num_t cnt = operands[1];
+      LLVMValueRef *args1 = ALLOC_N(LLVMValueRef, cnt+1); // `xfree`d in this block.
+      args1[0] = LLVMConstInt(LLVMInt64Type(), (long)cnt, true);
+      for (rb_num_t i = 0; i < cnt; i++) {
+        args1[1+i] = llrb_stack_pop(stack);
+      }
+      LLVMValueRef ary = LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_new_from_args"), args1, 1+cnt, "toregexp");
+      xfree(args1);
 
-    //   LLVMValueRef args2[] = { ary, LLVMConstInt(LLVMInt32Type(), (int)operands[0], true) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_reg_new_ary"), args2, 2, "toregexp"));
+      llrb_stack_push(stack, llrb_call_func(c, "rb_reg_new_ary", 2, ary, LLVMConstInt(LLVMInt32Type(), (int)operands[0], true)));
 
-    //   LLVMValueRef args3[] = { ary };
-    //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_clear"), args3, 1, "toregexp");
-    //   break;
-    // }
+      llrb_call_func(c, "rb_ary_clear", 1, ary);
+      break;
+    }
     case YARVINSN_newarray:
       llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
       break;
@@ -287,25 +286,23 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "rb_ary_resurrect", 1, llrb_value(operands[0]))); // TODO: inline rb_ary_resurrect?
       break;
     }
-    // //case YARVINSN_expandarray: {
-    // //  rb_num_t flag = (rb_num_t)operands[1];
-    // //  if (flag & 0x02) { // for postarg
-    // //  } else {
-    // //  }
-    // //  break;
-    // //}
-    // case YARVINSN_concatarray: {
-    //   LLVMValueRef args[] = { 0, llrb_stack_pop(stack) };
-    //   args[0] = llrb_stack_pop(stack);
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_concatarray"), args, 2, "concatarray"));
-    //   break;
-    // }
-    // case YARVINSN_splatarray: {
-    //   // Can we refactor code for this kind of insn implementation...?
-    //   LLVMValueRef args[] = { llrb_stack_pop(stack), llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_splatarray"), args, 2, "splatarray"));
-    //   break;
-    // }
+    //case YARVINSN_expandarray: {
+    //  rb_num_t flag = (rb_num_t)operands[1];
+    //  if (flag & 0x02) { // for postarg
+    //  } else {
+    //  }
+    //  break;
+    //}
+    //case YARVINSN_concatarray: {
+    //  LLVMValueRef ary2st = llrb_stack_pop(stack);
+    //  LLVMValueRef ary1   = llrb_stack_pop(stack);
+    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_concatarray", 2, ary1, ary2st));
+    //  break;
+    //}
+    //case YARVINSN_splatarray: {
+    //  llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_splatarray", 2, llrb_stack_pop(stack), llrb_value(operands[0])));
+    //  break;
+    //}
     case YARVINSN_newhash: {
       LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0] / 2);
       LLVMValueRef *keys   = ALLOC_N(LLVMValueRef, operands[0] / 2);
@@ -323,14 +320,13 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, result);
       break;
     }
-    // case YARVINSN_newrange: {
-    //   LLVMValueRef high = llrb_stack_pop(stack);
-    //   LLVMValueRef low  = llrb_stack_pop(stack);
-    //   LLVMValueRef flag = LLVMConstInt(LLVMInt64Type(), operands[0], false);
-    //   LLVMValueRef args[] = { low, high, flag };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_range_new"), args, 3, "newrange"));
-    //   break;
-    // }
+    case YARVINSN_newrange: {
+      LLVMValueRef high = llrb_stack_pop(stack);
+      LLVMValueRef low  = llrb_stack_pop(stack);
+      LLVMValueRef flag = LLVMConstInt(LLVMInt64Type(), operands[0], false);
+      llrb_stack_push(stack, llrb_call_func(c, "rb_range_new", 3, low, high, flag));
+      break;
+    }
     case YARVINSN_pop:
       llrb_stack_pop(stack);
       break;

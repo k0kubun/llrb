@@ -122,9 +122,9 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { "h#{2}o" }
   end
 
-  # specify 'toregexp' do
-  #   test_compile { /#{true}/ =~ "true" }
-  # end
+  specify 'toregexp' do
+    test_compile { /#{true}/ =~ "true" }
+  end
 
   specify 'newarray' do
     test_compile { [] }
@@ -136,18 +136,18 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [:foo, :bar] }
   end
 
-  # #specify 'expandarray' do
-  # #  test_compile { y = [ true, false, nil ]; x, = y; x }
-  # #end
+  #specify 'expandarray' do
+  #  test_compile { y = [ true, false, nil ]; x, = y; x }
+  #end
 
-  # specify 'concatarray' do
-  #   test_compile { ["t", "r", *x = "u", "e"].join }
-  # end
+  #specify 'concatarray' do
+  #  test_compile { ["t", "r", *x = "u", "e"].join }
+  #end
 
-  # specify 'splatarray' do
-  #   test_compile { [*(1..2)] }
-  #   test_compile { [*''] }
-  # end
+  #specify 'splatarray' do
+  #  test_compile { [*(1..2)] }
+  #  test_compile { [*''] }
+  #end
 
   specify 'newhash' do
     test_compile(1) do |a|
@@ -159,15 +159,15 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'newrange' do
-  #   test_compile(1) do |x|
-  #     (0..x)
-  #   end
+  specify 'newrange' do
+    test_compile(1) do |x|
+      (0..x)
+    end
 
-  #   test_compile(1) do |x|
-  #     (0...x)
-  #   end
-  # end
+    test_compile(1) do |x|
+      (0...x)
+    end
+  end
 
   # specify 'pop' do
   #   test_compile(false, 1) { |a, b| a || b }

@@ -129,7 +129,7 @@ llrb_insn_concatstrings(size_t num, ...) {
   return rb_str_concat_literals(num, args);
 }
 
-//// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L515-L534
+// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L515-L534
 //VALUE
 //llrb_insn_splatarray(VALUE ary, VALUE flag) {
 //  VALUE tmp = rb_check_convert_type(ary, T_ARRAY, "Array", "to_a");
@@ -267,7 +267,7 @@ llrb_insn_throw(VALUE th_value, VALUE cfp_value, rb_num_t throw_state, VALUE thr
 //  }
 //}
 
-//// TODO: Use vm_concat_array after Ruby 2.5
+// TODO: Use vm_concat_array after Ruby 2.5
 //VALUE
 //llrb_insn_concatarray(VALUE ary1, VALUE ary2st)
 //{
