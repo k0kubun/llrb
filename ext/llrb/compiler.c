@@ -66,6 +66,22 @@ llrb_call_func(const struct llrb_compiler *c, const char *funcname, unsigned arg
   return ret;
 }
 
+static LLVMValueRef
+llrb_compile_funcall(const struct llrb_compiler *c, struct llrb_stack *stack, ID mid, int argc)
+{
+  LLVMValueRef func = llrb_get_function(c->mod, "rb_funcall");
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, 3+argc); // 3 is recv, mid, n
+
+  for (int i = argc-1; 0 <= i; i--) {
+    args[3+i] = llrb_stack_pop(stack); // 3 is recv, mid, n
+  }
+  args[0] = llrb_stack_pop(stack);
+  args[1] = llrb_value(mid);
+  args[2] = LLVMConstInt(LLVMInt32Type(), argc, false);
+
+  return LLVMBuildCall(c->builder, func, args, 3+argc, "rb_funcall");
+}
+
 // Must call `llrb_destruct_stack` after usage of return value.
 // TODO: Using `memcpy` would be faster.
 static struct llrb_stack *
@@ -494,7 +510,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_compile_basic_block(c, next_block, stack);
       return true;
     }
-    case YARVINSN_branchif: {
+    case YARVINSN_branchif: { // TODO: refactor with other branch insns
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
       struct llrb_basic_block *branch_dest_block = llrb_find_block(c->cfg, branch_dest);
@@ -513,24 +529,26 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_destruct_stack(branch_dest_stack);
       break; // caller `compile_basic_block` compiles fallthrough_block and pushes incoming things to its phi node.
     }
-    // case YARVINSN_branchunless: {
-    //   unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
-    //   unsigned fallthrough = pos + (unsigned)insn_len(insn);
-    //   LLVMBasicBlockRef branch_dest_block = llrb_build_block(c, branch_dest);
-    //   LLVMBasicBlockRef fallthrough_block = llrb_build_block(c, fallthrough);
+    case YARVINSN_branchunless: { // TODO: refactor with other branch insns
+      unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
+      unsigned fallthrough = pos + (unsigned)insn_len(insn);
+      struct llrb_basic_block *branch_dest_block = llrb_find_block(c->cfg, branch_dest);
+      struct llrb_basic_block *fallthrough_block = llrb_find_block(c->cfg, fallthrough);
 
-    //   LLVMValueRef cond = llrb_stack_pop(stack);
-    //   LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block, branch_dest_block);
+      LLVMValueRef cond = llrb_stack_pop(stack);
+      LLVMBuildCondBr(c->builder, llrb_build_rtest(c->builder, cond), fallthrough_block->ref, branch_dest_block->ref);
+      *created_br = true;
 
-    //   struct llrb_stack copied_stack = (struct llrb_stack){ .size = stack->size, .max = stack->max };
-    //   copied_stack.body = ALLOC_N(LLVMValueRef, copied_stack.max);
-    //   for (unsigned int i = 0; i < stack->size; i++) copied_stack.body[i] = stack->body[i];
-
-    //   llrb_compile_basic_block(c, &copied_stack, fallthrough); // COMPILE FALLTHROUGH FIRST!!!!
-    //   llrb_compile_basic_block(c, stack, branch_dest); // because this line will continue to compile next block and it should wait the other branch.
-    //   return true;
-    // }
-    case YARVINSN_branchnil: {
+      struct llrb_stack *branch_dest_stack = llrb_copy_stack(stack); // `llrb_destruct_stack`ed in this block.
+      if (branch_dest_block->incoming_size > 1 && branch_dest_stack->size > 0) {
+        llrb_push_incoming_things(c, branch_dest_block,
+            LLVMGetInsertBlock(c->builder), llrb_stack_pop(branch_dest_stack));
+      }
+      llrb_compile_basic_block(c, branch_dest_block, branch_dest_stack);
+      llrb_destruct_stack(branch_dest_stack);
+      break; // caller `compile_basic_block` compiles fallthrough_block and pushes incoming things to its phi node.
+    }
+    case YARVINSN_branchnil: { // TODO: refactor with other branch insns
       unsigned branch_dest = pos + (unsigned)insn_len(insn) + operands[0];
       unsigned fallthrough = pos + (unsigned)insn_len(insn);
       struct llrb_basic_block *branch_dest_block = llrb_find_block(c->cfg, branch_dest);
@@ -581,9 +599,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // case YARVINSN_opt_mod:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, '%', 1));
     //   break;
-    // case YARVINSN_opt_eq:
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=="), 1));
-    //   break;
+    case YARVINSN_opt_eq:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=="), 1));
+      break;
     // case YARVINSN_opt_neq:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
     //   break;

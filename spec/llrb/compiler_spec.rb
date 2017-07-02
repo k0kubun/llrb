@@ -359,9 +359,9 @@ RSpec.describe 'llrb_compile_iseq' do
   #   expect(object.test { 2 }).to eq(result)
   # end
 
-  # specify 'leave' do
-  #   test_compile { nil }
-  # end
+  specify 'leave' do
+    test_compile { nil }
+  end
 
   # specify 'throw' do
   #   test_compile do
@@ -383,10 +383,10 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  #specify 'jump' do
-  #  test_compile(true) { |a| 1 if a }
-  #  test_compile(nil) { |a| while a; end }
-  #end
+  specify 'jump' do
+    test_compile(true) { |a| 1 if a }
+    test_compile(nil) { |a| while a; end }
+  end
 
   specify 'branchif' do
     test_compile(false, 1) { |a, b| a || b }
@@ -396,160 +396,160 @@ RSpec.describe 'llrb_compile_iseq' do
     end
   end
 
-  # specify 'branchunless' do
-  #   test_compile(true) do |a|
-  #     if a
-  #       1
-  #     else
-  #       2
-  #     end
-  #   end
+  specify 'branchunless' do
+    test_compile(true) do |a|
+      if a
+        1
+      else
+        2
+      end
+    end
 
-  #   [
-  #     [true, false, false],
-  #     [false, true, false],
-  #     [false, false, true],
-  #     [false, false, false],
-  #   ].each do |args|
-  #     test_compile(*args) do |a, b, c|
-  #       if a
-  #         1
-  #       elsif b
-  #         2
-  #       elsif c
-  #         3
-  #       else
-  #         4
-  #       end
-  #     end
-  #   end
+    [
+      [true, false, false],
+      [false, true, false],
+      [false, false, true],
+      [false, false, false],
+    ].each do |args|
+      test_compile(*args) do |a, b, c|
+        if a
+          1
+        elsif b
+          2
+        elsif c
+          3
+        else
+          4
+        end
+      end
+    end
 
-  #   [
-  #     true,
-  #     false,
-  #     nil,
-  #   ].each do |arg|
-  #     test_compile(arg) do |a|
-  #       unless a
-  #         1
-  #       else
-  #         2
-  #       end
-  #     end
+    [
+      true,
+      false,
+      nil,
+    ].each do |arg|
+      test_compile(arg) do |a|
+        unless a
+          1
+        else
+          2
+        end
+      end
 
-  #     test_compile(arg) do |a|
-  #       1 unless a
-  #     end
+      test_compile(arg) do |a|
+        1 unless a
+      end
 
-  #     test_compile(arg) do |a|
-  #       1 if a
-  #     end
-  #   end
+      test_compile(arg) do |a|
+        1 if a
+      end
+    end
 
-  #   [
-  #     [1, nil],
-  #     [2, 1],
-  #     [2, nil],
-  #     [3, nil],
-  #     [4, 1],
-  #     [4, 2],
-  #     [4, nil],
-  #     [nil, nil],
-  #   ].each do |args|
-  #     test_compile(*args) do |a, b|
-  #       if a == 1
-  #         19
-  #       elsif a == 2
-  #         if b == 1
-  #           21
-  #         else
-  #           29
-  #         end
-  #       elsif a == 3
-  #         39
-  #       elsif a == 4
-  #         if b == 1
-  #           41
-  #         elsif b == 2
-  #           42
-  #         else
-  #           49
-  #         end
-  #       else
-  #         99
-  #       end
-  #     end
-  #   end
+    [
+      [1, nil],
+      [2, 1],
+      [2, nil],
+      [3, nil],
+      [4, 1],
+      [4, 2],
+      [4, nil],
+      [nil, nil],
+    ].each do |args|
+      test_compile(*args) do |a, b|
+        if a == 1
+          19
+        elsif a == 2
+          if b == 1
+            21
+          else
+            29
+          end
+        elsif a == 3
+          39
+        elsif a == 4
+          if b == 1
+            41
+          elsif b == 2
+            42
+          else
+            49
+          end
+        else
+          99
+        end
+      end
+    end
 
-  #   test_compile(true, true, true, false) do |a, b, c, d|
-  #     if a
-  #       if b
-  #         if c
-  #           if d
-  #             1
-  #           else
-  #             2
-  #           end
-  #         end
-  #       end
-  #     end
-  #   end
+    test_compile(true, true, true, false) do |a, b, c, d|
+      if a
+        if b
+          if c
+            if d
+              1
+            else
+              2
+            end
+          end
+        end
+      end
+    end
 
-  #   test_compile(true) do |a|
-  #     1 + if a
-  #           2
-  #         end
-  #   end
+    test_compile(true) do |a|
+      1 + if a
+            2
+          end
+    end
 
-  #   test_compile(true, false) do |a, b|
-  #     if a
-  #       2
-  #     else
-  #       3
-  #     end + if b
-  #             4
-  #           else
-  #             5
-  #           end
-  #   end
+    test_compile(true, false) do |a, b|
+      if a
+        2
+      else
+        3
+      end + if b
+              4
+            else
+              5
+            end
+    end
 
-  #   test_compile(false) do |a|
-  #     1 + if a
-  #           2
-  #         else
-  #           3
-  #         end + 4
-  #   end
+    test_compile(false) do |a|
+      1 + if a
+            2
+          else
+            3
+          end + 4
+    end
 
-  #   test_compile(false, true) do |a, b|
-  #     unless a
-  #       if b
-  #         7
-  #       end + 9
-  #     end
-  #   end
+    test_compile(false, true) do |a, b|
+      unless a
+        if b
+          7
+        end + 9
+      end
+    end
 
-  #   test_compile(false, true, false) do |a, b, c|
-  #     1 + if a
-  #           2 + if b
-  #                 3
-  #               else
-  #                 4
-  #               end + 5
-  #         else
-  #           6 + unless c
-  #                 7
-  #               else
-  #                 8
-  #               end + 9
-  #         end + 10
-  #   end
+    test_compile(false, true, false) do |a, b, c|
+      1 + if a
+            2 + if b
+                  3
+                else
+                  4
+                end + 5
+          else
+            6 + unless c
+                  7
+                else
+                  8
+                end + 9
+          end + 10
+    end
 
-  #   test_compile(true) { |a| until a; end }
-  #   test_compile(true) do |a|
-  #     1+1 until a
-  #   end
-  # end
+    test_compile(true) { |a| until a; end }
+    test_compile(true) do |a|
+      1+1 until a
+    end
+  end
 
   specify 'branchnil' do
     test_compile(1) { |a| a&.+(2) }
