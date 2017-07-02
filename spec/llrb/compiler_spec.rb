@@ -110,9 +110,9 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'putstring' do
-  #   test_compile { "hello" }
-  # end
+  specify 'putstring' do
+    test_compile { "hello" }
+  end
 
   specify 'concatstrings' do
     test_compile { "a#{}b" }
@@ -671,33 +671,33 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { [1, nil, false].size }
   end
 
-  # specify 'opt_empty_p' do
-  #   test_compile { [].empty? }
-  #   test_compile { [1].empty? }
-  # end
+  specify 'opt_empty_p' do
+    test_compile { [].empty? }
+    test_compile { [1].empty? }
+  end
 
-  # specify 'opt_succ' do
-  #   test_compile { 2.succ }
-  # end
+  specify 'opt_succ' do
+    test_compile { 2.succ }
+  end
 
-  # specify 'opt_not' do
-  #   test_compile { !nil }
-  #   test_compile { !true }
-  #   test_compile { !false }
-  #   test_compile { !100 }
-  #   test_compile { nil.! }
-  #   test_compile { true.! }
-  #   test_compile { false.! }
-  #   test_compile { 100.! }
-  # end
+  specify 'opt_not' do
+    test_compile { !nil }
+    test_compile { !true }
+    test_compile { !false }
+    test_compile { !100 }
+    test_compile { nil.! }
+    test_compile { true.! }
+    test_compile { false.! }
+    test_compile { 100.! }
+  end
 
-  # specify 'opt_regexpmatch1' do
-  #   test_compile { /true/ =~ 'true' }
-  # end
+  specify 'opt_regexpmatch1' do
+    test_compile { /true/ =~ 'true' }
+  end
 
-  # specify 'opt_regexpmatch2' do
-  #   test_compile { 'true' =~ /true/ }
-  # end
+  specify 'opt_regexpmatch2' do
+    test_compile { 'true' =~ /true/ }
+  end
 
   # specify 'opt_call_c_function' do
 

@@ -242,11 +242,10 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // case YARVINSN_putiseq:
     //   llrb_stack_push(stack, llrb_value(operands[0]));
     //   break;
-    // case YARVINSN_putstring: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
-    //   break;
-    // }
+    case YARVINSN_putstring: {
+      llrb_stack_push(stack, llrb_call_func(c, "rb_str_resurrect", 1, llrb_value(operands[0])));
+      break;
+    }
     case YARVINSN_concatstrings: {
       LLVMValueRef *args = ALLOC_N(LLVMValueRef, operands[0] + 1); // `xfree`d in this block.
       args[0] = llrb_value(operands[0]); // function is in size_t. correct?
@@ -675,25 +674,25 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_opt_size:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("size"), 0));
       break;
-    // case YARVINSN_opt_empty_p:
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("empty?"), 0));
-    //   break;
-    // case YARVINSN_opt_succ:
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("succ"), 0));
-    //   break;
-    // case YARVINSN_opt_not:
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, '!', 0));
-    //   break;
-    // case YARVINSN_opt_regexpmatch1: {
-    //   // Not using llrb_compile_funcall to prevent stack overflow
-    //   LLVMValueRef args[] = { llrb_stack_pop(stack), llrb_value(rb_intern("=~")), LLVMConstInt(LLVMInt32Type(), 1, true), llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_funcall"), args, 4, "opt_regexpmatch1"));
-    //   break;
-    // }
-    // case YARVINSN_opt_regexpmatch2: {
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=~"), 1));
-    //   break;
-    // }
+    case YARVINSN_opt_empty_p:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("empty?"), 0));
+      break;
+    case YARVINSN_opt_succ:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("succ"), 0));
+      break;
+    case YARVINSN_opt_not:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '!', 0));
+      break;
+    case YARVINSN_opt_regexpmatch1: {
+      // Not using llrb_compile_funcall to prevent stack overflow
+      llrb_stack_push(stack, llrb_call_func(c, "rb_funcall", 4, llrb_stack_pop(stack),
+            llrb_value(rb_intern("=~")), LLVMConstInt(LLVMInt32Type(), 1, true), llrb_value(operands[0])));
+      break;
+    }
+    case YARVINSN_opt_regexpmatch2: {
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=~"), 1));
+      break;
+    }
     //case YARVINSN_opt_call_c_function:
     case YARVINSN_getlocal_OP__WC__0: {
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getlocal_level0", 2, llrb_get_cfp(c), llrb_value((lindex_t)operands[0])));
