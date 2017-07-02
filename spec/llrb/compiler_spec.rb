@@ -59,9 +59,9 @@ RSpec.describe 'llrb_compile_iseq' do
   #   expect(ClassVariableTest.test_setclassvariable).to eq(result)
   # end
 
-  # specify 'getconstant' do
-  #   test_compile { RubyVM::InstructionSequence }
-  # end
+  specify 'getconstant' do
+    test_compile { RubyVM::InstructionSequence }
+  end
 
   # specify 'setconstant' do
   #   test_compile(Class.new) do |klass|
@@ -195,15 +195,15 @@ RSpec.describe 'llrb_compile_iseq' do
   # #  end
   # #end
 
-  # # specify 'reput' do
+  # specify 'reput' do
 
   # specify 'topn' do
   #   test_compile { {}['true'] = true }
   # end
 
-  # specify 'setn' do
-  #   test_compile { [nil][0] = 1 }
-  # end
+  specify 'setn' do
+    test_compile { [nil][0] = 1 }
+  end
 
   # specify 'adjuststack' do
   #   test_compile([true]) do |x|
@@ -298,18 +298,18 @@ RSpec.describe 'llrb_compile_iseq' do
   #   expect(klass.test(1) { 2 }).to eq(result)
   # end
 
-  # specify 'opt_str_freeze' do
-  #   test_compile { "foo".freeze }
-  #   test_compile { "bar".freeze.frozen? }
-  # end
+  specify 'opt_str_freeze' do
+    test_compile { "foo".freeze }
+    test_compile { "bar".freeze.frozen? }
+  end
 
-  # specify 'opt_newarray_max' do
-  #   test_compile { [[], [0]].max }
-  # end
+  specify 'opt_newarray_max' do
+    test_compile { [[], [0]].max }
+  end
 
-  # specify 'opt_newarray_min' do
-  #   test_compile { [[], [0]].min }
-  # end
+  specify 'opt_newarray_min' do
+    test_compile { [[], [0]].min }
+  end
 
   specify 'opt_send_without_block' do
     test_compile { [1,2].reverse }
@@ -559,15 +559,15 @@ RSpec.describe 'llrb_compile_iseq' do
     test_error(TypeError, nil) { |a| 1 + a&.+(3) + 2 }
   end
 
-  # specify 'getinlinecache' do
-  #   test_compile { Struct }
-  # end
+  specify 'getinlinecache' do
+    test_compile { Struct }
+  end
 
-  # specify 'setinlinecache' do
-  #   test_compile { Struct }
-  # end
+  specify 'setinlinecache' do
+    test_compile { Struct }
+  end
 
-  # # specify 'once' do
+  # specify 'once' do
 
   specify 'opt_case_dispatch' do
     test_compile(1) do |a|
@@ -588,31 +588,31 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile(2, 1) { |a, b| a-b }
   end
 
-  # specify 'opt_mult' do
-  #   test_compile { 3 * 2 * 1 }
-  # end
+  specify 'opt_mult' do
+    test_compile { 3 * 2 * 1 }
+  end
 
-  # specify 'opt_div' do
-  #   test_compile { 3 / 2 / 1 }
-  #   test_compile { 1 + (3 - 4) * 5 / 2 }
-  #   test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
-  #     (a + b) * c ** d * e / b
-  #   end
-  # end
+  specify 'opt_div' do
+    test_compile { 3 / 2 / 1 }
+    test_compile { 1 + (3 - 4) * 5 / 2 }
+    test_compile(2, 3, 5, 7, 11) do |a, b, c, d, e|
+      (a + b) * c ** d * e / b
+    end
+  end
 
-  # specify 'opt_mod' do
-  #   test_compile { 3 % 2 % 1 }
-  # end
+  specify 'opt_mod' do
+    test_compile { 3 % 2 % 1 }
+  end
 
-  # specify 'opt_eq' do
-  #   test_compile { 2 == 2 }
-  #   test_compile { 3 == 2 }
-  # end
+  specify 'opt_eq' do
+    test_compile { 2 == 2 }
+    test_compile { 3 == 2 }
+  end
 
-  # specify 'opt_neq' do
-  #   test_compile { 2 != 2 }
-  #   test_compile { 3 != 2 }
-  # end
+  specify 'opt_neq' do
+    test_compile { 2 != 2 }
+    test_compile { 3 != 2 }
+  end
 
   specify 'opt_lt' do
     test_compile { 2 < 3 }
@@ -620,11 +620,11 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { 3 < 2 }
   end
 
-  # specify 'opt_le' do
-  #   test_compile { 2 <= 3 }
-  #   test_compile { 2 <= 2 }
-  #   test_compile { 3 <= 2 }
-  # end
+  specify 'opt_le' do
+    test_compile { 2 <= 3 }
+    test_compile { 2 <= 2 }
+    test_compile { 3 <= 2 }
+  end
 
   specify 'opt_gt' do
     test_compile { 2 > 3 }
@@ -632,26 +632,26 @@ RSpec.describe 'llrb_compile_iseq' do
     test_compile { 3 > 2 }
   end
 
-  # specify 'opt_ge' do
-  #   test_compile { 2 >= 3 }
-  #   test_compile { 2 >= 2 }
-  #   test_compile { 3 >= 2 }
-  # end
+  specify 'opt_ge' do
+    test_compile { 2 >= 3 }
+    test_compile { 2 >= 2 }
+    test_compile { 3 >= 2 }
+  end
 
-  # specify 'opt_ltlt' do
-  #   test_compile { [] << [] }
-  #   test_compile { [[], [1]] << [3, :hello] }
-  #   test_compile { [] << [nil, nil] }
-  # end
+  specify 'opt_ltlt' do
+    test_compile { [] << [] }
+    test_compile { [[], [1]] << [3, :hello] }
+    test_compile { [] << [nil, nil] }
+  end
 
-  # specify 'opt_aref' do
-  #   test_compile { [1, 2, 3][1] }
-  #   test_compile { ([] << [[nil, false], [[], 3]][1][0])[0] }
-  # end
+  specify 'opt_aref' do
+    test_compile { [1, 2, 3][1] }
+    test_compile { ([] << [[nil, false], [[], 3]][1][0])[0] }
+  end
 
-  # specify 'opt_aset' do
-  #   test_compile { [nil][0] = 1 }
-  # end
+  specify 'opt_aset' do
+    test_compile { [nil][0] = 1 }
+  end
 
   # specify 'opt_aset_with' do
   #   test_compile { {}['true'] = true }
@@ -663,13 +663,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #   end
   # end
 
-  # specify 'opt_length' do
-  #   test_compile { [1, nil, false].length }
-  # end
+  specify 'opt_length' do
+    test_compile { [1, nil, false].length }
+  end
 
-  # specify 'opt_size' do
-  #   test_compile { [1, nil, false].size }
-  # end
+  specify 'opt_size' do
+    test_compile { [1, nil, false].size }
+  end
 
   # specify 'opt_empty_p' do
   #   test_compile { [].empty? }
