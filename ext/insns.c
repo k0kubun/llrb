@@ -111,26 +111,26 @@ llrb_self_from_cfp(VALUE cfp)
 //      rb_bug("putspecialobject insn: unknown value_type");
 //  }
 //}
-//
-//// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L359-L372
-//VALUE rb_str_concat_literals(size_t, const VALUE*);
-//VALUE
-//llrb_insn_concatstrings(size_t num, ...) {
-//  VALUE *args = 0;
-//  va_list ar;
-//
-//  if (num > 0) {
-//    args = ALLOCA_N(VALUE, num);
-//    va_start(ar, num);
-//    for (size_t i = 0; i < num; i++) {
-//      args[i] = va_arg(ar, VALUE);
-//    }
-//    va_end(ar);
-//  }
-//
-//  return rb_str_concat_literals(num, args);
-//}
-//
+
+// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L359-L372
+VALUE rb_str_concat_literals(size_t, const VALUE*);
+VALUE
+llrb_insn_concatstrings(size_t num, ...) {
+  VALUE *args = 0;
+  va_list ar;
+
+  if (num > 0) {
+    args = ALLOCA_N(VALUE, num);
+    va_start(ar, num);
+    for (size_t i = 0; i < num; i++) {
+      args[i] = va_arg(ar, VALUE);
+    }
+    va_end(ar);
+  }
+
+  return rb_str_concat_literals(num, args);
+}
+
 //// https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L515-L534
 //VALUE
 //llrb_insn_splatarray(VALUE ary, VALUE flag) {

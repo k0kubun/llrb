@@ -114,13 +114,13 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { "hello" }
   # end
 
-  # specify 'concatstrings' do
-  #   test_compile { "a#{}b" }
-  # end
+  specify 'concatstrings' do
+    test_compile { "a#{}b" }
+  end
 
-  # specify 'tostring' do
-  #   test_compile { "h#{2}o" }
-  # end
+  specify 'tostring' do
+    test_compile { "h#{2}o" }
+  end
 
   # specify 'toregexp' do
   #   test_compile { /#{true}/ =~ "true" }

@@ -247,25 +247,24 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_resurrect"), args, 1, "putstring"));
     //   break;
     // }
-    // case YARVINSN_concatstrings: {
-    //   LLVMValueRef *args = ALLOC_N(LLVMValueRef, operands[0] + 1);
-    //   args[0] = llrb_value(operands[0]); // function is in size_t. correct?
-    //   for (long i = (long)operands[0]-1; 0 <= i; i--) {
-    //     args[1+i] = llrb_stack_pop(stack);
-    //   }
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_concatstrings"), args, operands[0] + 1, "concatstrings"));
-    //   break;
-    // }
-    // case YARVINSN_tostring: {
-    //   LLVMValueRef args[] = { llrb_stack_pop(stack) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_obj_as_string"), args, 1, "tostring"));
-    //   break;
-    // }
-    // case YARVINSN_freezestring: { // TODO: check debug info
-    //   LLVMValueRef args[] = { llrb_stack_pop(stack) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_str_freeze"), args, 1, "freezestring"));
-    //   break;
-    // }
+    case YARVINSN_concatstrings: {
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, operands[0] + 1); // `xfree`d in this block.
+      args[0] = llrb_value(operands[0]); // function is in size_t. correct?
+      for (long i = (long)operands[0]-1; 0 <= i; i--) {
+        args[1+i] = llrb_stack_pop(stack);
+      }
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_concatstrings"), args, operands[0] + 1, "concatstrings"));
+      xfree(args);
+      break;
+    }
+    case YARVINSN_tostring: {
+      llrb_stack_push(stack, llrb_call_func(c, "rb_obj_as_string", 1, llrb_stack_pop(stack)));
+      break;
+    }
+    case YARVINSN_freezestring: { // TODO: check debug info
+      llrb_stack_push(stack, llrb_call_func(c, "rb_str_freeze", 1, llrb_stack_pop(stack))); // TODO: inline
+      break;
+    }
     // case YARVINSN_toregexp: {
     //   rb_num_t cnt = operands[1];
     //   LLVMValueRef *args1 = ALLOC_N(LLVMValueRef, cnt+1);
@@ -415,10 +414,10 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_call_func(c, "llrb_insn_trace", 4, llrb_get_thread(c), llrb_get_cfp(c), LLVMConstInt(LLVMInt32Type(), flag, false), val);
       break;
     }
-    // //case YARVINSN_defineclass: {
-    // //  ;
-    // //  break;
-    // //}
+    //case YARVINSN_defineclass: {
+    //  ;
+    //  break;
+    //}
     // case YARVINSN_send: {
     //   CALL_INFO ci = (CALL_INFO)operands[0];
     //   unsigned int stack_size = ci->orig_argc + 1;
