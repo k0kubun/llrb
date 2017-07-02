@@ -126,15 +126,15 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { /#{true}/ =~ "true" }
   # end
 
-  # specify 'newarray' do
-  #   test_compile { [] }
-  #   test_compile { [[], nil, 1] }
-  # end
+  specify 'newarray' do
+    test_compile { [] }
+    test_compile { [[], nil, 1] }
+  end
 
-  # specify 'duparray' do
-  #   test_compile { [1, 2] }
-  #   test_compile { [:foo, :bar] }
-  # end
+  specify 'duparray' do
+    test_compile { [1, 2] }
+    test_compile { [:foo, :bar] }
+  end
 
   # #specify 'expandarray' do
   # #  test_compile { y = [ true, false, nil ]; x, = y; x }
@@ -311,24 +311,24 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { [[], [0]].min }
   # end
 
-  # specify 'opt_send_without_block' do
-  #   test_compile { [1,2].reverse }
-  #   test_compile { 2 ** 3 }
-  #   test_compile { false || 2.even? }
-  #   test_compile { [nil].push(3) }
-  #   test_compile { [] + [nil].push(3) }
+  specify 'opt_send_without_block' do
+    test_compile { [1,2].reverse }
+    test_compile { 2 ** 3 }
+    test_compile { false || 2.even? }
+    test_compile { [nil].push(3) }
+    test_compile { [] + [nil].push(3) }
 
-  #   klass = Class.new {
-  #     def self.test(a)
-  #       if a > 0
-  #         test(a-1)
-  #       end
-  #     end
-  #   }
-  #   result = klass.test(1)
-  #   expect(LLRB::JIT.compile(klass, :test)).to eq(true)
-  #   expect(klass.test(1)).to eq(result)
-  # end
+    klass = Class.new {
+      def self.test(a)
+        if a > 0
+          test(a-1)
+        end
+      end
+    }
+    result = klass.test(1)
+    expect(LLRB::JIT.compile(klass, :test)).to eq(true)
+    expect(klass.test(1)).to eq(result)
+  end
 
   # specify 'invokesuper' do
   #   mod = Module.new {
@@ -626,11 +626,11 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { 3 <= 2 }
   # end
 
-  # specify 'opt_gt' do
-  #   test_compile { 2 > 3 }
-  #   test_compile { 2 > 2 }
-  #   test_compile { 3 > 2 }
-  # end
+  specify 'opt_gt' do
+    test_compile { 2 > 3 }
+    test_compile { 2 > 2 }
+    test_compile { 3 > 2 }
+  end
 
   # specify 'opt_ge' do
   #   test_compile { 2 >= 3 }

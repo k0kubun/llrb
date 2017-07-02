@@ -139,6 +139,21 @@ llrb_push_incoming_things(const struct llrb_compiler *c, struct llrb_basic_block
   LLVMAddIncoming(block->phi, values, blocks, 1);
 }
 
+static LLVMValueRef
+llrb_compile_newarray(const struct llrb_compiler *c, struct llrb_stack *stack, long num)
+{
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, num+1); // `xfree`d in the end of this function.
+  args[0] = LLVMConstInt(LLVMInt64Type(), num, true); // TODO: support 32bit
+  for (long i = num; 1 <= i; i--) {
+    args[i] = llrb_stack_pop(stack);
+  }
+
+  LLVMValueRef func = llrb_get_function(c->mod, "rb_ary_new_from_args");
+  LLVMValueRef ret = LLVMBuildCall(c->builder, func, args, num+1, "newarray");
+  xfree(args);
+  return ret;
+}
+
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
 // @param created_br is set true if conditional branch is created. In that case, br for next block isn't created in `llrb_compile_basic_block`.
@@ -267,14 +282,13 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_clear"), args3, 1, "toregexp");
     //   break;
     // }
-    // case YARVINSN_newarray:
-    //   llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
-    //   break;
-    // case YARVINSN_duparray: {
-    //   LLVMValueRef args[] = { llrb_value(operands[0]) };
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_ary_resurrect"), args, 1, "duparray"));
-    //   break;
-    // }
+    case YARVINSN_newarray:
+      llrb_stack_push(stack, llrb_compile_newarray(c, stack, (long)operands[0]));
+      break;
+    case YARVINSN_duparray: {
+      llrb_stack_push(stack, llrb_call_func(c, "rb_ary_resurrect", 1, llrb_value(operands[0]))); // TODO: inline rb_ary_resurrect?
+      break;
+    }
     // //case YARVINSN_expandarray: {
     // //  rb_num_t flag = (rb_num_t)operands[1];
     // //  if (flag & 0x02) { // for postarg
@@ -623,9 +637,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // case YARVINSN_opt_le:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("<="), 1));
     //   break;
-    // case YARVINSN_opt_gt:
-    //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, '>', 1));
-    //   break;
+    case YARVINSN_opt_gt:
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '>', 1));
+      break;
     // case YARVINSN_opt_ge:
     //   llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern(">="), 1));
     //   break;
