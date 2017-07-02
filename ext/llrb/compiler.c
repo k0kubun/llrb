@@ -63,8 +63,8 @@ static bool
 llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const unsigned int pos, const int insn, const VALUE *operands)
 {
   switch (insn) {
-    // case YARVINSN_nop:
-    //   break; // nop
+    case YARVINSN_nop:
+      break; // nop
     // //case YARVINSN_getlocal: {
     // //  ;
     // //  break;
@@ -124,9 +124,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   LLVMBuildCall(c->builder, llrb_get_function(c->mod, "rb_gvar_set"), args, 2, "setglobal");
     //   break;
     // }
-    // case YARVINSN_putnil:
-    //   llrb_stack_push(stack, llrb_value(Qnil));
-    //   break;
+    case YARVINSN_putnil:
+      llrb_stack_push(stack, llrb_value(Qnil));
+      break;
     // case YARVINSN_putself: {
     //   llrb_stack_push(stack, llrb_get_self(c));
     //   break;

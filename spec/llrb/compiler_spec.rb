@@ -23,9 +23,9 @@ RSpec.describe 'llrb_compile_iseq' do
     expect { native.test(*args.map(&:dup)) }.to raise_error(error)
   end
 
-  # specify 'nop' do
-  #   test_compile { nil rescue true }
-  # end
+  specify 'nop' do
+    test_compile { nil rescue true }
+  end
 
   # # specify 'getlocal' do
   # # specify 'setlocal' do
@@ -77,9 +77,9 @@ RSpec.describe 'llrb_compile_iseq' do
   #   test_compile { $llrb_gvar_set = 2 }
   # end
 
-  # specify 'putnil' do
-  #   test_compile { nil }
-  # end
+  specify 'putnil' do
+    test_compile { nil }
+  end
 
   # specify 'putself' do
   #   test_compile { print }
