@@ -569,14 +569,14 @@ RSpec.describe 'llrb_compile_iseq' do
 
   # # specify 'once' do
 
-  # specify 'opt_case_dispatch' do
-  #   test_compile(1) do |a|
-  #     case a
-  #     when 1
-  #       2
-  #     end
-  #   end
-  # end
+  specify 'opt_case_dispatch' do
+    test_compile(1) do |a|
+      case a
+      when 1
+        2
+      end
+    end
+  end
 
   specify 'opt_plus' do
     test_compile do

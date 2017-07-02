@@ -397,12 +397,13 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_defined"), args, 4, "defined"));
     //   break;
     // }
-    // case YARVINSN_checkmatch: {
-    //   LLVMValueRef args[] = { 0, llrb_stack_pop(stack), LLVMConstInt(LLVMInt64Type(), operands[0], false) };
-    //   args[0] = llrb_stack_pop(stack);
-    //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkmatch"), args, 3, "checkmatch"));
-    //   break;
-    // }
+    case YARVINSN_checkmatch: {
+      LLVMValueRef pattern = llrb_stack_pop(stack);
+      LLVMValueRef target =llrb_stack_pop(stack);
+      LLVMValueRef flag = LLVMConstInt(LLVMInt64Type(), operands[0], false);
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_checkmatch", 3, target, pattern, flag));
+      break;
+    }
     // case YARVINSN_checkkeyword: {
     //   LLVMValueRef args[] = { llrb_get_cfp(c), llrb_value((lindex_t)operands[0]), llrb_value((rb_num_t)operands[1]) };
     //   llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_checkkeyword"), args, 3, "checkkeyword"));
@@ -596,9 +597,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     // case YARVINSN_setinlinecache:
     //   break; // TODO: implement
     // //case YARVINSN_once:
-    // case YARVINSN_opt_case_dispatch: // Use `switch` instruction
-    //   llrb_stack_pop(stack); // TODO: implement
-    //   break;
+    case YARVINSN_opt_case_dispatch: // Use `switch` instruction
+      llrb_stack_pop(stack); // TODO: implement
+      break;
     case YARVINSN_opt_plus: {
       LLVMValueRef rhs = llrb_stack_pop(stack);
       LLVMValueRef lhs = llrb_stack_pop(stack);
