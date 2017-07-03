@@ -15,6 +15,7 @@ module LLRB
       iseqw = RubyVM::InstructionSequence.of(func)
       return false if iseqw.nil? # method defined with C function can't be compiled
 
+      #puts "#{iseqw.disasm}\n"
       compile_iseq(iseqw)
     end
 

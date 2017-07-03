@@ -61,9 +61,8 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body, unsigned int start, 
 }
 
 static void
-llrb_dump_catch_table(const struct rb_iseq_constant_body *body)
+llrb_dump_catch_table(const struct iseq_catch_table *ct)
 {
-  const struct iseq_catch_table *ct = body->catch_table;
   if (!ct) return;
 
   fprintf(stderr, "-- LLRB: catch table (size=%d)----------------\n", ct->size);
@@ -119,7 +118,7 @@ llrb_dump_cfg(const struct rb_iseq_constant_body *body, const struct llrb_cfg *c
     fprintf(stderr, "\n");
     llrb_disasm_insns(body, block->start, block->end);
   }
-  llrb_dump_catch_table(body);
+  llrb_dump_catch_table(body->catch_table);
 }
 
 #endif // LLRB_CFG_H

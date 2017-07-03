@@ -17,6 +17,7 @@ static VALUE rb_eCompileError;
 // Store compiler's internal state and shared variables
 struct llrb_compiler {
   const struct rb_iseq_constant_body *body;
+  const VALUE *new_iseq_encoded; // program counter's base address after this compilation.
   struct llrb_cfg *cfg;
   LLVMValueRef func;
   LLVMBuilderRef builder;
@@ -154,6 +155,23 @@ llrb_compile_newarray(const struct llrb_compiler *c, struct llrb_stack *stack, l
   return ret;
 }
 
+// Catch table checks program counter to decide catch it or not. So we need to set program counter before method call or throw insn.
+void
+llrb_increment_pc(const struct llrb_compiler *c, const unsigned int pos, const int insn)
+{
+  // TODO: Add more insns
+  switch (insn) {
+    case YARVINSN_throw: // <- necessary?
+    case YARVINSN_opt_send_without_block: {
+      // `pos` MUST NOT be 0 (it causes stack level too deep) or 1 (funcptr is considered as insn and it's invalid as insn).
+      // TODO: It should be checked before compilation!
+      const VALUE *pc = c->new_iseq_encoded + pos; // This must be `new_iseq_encoded` to get proper `epc` in `vm_exec`.
+      llrb_call_func(c, "llrb_set_pc", 2, llrb_get_cfp(c), llrb_value((VALUE)pc));
+      break;
+    }
+  }
+}
+
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
 // @param created_br is set true if conditional branch is created. In that case, br for next block isn't created in `llrb_compile_basic_block`.
@@ -161,6 +179,8 @@ static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_
 static bool
 llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const unsigned int pos, const int insn, const VALUE *operands, bool *created_br)
 {
+  llrb_increment_pc(c, pos, insn);
+
   //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d before %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);
   *created_br = false;
   switch (insn) {
@@ -785,7 +805,7 @@ llrb_init_cfg_for_compile(const struct llrb_compiler *c, struct llrb_cfg *cfg)
 
 // Compiles Control Flow Graph having encoded YARV instructions to LLVM IR.
 static LLVMValueRef
-llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, struct llrb_cfg *cfg, const char* funcname)
+llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, struct llrb_cfg *cfg, const char* funcname)
 {
   LLVMTypeRef args[] = { LLVMInt64Type(), LLVMInt64Type() };
   LLVMValueRef func = LLVMAddFunction(mod, funcname,
@@ -793,6 +813,7 @@ llrb_compile_cfg(LLVMModuleRef mod, const struct rb_iseq_constant_body *body, st
 
   const struct llrb_compiler compiler = (struct llrb_compiler){
     .body = body,
+    .new_iseq_encoded = new_iseq_encoded,
     .cfg = cfg,
     .func = func,
     .builder = LLVMCreateBuilder(),
@@ -845,14 +866,14 @@ llrb_build_initial_module()
 //
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.
 LLVMModuleRef
-llrb_compile_iseq(const struct rb_iseq_constant_body *body, const char* funcname)
+llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname)
 {
   extern void llrb_parse_iseq(const struct rb_iseq_constant_body *body, struct llrb_cfg *result);
   struct llrb_cfg cfg;
   llrb_parse_iseq(body, &cfg);
 
   LLVMModuleRef mod = llrb_build_initial_module();
-  LLVMValueRef func = llrb_compile_cfg(mod, body, &cfg, funcname);
+  LLVMValueRef func = llrb_compile_cfg(mod, body, new_iseq_encoded, &cfg, funcname);
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
   if (1) llrb_optimize_function(mod, func);

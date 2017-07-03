@@ -5,6 +5,13 @@
 #pragma clang diagnostic pop
 #include "cruby/probes_helper.h"
 
+void
+llrb_set_pc(VALUE cfp_v, VALUE pc_v)
+{
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+  cfp->pc = (VALUE *)pc_v;
+}
+
 VALUE
 llrb_insn_getlocal_level0(VALUE cfp_v, lindex_t idx)
 {

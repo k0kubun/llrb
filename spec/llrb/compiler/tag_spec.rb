@@ -46,9 +46,9 @@ RSpec.describe 'long jump by tag' do
   end
 
   specify 'catch' do
-    #expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test1)).to eq(true)
-    #expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test2)).to eq(true)
-    #expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test3)).to eq(true)
+    expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test1)).to eq(true)
+    expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test2)).to eq(true)
+    expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test3)).to eq(true)
     expect(LLRB::JIT.compile(LLRB::LongjumpTest, :test4)).to eq(true)
 
     expect(LLRB::LongjumpTest.test4).to eq('hello')
