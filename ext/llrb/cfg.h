@@ -60,6 +60,43 @@ llrb_disasm_insns(const struct rb_iseq_constant_body *body, unsigned int start, 
   fprintf(stderr, "\n");
 }
 
+static void
+llrb_dump_catch_table(const struct rb_iseq_constant_body *body)
+{
+  const struct iseq_catch_table *ct = body->catch_table;
+  if (!ct) return;
+
+  fprintf(stderr, "-- LLRB: catch table (size=%d)----------------\n", ct->size);
+  for (unsigned int i = 0; i < ct->size; i++) {
+    const struct iseq_catch_table_entry *entry = &ct->entries[i];
+
+    switch (entry->type) {
+      case CATCH_TYPE_RESCUE:
+        fprintf(stderr, "CATCH_TYPE_RESCUE");
+        break;
+      case CATCH_TYPE_ENSURE:
+        fprintf(stderr, "CATCH_TYPE_ENSURE");
+        break;
+      case CATCH_TYPE_RETRY:
+        fprintf(stderr, "CATCH_TYPE_RETRY");
+        break;
+      case CATCH_TYPE_BREAK:
+        fprintf(stderr, "CATCH_TYPE_BREAK");
+        break;
+      case CATCH_TYPE_REDO:
+        fprintf(stderr, "CATCH_TYPE_REDO");
+        break;
+      case CATCH_TYPE_NEXT:
+        fprintf(stderr, "CATCH_TYPE_NEXT");
+        break;
+    }
+
+    fprintf(stderr, ": start=%d, end=%d, cont=%d, sp=%d, iseq=%lx\n",
+        entry->start, entry->end, entry->cont, entry->sp, (VALUE)entry->iseq);
+  }
+  fprintf(stderr, "\n");
+}
+
 // NOTE: insns(|_info).inc has some static functions, and llrb_dump_cfg uses all those functions.
 // Thus we must call this function somewhere in all included files to pass compilation. `if (0)` is placed for such a purpose.
 static void
@@ -82,6 +119,7 @@ llrb_dump_cfg(const struct rb_iseq_constant_body *body, const struct llrb_cfg *c
     fprintf(stderr, "\n");
     llrb_disasm_insns(body, block->start, block->end);
   }
+  llrb_dump_catch_table(body);
 }
 
 #endif // LLRB_CFG_H
