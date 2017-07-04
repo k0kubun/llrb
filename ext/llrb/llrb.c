@@ -62,6 +62,13 @@ llrb_check_already_compiled(const rb_iseq_t *iseq)
     && iseq->body->iseq_encoded[2] == (VALUE)rb_vm_get_insns_address_table()[YARVINSN_leave];
 }
 
+static bool
+llrb_should_not_compile(const rb_iseq_t *iseq)
+{
+  extern bool llrb_check_not_compilable(const rb_iseq_t *iseq);
+  return llrb_check_already_compiled(iseq) || llrb_check_not_compilable(iseq);
+}
+
 // LLRB::JIT.preview_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
 // @return [Boolean] return true if compiled
@@ -69,7 +76,7 @@ static VALUE
 rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 {
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  if (llrb_check_already_compiled(iseq)) return Qfalse;
+  if (llrb_should_not_compile(iseq)) return Qfalse;
 
   LLVMModuleRef mod = llrb_compile_iseq(iseq->body, iseq->body->iseq_encoded, llrb_funcname);
   LLVMDumpModule(mod);
@@ -84,7 +91,7 @@ static VALUE
 rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 {
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  if (llrb_check_already_compiled(iseq)) return Qfalse;
+  if (llrb_should_not_compile(iseq)) return Qfalse;
 
   // Creating new_iseq_encoded before compilation to calculate program counter.
   VALUE *new_iseq_encoded = ALLOC_N(VALUE, iseq->body->iseq_size); // Never freed.

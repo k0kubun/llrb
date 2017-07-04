@@ -155,20 +155,67 @@ llrb_compile_newarray(const struct llrb_compiler *c, struct llrb_stack *stack, l
   return ret;
 }
 
+// If insn can call any method, it is throwable and needs to change program counter. Or it may rb_raise.
+static bool
+llrb_pc_change_required(const int insn)
+{
+  switch (insn) {
+    case YARVINSN_tostring:
+    case YARVINSN_freezestring:
+    case YARVINSN_checkmatch:
+    case YARVINSN_send:
+    case YARVINSN_opt_str_freeze:
+    case YARVINSN_opt_newarray_max:
+    case YARVINSN_opt_newarray_min:
+    case YARVINSN_opt_send_without_block:
+    case YARVINSN_invokesuper:
+    case YARVINSN_invokeblock:
+    case YARVINSN_leave:
+    case YARVINSN_throw:
+    case YARVINSN_opt_plus:
+    case YARVINSN_opt_minus:
+    case YARVINSN_opt_mult:
+    case YARVINSN_opt_div:
+    case YARVINSN_opt_mod:
+    case YARVINSN_opt_eq:
+    case YARVINSN_opt_neq:
+    case YARVINSN_opt_lt:
+    case YARVINSN_opt_le:
+    case YARVINSN_opt_gt:
+    case YARVINSN_opt_ge:
+    case YARVINSN_opt_ltlt:
+    case YARVINSN_opt_aref:
+    case YARVINSN_opt_aset:
+    case YARVINSN_opt_aset_with:
+    case YARVINSN_opt_aref_with:
+    case YARVINSN_opt_length:
+    case YARVINSN_opt_size:
+    case YARVINSN_opt_empty_p:
+    case YARVINSN_opt_succ:
+    case YARVINSN_opt_not:
+    case YARVINSN_opt_regexpmatch1:
+    case YARVINSN_opt_regexpmatch2:
+    case YARVINSN_opt_call_c_function:
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Catch table checks program counter to decide catch it or not. So we need to set program counter before method call or throw insn.
-void
+static void
 llrb_increment_pc(const struct llrb_compiler *c, const unsigned int pos, const int insn)
 {
-  // TODO: Add more insns
-  switch (insn) {
-    case YARVINSN_throw: // <- necessary?
-    case YARVINSN_opt_send_without_block: {
-      // `pos` MUST NOT be 0 (it causes stack level too deep) or 1 (funcptr is considered as insn and it's invalid as insn).
-      // TODO: It should be checked before compilation!
-      const VALUE *pc = c->new_iseq_encoded + pos; // This must be `new_iseq_encoded` to get proper `epc` in `vm_exec`.
-      llrb_call_func(c, "llrb_set_pc", 2, llrb_get_cfp(c), llrb_value((VALUE)pc));
-      break;
-    }
+  if (pos == 0) return; // Skip. 0 would be opt_call_c_function and there's no need to change.
+
+  if (llrb_pc_change_required(insn)) {
+    // This case should be rejected to compile by `llrb_check_not_compilable`.
+    if (pos == 1) rb_raise(rb_eCompileError, "program counter is set to 1 from iseq_encoded");
+
+    // `pos` MUST NOT be 0 (it causes stack level too deep) or 1 (funcptr is considered as insn and it's invalid as insn).
+    // TODO: It should be checked before compilation!
+    const VALUE *pc = c->new_iseq_encoded + pos; // This must be `new_iseq_encoded` to get proper `epc` in `vm_exec`.
+    llrb_call_func(c, "llrb_set_pc", 2, llrb_get_cfp(c), llrb_value((VALUE)pc));
   }
 }
 
@@ -861,9 +908,16 @@ llrb_build_initial_module()
   return ret; // LLVMModuleCreateWithName("llrb");
 }
 
-// In this function, LLRB has following dependency tree without mutual dependencies:
-// llrb.c -> compiler.c -> parser.c, optimizer.cc
-//
+bool
+llrb_check_not_compilable(const rb_iseq_t *iseq)
+{
+  // At least 3 is needed: opt_call_c_function + funcptr + leave
+  return iseq->body->iseq_size < 3
+    // We don't want to set pc to index 1. It will be funcptr. So we don't compile for such case.
+    || (insn_len(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[0])) == 1 &&
+        llrb_pc_change_required(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[1])));
+}
+
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.
 LLVMModuleRef
 llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname)
