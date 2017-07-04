@@ -1,34 +1,5 @@
 RSpec.describe LLRB::JIT do
   describe '.compile' do
-    pending 'compiles class method' do
-      klass = Class.new
-      def klass.hello
-        100
-      end
-
-      expect {
-        LLRB::JIT.compile(klass, :hello)
-      }.to change {
-        RubyVM::InstructionSequence.of(klass.method(:hello)).to_a
-      }
-      klass.hello
-    end
-
-    pending 'compiles instance method' do
-      klass = Class.new
-      klass.class_eval do
-        def hello; 100; end
-      end
-      object = klass.new
-
-      expect {
-        LLRB::JIT.compile(object, :hello)
-      }.to change {
-        RubyVM::InstructionSequence.of(object.method(:hello)).to_a
-      }
-      object.hello
-    end
-
     it 'is callable multiple times' do
       klass = Class.new
       def klass.hello
