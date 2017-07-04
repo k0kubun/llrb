@@ -2,20 +2,53 @@
 
 LLRB is a LLVM-based JIT compiler for Ruby.
 
+## What's LLRB?
+LLRB compiles YARV instructions to LLVM IR, ...
+
+Benchmark graph
+
+## Why is it fast?
+### Inline-cache based method inlining
+TBD
+
+instance variable and methods are inlined
+
+### Optimization by LLVM Passes
+- instcombine
+
+### Fast compilation
+- Compile from YARV iseq
+- Distributed LLVM Module bitcode
+- No C code parsing on runtime
+
+### Lightweight sampling profiler
+TBD
+
+## Internal design decisions
+### Conservative method replacement
+- `opt_call_c_function`
+- It's safe that YARV is usable
+
+### Simple architecture
+- Only JIT thread cretes funcptr
+
+### Built as C extension
+- XXX
+
+## Build dependency
+
+- LLVM/clang 3.8+
+  - `llvm-config` and `clang` commands need to appear in `$PATH`
+
 ## Installation
 
-Add this line to your application's Gemfile:
+Once build dependency is met, add this line to your application's Gemfile:
 
 ```ruby
 gem 'llrb'
 ```
 
-## Build dependency
-
-- LLVM/clang 3.8+
-  - `llvm-config` command needs to appear in `$PATH`
-
-## Usage
+## How to hack
 ### Compiling method to native code
 
 ```rb
@@ -50,9 +83,16 @@ declare i64 @rb_str_resurrect(i64)
 declare i64 @rb_funcall(i64, i64, i32, ...)
 ```
 
-## Supported Iseq instructions
+## Project status
 
-87/93 (93.5%)
+Experimental.
+
+LLRB is built to test whether LLVM can optimize MRI or not.  
+I'm seeking another optimization idea and it's not yet stable enough.
+
+## Supported YARV instructions
+
+85/91 (93.4%)
 
 ### nop
 - [x] nop
@@ -165,10 +205,6 @@ declare i64 @rb_funcall(i64, i64, i32, ...)
 - [x] branchunless
 - [x] branchnil
 
-### joke
-- [!] bitblt
-- [!] answer
-
 ## License
 
-MIT License
+The same as Ruby.
