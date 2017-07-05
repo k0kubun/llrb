@@ -130,6 +130,9 @@ Init_llrb(void)
   rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 1);
   rb_define_singleton_method(rb_mJIT, "is_compiled",  RUBY_METHOD_FUNC(rb_jit_is_compiled), 1);
 
+  extern void Init_profiler(VALUE rb_mJIT);
+  Init_profiler(rb_mJIT);
+
   extern void Init_parser(VALUE rb_mJIT);
   Init_parser(rb_mJIT);
 
