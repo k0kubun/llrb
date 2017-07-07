@@ -14,9 +14,25 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/k0kubun/llrb'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
+  ccans = Dir.chdir("#{__dir__}/ext/llrb/cruby") { Dir.glob("ccan/**/*.h") }
+  cruby = (ccans + %w[
+    internal.h
+    iseq.h
+    method.h
+    node.h
+    ruby_assert.h
+    ruby_atomic.h
+    thread_pthread.h
+    vm_core.h
+    vm_debug.h
+    vm_exec.h
+    vm_opts.h
+  ]).map { |f| "ext/llrb/cruby/#{f}" }
+
+  spec.files = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
-  end
+  end + cruby
+
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']

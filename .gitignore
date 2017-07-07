@@ -15,6 +15,7 @@ mkmf.log
 *.ll
 *.bc
 /core*
+/optcarrot
 
 # rspec failure tracking
 .rspec_status

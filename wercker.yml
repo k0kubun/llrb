@@ -12,6 +12,9 @@ build:
         name: rspec
         code: bundle exec rake spec
     - script:
+        name: optcarrot
+        code: bundle exec rake optcarrot:run
+    - script:
         name: bm_loop_while
         code: bin/bm_loop_while
     - script:
@@ -23,3 +26,6 @@ build:
     - script:
         name: bm_app_fib
         code: bin/bm_app_fib
+    - script:
+        name: check installability
+        code: bundle exec rake install

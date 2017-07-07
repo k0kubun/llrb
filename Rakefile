@@ -39,3 +39,15 @@ desc 'Compile insns.ll to insns.bc'
 task :insns_bc => :insns_ll do
   sh "llvm-as -o #{__dir__}/ext/insns.bc #{__dir__}/ext/insns.ll"
 end
+
+desc 'Clone optcarrot'
+file :optcarrot do
+  sh 'git clone --depth 1 https://github.com/mame/optcarrot'
+end
+
+desc 'Run optcarrot benchmark'
+task 'optcarrot:run' => :optcarrot do
+  Dir.chdir("#{__dir__}/optcarrot") do
+    system("ruby -I../lib -rllrb/start bin/optcarrot --benchmark examples/Lan_Master.nes")
+  end
+end
