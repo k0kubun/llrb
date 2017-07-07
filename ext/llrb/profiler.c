@@ -35,7 +35,8 @@ llrb_dump_iseq(const rb_iseq_t *iseq)
   if (!sample) return;
   const rb_callable_method_entry_t *cme = sample->cme;
 
-  fprintf(stderr, "%6ld: ", sample->total_calls);
+  fprintf(stderr, "%3ld: ", sample->total_calls);
+  fprintf(stderr, "[size=%3d] ", iseq->body->iseq_size);
   switch (iseq->body->type) {
     case ISEQ_TYPE_METHOD:
       fprintf(stderr,"ISEQ_TYPE_METHOD:");
@@ -73,7 +74,6 @@ llrb_dump_iseq(const rb_iseq_t *iseq)
     VALUE name = rb_profile_frame_full_label((VALUE)cme);
     fprintf(stderr, " %s", RSTRING_PTR(name));
   }
-  fprintf(stderr, "\n");
 }
 
 static struct llrb_sample *
@@ -188,20 +188,22 @@ llrb_job_handler(void *data)
     const rb_iseq_t *iseq = llrb_search_compile_target();
     if (iseq) {
       llrb_dump_iseq(iseq);
+      fprintf(stderr, " => ");
       switch (llrb_safe_compile_iseq(iseq)) {
         case Qtrue:
-          fprintf(stderr, "=> success!\n\n");
+          fprintf(stderr, "success!");
           break;
         case Qfalse:
-          fprintf(stderr, "=> not compiled\n\n");
+          fprintf(stderr, "not compiled");
           break;
         case Qnil:
-          fprintf(stderr, "=> COMPILE ERROR\n\n");
+          fprintf(stderr, "COMPILE ERROR");
           break;
         default:
-          fprintf(stderr, "=> ???\n\n");
+          fprintf(stderr, "???");
           break;
       }
+      fprintf(stderr, "\n");
     }
   }
   in_job_handler--;
