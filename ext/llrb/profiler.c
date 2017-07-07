@@ -30,8 +30,9 @@ llrb_dump_iseq(const rb_iseq_t *iseq)
 
   st_data_t val;
   st_lookup(llrb_profiler.sample_by_iseq, (st_data_t)iseq, &val);
-  struct llrb_sample *sample = (struct llrb_sample *)val;
 
+  struct llrb_sample *sample = (struct llrb_sample *)val;
+  if (!sample) return;
   const rb_callable_method_entry_t *cme = sample->cme;
 
   fprintf(stderr, "%6ld: ", sample->total_calls);
