@@ -52,6 +52,6 @@ desc 'Run optcarrot benchmark'
 task 'optcarrot:run' => :optcarrot do
   Dir.chdir("#{__dir__}/optcarrot") do
     sh "bundle check || bundle install -j#{`nproc`.rstrip}"
-    sh 'bundle exec ruby bin/optcarrot --benchmark examples/Lan_Master.nes'
+    sh 'bundle exec ruby -I../lib -rllrb/start bin/optcarrot --benchmark examples/Lan_Master.nes'
   end
 end
