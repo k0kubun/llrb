@@ -24,9 +24,14 @@ static struct {
 static VALUE gc_hook;
 
 void
-llrb_dump_iseq(const rb_iseq_t *iseq, const struct llrb_sample *sample)
+llrb_dump_iseq(const rb_iseq_t *iseq)
 {
-  if (!iseq || !sample) return;
+  if (!iseq) return;
+
+  st_data_t val;
+  st_lookup(llrb_profiler.sample_by_iseq, (st_data_t)iseq, &val);
+  struct llrb_sample *sample = (struct llrb_sample *)val;
+
   const rb_callable_method_entry_t *cme = sample->cme;
 
   fprintf(stderr, "%6ld: ", sample->total_calls);
@@ -136,6 +141,7 @@ llrb_search_compile_target_i(st_data_t key, st_data_t val, st_data_t arg)
   return ST_CONTINUE;
 }
 
+// Return METHOD or BLOCK iseq which is called the most
 static const rb_iseq_t *
 llrb_search_compile_target()
 {
@@ -162,11 +168,8 @@ llrb_job_handler(void *data)
   llrb_profile_frame();
 
   if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL == 0) {
-    const rb_iseq_t *target_iseq = llrb_search_compile_target();
-    st_data_t val;
-    st_lookup(llrb_profiler.sample_by_iseq, (st_data_t)target_iseq, &val);
-    struct llrb_sample *sample = (struct llrb_sample *)val;
-    llrb_dump_iseq(target_iseq, sample);
+    const rb_iseq_t *iseq = llrb_search_compile_target();
+    llrb_dump_iseq(iseq);
   }
   in_job_handler--;
 }
