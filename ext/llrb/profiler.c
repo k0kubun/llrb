@@ -6,11 +6,11 @@
 #include "ruby/debug.h"
 #include "cruby.h"
 
-#define LLRB_PROFILE_LIMIT 2048
-#define LLRB_ENQUEUE_INTERVAL 40
+#define LLRB_PROFILE_INTERVAL 1000
+#define LLRB_COMPILE_INTERVAL 30
 
 struct llrb_sample {
-  size_t score; // Total count of callstack depth
+  size_t total_calls; // Total count of stack-top occurrence
   bool compiled;
   const rb_callable_method_entry_t *cme;
 };
@@ -18,7 +18,7 @@ struct llrb_sample {
 static struct {
   int running;
   size_t profile_times;
-  st_table *sample_by_frame; // Hash table: { frame => frame_data sample }
+  st_table *sample_by_iseq; // { iseq => llrb_sample }
 } llrb_profiler;
 
 static VALUE gc_hook;
@@ -26,9 +26,10 @@ static VALUE gc_hook;
 void
 llrb_dump_iseq(const rb_iseq_t *iseq, const struct llrb_sample *sample)
 {
+  if (!iseq || !sample) return;
   const rb_callable_method_entry_t *cme = sample->cme;
 
-  fprintf(stderr, "%6ld: ", sample->score);
+  fprintf(stderr, "%6ld: ", sample->total_calls);
   switch (iseq->body->type) {
     case ISEQ_TYPE_METHOD:
       fprintf(stderr,"ISEQ_TYPE_METHOD:");
@@ -75,36 +76,34 @@ llrb_sample_for(const rb_iseq_t *iseq, const rb_control_frame_t *cfp)
   st_data_t key = (st_data_t)iseq, val = 0;
   struct llrb_sample *sample;
 
-  if (st_lookup(llrb_profiler.sample_by_frame, key, &val)) {
+  if (st_lookup(llrb_profiler.sample_by_iseq, key, &val)) {
     sample = (struct llrb_sample *)val;
   } else {
     sample = ALLOC_N(struct llrb_sample, 1); // Not freed
     *sample = (struct llrb_sample){
-      .score = 0,
+      .total_calls = 0,
       .compiled = false,
       .cme = rb_vm_frame_method_entry(cfp),
     };
     val = (st_data_t)sample;
-    st_insert(llrb_profiler.sample_by_frame, key, val);
+    st_insert(llrb_profiler.sample_by_iseq, key, val);
   }
 
   return sample;
 }
 
+// Profile only stack top.
 static void
-llrb_profile_frames()
+llrb_profile_frame()
 {
   rb_thread_t *th = GET_THREAD();
-  rb_control_frame_t *cfp = RUBY_VM_NEXT_CONTROL_FRAME(RUBY_VM_END_CONTROL_FRAME(th)); // reverse lookup
-  rb_control_frame_t *end_cfp = th->cfp;
+  rb_control_frame_t *cfp = th->cfp;
 
-  for (int i = 0; i < LLRB_PROFILE_LIMIT && cfp != end_cfp; i++) {
-    if (cfp->iseq) {
-      struct llrb_sample *sample = llrb_sample_for(cfp->iseq, cfp);
-      sample->score += i;
-    }
-    cfp = RUBY_VM_NEXT_CONTROL_FRAME(cfp);
+  if (cfp->iseq) {
+    struct llrb_sample *sample = llrb_sample_for(cfp->iseq, cfp);
+    sample->total_calls++;
   }
+  cfp = RUBY_VM_PREVIOUS_CONTROL_FRAME(cfp);
 
   llrb_profiler.profile_times++;
 }
@@ -128,7 +127,7 @@ llrb_search_compile_target_i(st_data_t key, st_data_t val, st_data_t arg)
       target->iseq = iseq;
       target->sample = sample;
     }
-    if (sample->score > target->sample->score) {
+    if (sample->total_calls > target->sample->total_calls) {
       target->iseq = iseq;
       target->sample = sample;
     }
@@ -144,7 +143,7 @@ llrb_search_compile_target()
     .sample = 0,
     .iseq = 0,
   };
-  st_foreach(llrb_profiler.sample_by_frame, llrb_search_compile_target_i, (st_data_t)&target);
+  st_foreach(llrb_profiler.sample_by_iseq, llrb_search_compile_target_i, (st_data_t)&target);
 
   if (target.sample) {
     target.sample->compiled = true;
@@ -160,12 +159,12 @@ llrb_job_handler(void *data)
   if (!llrb_profiler.running) return;
 
   in_job_handler++;
-  llrb_profile_frames();
+  llrb_profile_frame();
 
-  if (llrb_profiler.profile_times % LLRB_ENQUEUE_INTERVAL == 0) {
+  if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL == 0) {
     const rb_iseq_t *target_iseq = llrb_search_compile_target();
     st_data_t val;
-    st_lookup(llrb_profiler.sample_by_frame, (st_data_t)target_iseq, &val);
+    st_lookup(llrb_profiler.sample_by_iseq, (st_data_t)target_iseq, &val);
     struct llrb_sample *sample = (struct llrb_sample *)val;
     llrb_dump_iseq(target_iseq, sample);
   }
@@ -187,8 +186,8 @@ rb_jit_start(RB_UNUSED_VAR(VALUE self))
   struct itimerval timer;
 
   if (llrb_profiler.running) return Qfalse;
-  if (!llrb_profiler.sample_by_frame) {
-    llrb_profiler.sample_by_frame = st_init_numtable();
+  if (!llrb_profiler.sample_by_iseq) {
+    llrb_profiler.sample_by_iseq = st_init_numtable();
   }
 
   sa.sa_sigaction = llrb_signal_handler;
@@ -197,7 +196,7 @@ rb_jit_start(RB_UNUSED_VAR(VALUE self))
   sigaction(SIGPROF, &sa, NULL);
 
   timer.it_interval.tv_sec = 0;
-  timer.it_interval.tv_usec = 1000;
+  timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL;
   timer.it_value = timer.it_interval;
   setitimer(ITIMER_PROF, &timer, 0);
 
@@ -236,8 +235,8 @@ llrb_gc_mark_i(st_data_t key, st_data_t val, st_data_t arg)
 static void
 llrb_gc_mark(void *data)
 {
-  if (llrb_profiler.sample_by_frame) {
-    st_foreach(llrb_profiler.sample_by_frame, llrb_gc_mark_i, 0);
+  if (llrb_profiler.sample_by_iseq) {
+    st_foreach(llrb_profiler.sample_by_iseq, llrb_gc_mark_i, 0);
   }
 }
 
@@ -257,7 +256,7 @@ llrb_atfork_parent(void)
   struct itimerval timer;
   if (llrb_profiler.running) {
     timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 1000;
+    timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL;
     timer.it_value = timer.it_interval;
     setitimer(ITIMER_PROF, &timer, 0);
   }
@@ -277,7 +276,7 @@ Init_profiler(VALUE rb_mJIT)
 
   llrb_profiler.running = 0;
   llrb_profiler.profile_times = 0;
-  llrb_profiler.sample_by_frame = 0;
+  llrb_profiler.sample_by_iseq = 0;
 
   gc_hook = Data_Wrap_Struct(rb_cObject, llrb_gc_mark, NULL, &llrb_profiler);
   rb_global_variable(&gc_hook);
