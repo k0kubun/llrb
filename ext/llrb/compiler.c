@@ -891,12 +891,13 @@ llrb_destruct_cfg(struct llrb_cfg *cfg)
   xfree(cfg->blocks);
 }
 
+#define LLRB_BITCODE_FILE(path) LLRB_BITCODE_DIR "/" path
 static LLVMModuleRef
 llrb_build_initial_module()
 {
   LLVMMemoryBufferRef buf;
   char *err;
-  if (LLVMCreateMemoryBufferWithContentsOfFile("ext/insns.bc", &buf, &err)) {
+  if (LLVMCreateMemoryBufferWithContentsOfFile(LLRB_BITCODE_FILE("insns.bc"), &buf, &err)) {
     rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
   }
 
@@ -932,8 +933,8 @@ llrb_check_not_compilable(const rb_iseq_t *iseq)
   return iseq->body->iseq_size < 3
     // We don't want to set pc to index 1. It will be funcptr. So we don't compile for such case.
     || (insn_len(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[0])) == 1 &&
-        llrb_pc_change_required(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[1]))
-    || llrb_includes_unsupported_insn(iseq));
+        llrb_pc_change_required(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[1])))
+    || llrb_includes_unsupported_insn(iseq);
 }
 
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.

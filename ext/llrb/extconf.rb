@@ -26,7 +26,8 @@ $INCFLAGS = "#{$INCFLAGS} -I$(srcdir)/cruby -I$(srcdir)/cruby_extra"
 unless system('which llvm-config 2>&1 >/dev/null')
   raise "llvm-config(1) must be available!\nNot found in PATH='#{ENV['PATH']}'"
 end
-$CFLAGS = "#{$CFLAGS} -Wall -Werror -W #{`llvm-config --cflags`.rstrip}" # remove -Werror later
+bitcode_dir = File.expand_path("#{__dir__}/..")
+$CFLAGS = "#{$CFLAGS} -DLLRB_BITCODE_DIR='\"#{bitcode_dir}\"' -Wall -Werror -W #{`llvm-config --cflags`.rstrip}" # remove -Werror later
 $CXXFLAGS = "#{$CXXFLAGS} -Wall -Werror -W #{`llvm-config --cxxflags`.rstrip}" # remove -Werror later
 $LDFLAGS = "#{$LDFLAGS} #{`llvm-config --ldflags`.rstrip} #{`llvm-config --libs core engine passes`}"
 
