@@ -84,13 +84,10 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
   return Qtrue;
 }
 
-// LLRB::JIT.compile_iseq
-// @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
-// @return [Boolean] return true if compiled
-static VALUE
-rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
+// Used by profiler.c too
+VALUE
+llrb_compile_iseq_to_method(const rb_iseq_t *iseq)
 {
-  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
   if (llrb_should_not_compile(iseq)) return Qfalse;
 
   // Creating new_iseq_encoded before compilation to calculate program counter.
@@ -106,6 +103,16 @@ rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 
   llrb_replace_iseq_with_cfunc(iseq, new_iseq_encoded, (rb_insn_func_t)func);
   return Qtrue;
+}
+
+// LLRB::JIT.compile_iseq
+// @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
+// @return [Boolean] return true if compiled
+static VALUE
+rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
+{
+  const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
+  return llrb_compile_iseq_to_method(iseq);
 }
 
 static VALUE

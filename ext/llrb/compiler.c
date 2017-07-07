@@ -908,6 +908,23 @@ llrb_build_initial_module()
   return ret; // LLVMModuleCreateWithName("llrb");
 }
 
+static bool
+llrb_includes_unsupported_insn(const rb_iseq_t *iseq)
+{
+  unsigned int i = 0;
+  while (i < iseq->body->iseq_size) {
+    int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
+    switch (insn) {
+      case YARVINSN_expandarray:
+        return true;
+      default:
+        break;
+    }
+    i += insn_len(insn);
+  }
+  return false;
+}
+
 bool
 llrb_check_not_compilable(const rb_iseq_t *iseq)
 {
@@ -915,7 +932,8 @@ llrb_check_not_compilable(const rb_iseq_t *iseq)
   return iseq->body->iseq_size < 3
     // We don't want to set pc to index 1. It will be funcptr. So we don't compile for such case.
     || (insn_len(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[0])) == 1 &&
-        llrb_pc_change_required(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[1])));
+        llrb_pc_change_required(rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[1]))
+    || llrb_includes_unsupported_insn(iseq));
 }
 
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.

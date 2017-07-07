@@ -158,6 +158,22 @@ llrb_search_compile_target()
   return target.iseq;
 }
 
+static VALUE
+llrb_compile_error_handler(RB_UNUSED_VAR(VALUE nil), VALUE e)
+{
+  fprintf(stderr, "%s\n", RSTRING_PTR(rb_inspect(e)));
+  return Qnil;
+}
+
+// Compile iseq with compile error suppressed.
+static VALUE
+llrb_safe_compile_iseq(const rb_iseq_t *iseq)
+{
+  extern VALUE llrb_compile_iseq_to_method(const rb_iseq_t *iseq);
+  return rb_rescue(llrb_compile_iseq_to_method, (VALUE)iseq,
+      llrb_compile_error_handler, Qnil);
+}
+
 static void
 llrb_job_handler(void *data)
 {
@@ -170,7 +186,23 @@ llrb_job_handler(void *data)
 
   if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL == 0) {
     const rb_iseq_t *iseq = llrb_search_compile_target();
-    llrb_dump_iseq(iseq);
+    if (iseq) {
+      llrb_dump_iseq(iseq);
+      switch (llrb_safe_compile_iseq(iseq)) {
+        case Qtrue:
+          fprintf(stderr, "=> success!\n\n");
+          break;
+        case Qfalse:
+          fprintf(stderr, "=> not compiled\n\n");
+          break;
+        case Qnil:
+          fprintf(stderr, "=> COMPILE ERROR\n\n");
+          break;
+        default:
+          fprintf(stderr, "=> ???\n\n");
+          break;
+      }
+    }
   }
   in_job_handler--;
 }
