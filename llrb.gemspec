@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
     iseq.h
     method.h
     node.h
+    probes_helper.h
     ruby_assert.h
     ruby_atomic.h
     thread_pthread.h

@@ -898,6 +898,7 @@ llrb_build_initial_module()
   LLVMMemoryBufferRef buf;
   char *err;
   if (LLVMCreateMemoryBufferWithContentsOfFile(LLRB_BITCODE_FILE("insns.bc"), &buf, &err)) {
+    fprintf(stderr, "Failed to load: '%s'\n", LLRB_BITCODE_FILE("insns.bc"));
     rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
   }
 
