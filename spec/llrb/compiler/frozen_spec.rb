@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 RSpec.describe 'llrb_compile_iseq' do
   def test_compile(*args, &block)
     ruby = Class.new
