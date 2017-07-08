@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 #include "cruby/probes_helper.h"
 
 // TODO: Use vm_dtrace after Ruby 2.5

@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 
 VALUE
 llrb_insn_getlocal(VALUE cfp_v, lindex_t idx, rb_num_t level)

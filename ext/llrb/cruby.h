@@ -5,13 +5,22 @@
 #ifndef LLRB_CRUBY_H
 #define LLRB_CRUBY_H
 
+#ifdef __clang__
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wignored-attributes"
+# pragma clang diagnostic ignored "-Wunknown-attributes"
+#endif
 #include "ruby.h"
+#ifdef __clang__
+# pragma clang diagnostic pop
+#endif
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include "cruby/internal.h"
 #include "cruby/vm_core.h"
 #pragma GCC diagnostic pop
+
 #include "cruby/method.h"
 #include "cruby/vm_exec.h"
 #include "cruby/iseq.h"

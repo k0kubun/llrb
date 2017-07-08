@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 
 // TODO: Use vm_check_keyword after Ruby 2.5
 VALUE

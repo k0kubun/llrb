@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 
 // https://github.com/ruby/ruby/blob/v2_4_1/insns.def#L515-L534
 VALUE

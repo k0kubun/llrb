@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 
 VALUE vm_getspecial(rb_thread_t *th, const VALUE *lep, rb_num_t key, rb_num_t type);
 VALUE

@@ -1,8 +1,4 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wignored-attributes"
-#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include "cruby.h"
-#pragma clang diagnostic pop
 
 VALUE vm_get_cvar_base(const rb_cref_t *cref, rb_control_frame_t *cfp);
 rb_cref_t * rb_vm_get_cref(const VALUE *ep);
