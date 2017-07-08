@@ -221,6 +221,31 @@ llrb_increment_pc(const struct llrb_compiler *c, const unsigned int pos, const i
 
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
+// opt TODO:
+// YARVINSN_opt_str_freeze:
+// YARVINSN_opt_newarray_max:
+// YARVINSN_opt_newarray_min:
+// YARVINSN_opt_mult:
+// YARVINSN_opt_div:
+// YARVINSN_opt_mod:
+// YARVINSN_opt_eq:
+// YARVINSN_opt_neq:
+// YARVINSN_opt_le:
+// YARVINSN_opt_gt:
+// YARVINSN_opt_ge:
+// YARVINSN_opt_ltlt:
+// YARVINSN_opt_aref:
+// YARVINSN_opt_aset:
+// YARVINSN_opt_aset_with:
+// YARVINSN_opt_aref_with:
+// YARVINSN_opt_length:
+// YARVINSN_opt_size:
+// YARVINSN_opt_empty_p:
+// YARVINSN_opt_succ:
+// YARVINSN_opt_not:
+// YARVINSN_opt_regexpmatch1:
+// YARVINSN_opt_regexpmatch2:
+
 // @param created_br is set true if conditional branch is created. In that case, br for next block isn't created in `llrb_compile_basic_block`.
 // @return true if the IR compiled from given insn includes `ret` instruction. In that case, next block won't be compiled in `llrb_compile_basic_block`.
 static bool
