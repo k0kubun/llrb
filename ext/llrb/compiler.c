@@ -714,9 +714,18 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_opt_eq:
       llrb_compile_opt_insn(c, stack, "opt_eq", 2);
       break;
-    case YARVINSN_opt_neq:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1)); // a little hard to replace...
+    case YARVINSN_opt_neq: {
+      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 6); // `xfree`d in this block.
+      args[1] = llrb_stack_pop(stack);
+      args[0] = llrb_stack_pop(stack);
+      args[2] = llrb_value(operands[0]);
+      args[3] = llrb_value(operands[1]);
+      args[4] = llrb_value(operands[2]);
+      args[5] = llrb_value(operands[3]);
+      llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_opt_neq"), args, 6, ""));
+      xfree(args);
       break;
+    }
     case YARVINSN_opt_lt:
       llrb_compile_opt_insn(c, stack, "opt_lt", 2);
       break;
