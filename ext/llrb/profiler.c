@@ -6,9 +6,9 @@
 #include "ruby/debug.h"
 #include "cruby.h"
 
-#define LLRB_PROFILE_INTERVAL 1000
-//#define LLRB_COMPILE_INTERVAL 30
-#define LLRB_COMPILE_INTERVAL 1000
+#define LLRB_PROFILE_INTERVAL_USEC 1000
+//#define LLRB_COMPILE_INTERVAL_TIMES 30
+#define LLRB_COMPILE_INTERVAL_TIMES 100
 
 struct llrb_sample {
   size_t total_calls; // Total count of stack-top occurrence
@@ -181,6 +181,8 @@ llrb_safe_compile_iseq(const rb_iseq_t *iseq)
       llrb_compile_error_handler, Qnil);
 }
 
+static VALUE rb_jit_stop(VALUE self); // For debug. TODO: remove!!!
+
 static void
 llrb_job_handler(void *data)
 {
@@ -191,14 +193,15 @@ llrb_job_handler(void *data)
   in_job_handler++;
   llrb_profile_frame();
 
-  if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL == 0) {
+  if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL_TIMES == 0) {
     const rb_iseq_t *iseq = llrb_search_compile_target();
     if (iseq) {
       llrb_dump_iseq(iseq);
       fprintf(stderr, " => ");
       switch (llrb_safe_compile_iseq(iseq)) {
         case Qtrue:
-          fprintf(stderr, "success!");
+          fprintf(stderr, "success! stop JIT.");
+          rb_jit_stop(Qnil); // For debug. TODO: remove!!!
           break;
         case Qfalse:
           fprintf(stderr, "not compiled");
@@ -241,7 +244,7 @@ rb_jit_start(RB_UNUSED_VAR(VALUE self))
   sigaction(SIGPROF, &sa, NULL);
 
   timer.it_interval.tv_sec = 0;
-  timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL;
+  timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL_USEC;
   timer.it_value = timer.it_interval;
   setitimer(ITIMER_PROF, &timer, 0);
 
@@ -301,7 +304,7 @@ llrb_atfork_parent(void)
   struct itimerval timer;
   if (llrb_profiler.running) {
     timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL;
+    timer.it_interval.tv_usec = LLRB_PROFILE_INTERVAL_USEC;
     timer.it_value = timer.it_interval;
     setitimer(ITIMER_PROF, &timer, 0);
   }
