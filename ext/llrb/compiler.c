@@ -213,7 +213,6 @@ llrb_increment_pc(const struct llrb_compiler *c, const unsigned int pos, const i
     if (pos == 1) rb_raise(rb_eCompileError, "program counter is set to 1 from iseq_encoded");
 
     // `pos` MUST NOT be 0 (it causes stack level too deep) or 1 (funcptr is considered as insn and it's invalid as insn).
-    // TODO: It should be checked before compilation!
     const VALUE *pc = c->new_iseq_encoded + pos; // This must be `new_iseq_encoded` to get proper `epc` in `vm_exec`.
     llrb_call_func(c, "llrb_set_pc", 2, llrb_get_cfp(c), llrb_value((VALUE)pc));
   }
