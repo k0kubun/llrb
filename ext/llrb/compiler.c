@@ -545,8 +545,8 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       break;
     }
     case YARVINSN_opt_str_freeze: { // TODO: optimize
-      llrb_stack_push(stack, llrb_call_func(c, "rb_funcall", 3, llrb_value(operands[0]),
-            llrb_value(rb_intern("freeze")), LLVMConstInt(LLVMInt32Type(), 0, true)));
+      llrb_stack_push(stack, llrb_value(operands[0]));
+      llrb_compile_opt_insn(c, stack, "opt_str_freeze", 1);
       break;
     }
     case YARVINSN_opt_newarray_max: // TODO: optimize
