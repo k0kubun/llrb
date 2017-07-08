@@ -57,7 +57,7 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 64, 2, { 64, 64 }, false, "llrb_insn_opt_ge", true },
   { 64, 2, { 64, 64 }, false, "llrb_insn_opt_ltlt", true },
   { 64, 2, { 64, 64 }, false, "llrb_insn_opt_aref", true },
-  //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_aset", true },
+  { 64, 3, { 64, 64, 64 }, false, "llrb_insn_opt_aset", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_aset_with", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_aref_with", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_length", true },

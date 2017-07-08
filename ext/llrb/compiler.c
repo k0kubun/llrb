@@ -736,7 +736,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_compile_opt_insn(c, stack, "opt_aref", 2);
       break;
     case YARVINSN_opt_aset:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("[]="), 2));
+      llrb_compile_opt_insn(c, stack, "opt_aset", 3);
       break;
     case YARVINSN_opt_aset_with: {
       LLVMValueRef value = llrb_stack_pop(stack);
