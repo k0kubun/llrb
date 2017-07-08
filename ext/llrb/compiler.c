@@ -696,14 +696,12 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_opt_case_dispatch: // Use `switch` instruction
       llrb_stack_pop(stack); // TODO: implement
       break;
-    case YARVINSN_opt_plus: {
+    case YARVINSN_opt_plus:
       llrb_compile_opt_insn(c, stack, "opt_plus", 2);
       break;
-    }
-    case YARVINSN_opt_minus: {
+    case YARVINSN_opt_minus:
       llrb_compile_opt_insn(c, stack, "opt_minus", 2);
       break;
-    }
     case YARVINSN_opt_mult:
       llrb_compile_opt_insn(c, stack, "opt_mult", 2);
       break;
