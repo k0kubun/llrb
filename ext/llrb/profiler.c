@@ -219,7 +219,7 @@ llrb_job_handler(void *data)
 static void
 llrb_signal_handler(int sig, siginfo_t *sinfo, void *ucontext)
 {
-  if (!rb_during_gc()) {
+  if (GET_VM()->running && !rb_during_gc()) {
     rb_postponed_job_register_one(0, llrb_job_handler, 0);
   }
 }
