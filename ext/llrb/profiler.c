@@ -129,15 +129,21 @@ llrb_search_compile_target_i(st_data_t key, st_data_t val, st_data_t arg)
 
   if (sample->compiled) return ST_CONTINUE;
 
-  if (iseq->body->type == ISEQ_TYPE_METHOD || iseq->body->type == ISEQ_TYPE_BLOCK) {
-    if (!target->iseq && !target->sample) {
-      target->iseq = iseq;
-      target->sample = sample;
-    }
-    if (sample->total_calls > target->sample->total_calls) {
-      target->iseq = iseq;
-      target->sample = sample;
-    }
+  switch (iseq->body->type) {
+    case ISEQ_TYPE_METHOD:
+    case ISEQ_TYPE_BLOCK:
+    case ISEQ_TYPE_MAIN:
+      if (!target->iseq && !target->sample) {
+        target->iseq = iseq;
+        target->sample = sample;
+      }
+      if (sample->total_calls > target->sample->total_calls) {
+        target->iseq = iseq;
+        target->sample = sample;
+      }
+      break;
+    default:
+      break;
   }
 
   return ST_CONTINUE;
