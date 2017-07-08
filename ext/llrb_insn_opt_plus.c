@@ -17,10 +17,10 @@ llrb_insn_opt_plus(VALUE recv, VALUE obj)
     return LONG2NUM(FIX2LONG(recv) + FIX2LONG(obj));
 #endif
   }
-  else if (FLONUM_2_P(recv, obj) &&
-      BASIC_OP_UNREDEFINED_P(BOP_PLUS, FLOAT_REDEFINED_OP_FLAG)) {
-    return DBL2NUM(RFLOAT_VALUE(recv) + RFLOAT_VALUE(obj));
-  }
+  //else if (FLONUM_2_P(recv, obj) &&
+  //    BASIC_OP_UNREDEFINED_P(BOP_PLUS, FLOAT_REDEFINED_OP_FLAG)) {
+  //  return DBL2NUM(RFLOAT_VALUE(recv) + RFLOAT_VALUE(obj));
+  //}
   //else if (!SPECIAL_CONST_P(recv) && !SPECIAL_CONST_P(obj)) {
   //  if (RBASIC_CLASS(recv) == rb_cFloat && RBASIC_CLASS(obj) == rb_cFloat &&
   //      BASIC_OP_UNREDEFINED_P(BOP_PLUS, FLOAT_REDEFINED_OP_FLAG)) {
