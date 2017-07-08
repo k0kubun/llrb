@@ -17,7 +17,7 @@ struct llrb_sample {
 };
 
 static struct {
-  int running;
+  bool running;
   size_t profile_times;
   st_table *sample_by_iseq; // { iseq => llrb_sample }
 } llrb_profiler;
@@ -248,7 +248,7 @@ rb_jit_start(RB_UNUSED_VAR(VALUE self))
   timer.it_value = timer.it_interval;
   setitimer(ITIMER_PROF, &timer, 0);
 
-  llrb_profiler.running = 1;
+  llrb_profiler.running = true;
   return Qtrue;
 }
 
@@ -259,7 +259,7 @@ rb_jit_stop(RB_UNUSED_VAR(VALUE self))
   struct itimerval timer;
 
   if (!llrb_profiler.running) return Qfalse;
-  llrb_profiler.running = 0;
+  llrb_profiler.running = false;
 
 	memset(&timer, 0, sizeof(timer));
 	setitimer(ITIMER_PROF, &timer, 0);
@@ -322,7 +322,7 @@ Init_profiler(VALUE rb_mJIT)
   rb_define_singleton_method(rb_mJIT, "start_internal", RUBY_METHOD_FUNC(rb_jit_start), 0);
   rb_define_singleton_method(rb_mJIT, "stop", RUBY_METHOD_FUNC(rb_jit_stop), 0);
 
-  llrb_profiler.running = 0;
+  llrb_profiler.running = false;
   llrb_profiler.profile_times = 0;
   llrb_profiler.sample_by_iseq = 0;
 
