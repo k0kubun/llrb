@@ -281,8 +281,9 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_call_func(c, "llrb_insn_setspecial", 2, llrb_value(operands[0]), llrb_stack_pop(stack));
       break;
     }
-    case YARVINSN_getinstancevariable: { // TODO: implement inline cache counterpart
-      llrb_stack_push(stack, llrb_call_func(c, "rb_ivar_get", 2, llrb_get_self(c), llrb_value(operands[0])));
+    case YARVINSN_getinstancevariable: {
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getinstancevariable", 3,
+            llrb_get_self(c), llrb_value(operands[0]), llrb_value(operands[1])));
       break;
     }
     case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
