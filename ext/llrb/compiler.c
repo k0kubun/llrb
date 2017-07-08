@@ -218,6 +218,23 @@ llrb_increment_pc(const struct llrb_compiler *c, const unsigned int pos, const i
   }
 }
 
+static void
+llrb_compile_opt_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const char *name, int argc)
+{
+  LLVMValueRef *args = ALLOC_N(LLVMValueRef, argc); // `xfree`d in this function.
+  for (int i = argc-1; i >= 0; i--) {
+    args[i] = llrb_stack_pop(stack);
+  }
+
+  char *funcname = ZALLOC_N(char, strlen("llrb_insn_") + strlen(name) + 1); // `xfree`d in this function.
+  strcat(funcname, "llrb_insn_");
+  strcat(funcname, name);
+  llrb_stack_push(stack, LLVMBuildCall(c->builder, llrb_get_function(c->mod, funcname), args, argc, name));
+
+  xfree(funcname);
+  xfree(args);
+}
+
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
 // opt TODO:
@@ -691,15 +708,11 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_pop(stack); // TODO: implement
       break;
     case YARVINSN_opt_plus: {
-      LLVMValueRef rhs = llrb_stack_pop(stack);
-      LLVMValueRef lhs = llrb_stack_pop(stack);
-      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_plus", 2, lhs, rhs));
+      llrb_compile_opt_insn(c, stack, "opt_plus", 2);
       break;
     }
     case YARVINSN_opt_minus: {
-      LLVMValueRef rhs = llrb_stack_pop(stack);
-      LLVMValueRef lhs = llrb_stack_pop(stack);
-      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_minus", 2, lhs, rhs));
+      llrb_compile_opt_insn(c, stack, "opt_minus", 2);
       break;
     }
     case YARVINSN_opt_mult:
@@ -718,9 +731,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
       break;
     case YARVINSN_opt_lt: {
-      LLVMValueRef rhs = llrb_stack_pop(stack);
-      LLVMValueRef lhs = llrb_stack_pop(stack);
-      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_lt", 2, lhs, rhs));
+      llrb_compile_opt_insn(c, stack, "opt_lt", 2);
       break;
     }
     case YARVINSN_opt_le:
