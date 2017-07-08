@@ -662,10 +662,12 @@ RSpec.describe 'llrb_compile_iseq' do
 
   specify 'opt_minus' do
     test_compile(2, 1) { |a, b| a-b }
+    test_compile(2.1, 1.2) { |a, b| a-b }
   end
 
   specify 'opt_mult' do
     test_compile { 3 * 2 * 1 }
+    test_compile { 3.1 * 2.1 * 1.1 }
   end
 
   specify 'opt_div' do

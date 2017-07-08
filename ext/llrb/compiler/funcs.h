@@ -47,7 +47,7 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 64, 2, { 64, 64 }, false, "llrb_insn_getspecial", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_newarray_max", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_newarray_min", true },
-  //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_mult", true },
+  { 64, 2, { 64, 64 }, false, "llrb_insn_opt_mult", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_div", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_mod", true },
   //{ 64, 2, { 64, 64 }, false, "llrb_insn_opt_eq", true },

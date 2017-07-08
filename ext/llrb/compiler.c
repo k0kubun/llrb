@@ -238,7 +238,6 @@ llrb_compile_opt_insn(const struct llrb_compiler *c, struct llrb_stack *stack, c
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
 // opt TODO:
-// YARVINSN_opt_str_freeze:
 // YARVINSN_opt_newarray_max:
 // YARVINSN_opt_newarray_min:
 // YARVINSN_opt_mult:
@@ -716,7 +715,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       break;
     }
     case YARVINSN_opt_mult:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '*', 1));
+      llrb_compile_opt_insn(c, stack, "opt_mult", 2);
       break;
     case YARVINSN_opt_div:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, '/', 1));
