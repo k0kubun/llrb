@@ -11,13 +11,7 @@ Rake::ExtensionTask.new('llrb') do |ext|
   ext.lib_dir = 'lib/llrb'
 end
 
-task :default => [:insns_bc, :compile, :spec]
-
-desc 'Compile insns.ll to insns.bc'
-task :insns_bc do
-  require_relative 'ext/llrb/llrb_extconf.rb'
-  LLRBExtconf.compile_bitcodes
-end
+task :default => [:compile, :spec]
 
 desc 'Clone optcarrot'
 file :optcarrot do
