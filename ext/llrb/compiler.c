@@ -345,8 +345,15 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_stack_push(stack, llrb_call_func(c, "rb_obj_as_string", 1, llrb_stack_pop(stack)));
       break;
     }
-    case YARVINSN_freezestring: { // TODO: check debug info
-      llrb_stack_push(stack, llrb_call_func(c, "rb_str_freeze", 1, llrb_stack_pop(stack))); // TODO: inline
+    case YARVINSN_freezestring: {
+      VALUE debug_info = operands[0];
+      LLVMValueRef str = llrb_stack_pop(stack);
+      if (!NIL_P(debug_info)) {
+        llrb_call_func(c, "rb_ivar_set", 3, str, llrb_value(id_debug_created_info), llrb_value(debug_info));
+      }
+
+      llrb_call_func(c, "rb_str_freeze", 1, str); // TODO: inline
+      llrb_stack_push(stack, str);
       break;
     }
     case YARVINSN_toregexp: {
