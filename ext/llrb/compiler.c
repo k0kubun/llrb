@@ -240,16 +240,6 @@ static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_
 // opt TODO:
 // YARVINSN_opt_newarray_max:
 // YARVINSN_opt_newarray_min:
-// YARVINSN_opt_mult:
-// YARVINSN_opt_div:
-// YARVINSN_opt_mod:
-// YARVINSN_opt_eq:
-// YARVINSN_opt_neq:
-// YARVINSN_opt_le:
-// YARVINSN_opt_gt:
-// YARVINSN_opt_ge:
-// YARVINSN_opt_ltlt:
-// YARVINSN_opt_aref:
 // YARVINSN_opt_aset:
 // YARVINSN_opt_aset_with:
 // YARVINSN_opt_aref_with:
@@ -718,35 +708,34 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_compile_opt_insn(c, stack, "opt_mult", 2);
       break;
     case YARVINSN_opt_div:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '/', 1));
+      llrb_compile_opt_insn(c, stack, "opt_div", 2);
       break;
     case YARVINSN_opt_mod:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '%', 1));
+      llrb_compile_opt_insn(c, stack, "opt_mod", 2);
       break;
     case YARVINSN_opt_eq:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("=="), 1));
+      llrb_compile_opt_insn(c, stack, "opt_eq", 2);
       break;
     case YARVINSN_opt_neq:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1));
+      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("!="), 1)); // a little hard to replace...
       break;
-    case YARVINSN_opt_lt: {
+    case YARVINSN_opt_lt:
       llrb_compile_opt_insn(c, stack, "opt_lt", 2);
       break;
-    }
     case YARVINSN_opt_le:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("<="), 1));
+      llrb_compile_opt_insn(c, stack, "opt_le", 2);
       break;
     case YARVINSN_opt_gt:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, '>', 1));
+      llrb_compile_opt_insn(c, stack, "opt_gt", 2);
       break;
     case YARVINSN_opt_ge:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern(">="), 1));
+      llrb_compile_opt_insn(c, stack, "opt_ge", 2);
       break;
     case YARVINSN_opt_ltlt:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("<<"), 1));
+      llrb_compile_opt_insn(c, stack, "opt_ltlt", 2);
       break;
     case YARVINSN_opt_aref:
-      llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("[]"), 1));
+      llrb_compile_opt_insn(c, stack, "opt_aref", 2);
       break;
     case YARVINSN_opt_aset:
       llrb_stack_push(stack, llrb_compile_funcall(c, stack, rb_intern("[]="), 2));
