@@ -425,7 +425,7 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
     case YARVINSN_dupn: {
       LLVMValueRef *values = ALLOC_N(LLVMValueRef, operands[0]); // `xfree`d in this block.
       for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {
-        values[i] = llrb_stack_pop(stack); // FIXME: obviously no need to pop
+        values[i] = llrb_stack_pop(stack); // TODO: obviously no need to pop
       }
 
       for (rb_num_t i = 0; i < (rb_num_t)operands[0]; i++) {

@@ -17,7 +17,7 @@ static VALUE rb_eParseError;
 static VALUE
 llrb_basic_block_starts(const struct rb_iseq_constant_body *body)
 {
-  // XXX: No need to check leave? leave is always in the end?
+  // TODO: No need to check leave? leave is always in the end?
 
   // Rule 1
   VALUE starts = rb_ary_new_capa(1); // Maybe GCed. Freeing this causes Bus Error...
@@ -131,7 +131,7 @@ llrb_set_incoming_blocks_by(const struct rb_iseq_constant_body *body, struct llr
   struct llrb_basic_block *last_block = cfg->blocks + (cfg->size-1);
   if (block < last_block) next_block = block + 1;
 
-  // XXX: No need to check leave? leave is always in the end?
+  // TODO: No need to check leave? leave is always in the end?
   int end_insn = rb_vm_insn_addr2insn((void *)body->iseq_encoded[block->end]);
   switch (end_insn) {
     case YARVINSN_branchnil:
