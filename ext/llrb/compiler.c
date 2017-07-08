@@ -281,15 +281,14 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       llrb_call_func(c, "llrb_insn_setspecial", 2, llrb_value(operands[0]), llrb_stack_pop(stack));
       break;
     }
-    case YARVINSN_getinstancevariable: {
+    case YARVINSN_getinstancevariable:
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getinstancevariable", 3,
             llrb_get_self(c), llrb_value(operands[0]), llrb_value(operands[1])));
       break;
-    }
-    case YARVINSN_setinstancevariable: { // TODO: implement inline cache counterpart
-      llrb_call_func(c, "rb_ivar_set", 3, llrb_get_self(c), llrb_value(operands[0]), llrb_stack_pop(stack));
+    case YARVINSN_setinstancevariable:
+      llrb_call_func(c, "llrb_insn_setinstancevariable", 4, llrb_get_self(c),
+          llrb_value(operands[0]), llrb_stack_pop(stack), llrb_value(operands[1]));
       break;
-    }
     case YARVINSN_getclassvariable: {
       llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_getclassvariable", 2, llrb_get_cfp(c), llrb_value(operands[0])));
       break;
@@ -309,14 +308,12 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       LLVMBuildCall(c->builder, llrb_get_function(c->mod, "llrb_insn_setconstant"), args, 4, "");
       break;
     }
-    case YARVINSN_getglobal: {
+    case YARVINSN_getglobal:
       llrb_stack_push(stack, llrb_call_func(c, "rb_gvar_get", 1, llrb_value(operands[0])));
       break;
-    }
-    case YARVINSN_setglobal: {
+    case YARVINSN_setglobal:
       llrb_call_func(c, "rb_gvar_set", 2, llrb_value(operands[0]), llrb_stack_pop(stack));
       break;
-    }
     case YARVINSN_putnil:
       llrb_stack_push(stack, llrb_value(Qnil));
       break;
