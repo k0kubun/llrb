@@ -891,25 +891,6 @@ llrb_destruct_cfg(struct llrb_cfg *cfg)
   xfree(cfg->blocks);
 }
 
-#define LLRB_BITCODE_FILE(path) LLRB_BITCODE_DIR "/" path
-static LLVMModuleRef
-llrb_build_initial_module()
-{
-  LLVMMemoryBufferRef buf;
-  char *err;
-  if (LLVMCreateMemoryBufferWithContentsOfFile(LLRB_BITCODE_FILE("insns.bc"), &buf, &err)) {
-    fprintf(stderr, "Failed to load: '%s'\n", LLRB_BITCODE_FILE("insns.bc"));
-    rb_raise(rb_eCompileError, "LLVMCreateMemoryBufferWithContentsOfFile Error: %s", err);
-  }
-
-  LLVMModuleRef ret;
-  if (LLVMParseBitcode2(buf, &ret)) {
-    rb_raise(rb_eCompileError, "LLVMParseBitcode2 Failed!");
-  }
-  LLVMDisposeMemoryBuffer(buf);
-  return ret; // LLVMModuleCreateWithName("llrb");
-}
-
 static bool
 llrb_includes_unsupported_insn(const rb_iseq_t *iseq)
 {
@@ -946,7 +927,7 @@ llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_ise
   struct llrb_cfg cfg;
   llrb_parse_iseq(body, &cfg);
 
-  LLVMModuleRef mod = llrb_build_initial_module();
+  LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
   LLVMValueRef func = llrb_compile_cfg(mod, body, new_iseq_encoded, &cfg, funcname);
 
   extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);

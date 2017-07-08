@@ -7,7 +7,9 @@ module LLRBExtconf
     end
 
     def compile_bitcodes
-      compile_bitcode('insns.c', 'insns.bc')
+      Dir.chdir(extdir) { Dir.glob('*.c') }.each do |c_file|
+        compile_bitcode(c_file, c_file.sub(/\.c\z/, '.bc'))
+      end
     end
 
     private
@@ -77,14 +79,17 @@ module LLRBExtconf
 
       debug_flags = "-Xclang -print-stats" if false
 
-      extdir = File.expand_path("#{__dir__}/..")
-      sh "clang #{incflags} #{ruby_cflags} #{debug_flags} -O2 -S -emit-llvm -o #{extdir}/#{ll_file} #{extdir}/#{c_file}"
+      sh "clang #{incflags} #{ruby_cflags} #{debug_flags} -Werror -O2 -S -emit-llvm -o #{extdir}/#{ll_file} #{extdir}/#{c_file}" # remove -Werror later
       sh "llvm-as -o #{extdir}/#{bc_file} #{extdir}/#{ll_file}"
     end
 
     def sh(command)
       $stderr.puts command
       system(command) || raise("Failed to execute '#{command}'")
+    end
+
+    def extdir
+      File.expand_path("#{__dir__}/..")
     end
   end
 end
