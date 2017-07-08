@@ -7,7 +7,7 @@
 #include "cruby.h"
 
 #define LLRB_PROFILE_INTERVAL_USEC 1000
-#define LLRB_COMPILE_INTERVAL_TIMES 100
+#define LLRB_COMPILE_INTERVAL_TIMES 200
 
 struct llrb_sample {
   size_t total_calls; // Total count of stack-top occurrence
@@ -180,7 +180,7 @@ llrb_safe_compile_iseq(const rb_iseq_t *iseq)
       llrb_compile_error_handler, Qnil);
 }
 
-//static VALUE rb_jit_stop(VALUE self); // For debug. TODO: remove!!!
+static VALUE rb_jit_stop(VALUE self); // For debug. TODO: remove!!!
 
 static void
 llrb_job_handler(void *data)
@@ -199,9 +199,9 @@ llrb_job_handler(void *data)
       fprintf(stderr, " => ");
       switch (llrb_safe_compile_iseq(iseq)) {
         case Qtrue:
-          fprintf(stderr, "success!");
-          //fprintf(stderr, "success! stop JIT.");
-          //rb_jit_stop(Qnil); // For debug. TODO: remove!!!
+          //fprintf(stderr, "success!");
+          fprintf(stderr, "success! stop JIT.");
+          rb_jit_stop(Qnil); // For debug. TODO: remove!!!
           break;
         case Qfalse:
           fprintf(stderr, "not compiled");
