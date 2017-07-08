@@ -7,7 +7,8 @@
 #include "cruby.h"
 
 #define LLRB_PROFILE_INTERVAL 1000
-#define LLRB_COMPILE_INTERVAL 30
+//#define LLRB_COMPILE_INTERVAL 30
+#define LLRB_COMPILE_INTERVAL 1000
 
 struct llrb_sample {
   size_t total_calls; // Total count of stack-top occurrence
