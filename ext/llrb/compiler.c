@@ -899,6 +899,11 @@ llrb_includes_unsupported_insn(const rb_iseq_t *iseq)
     int insn = rb_vm_insn_addr2insn((void *)iseq->body->iseq_encoded[i]);
     switch (insn) {
       case YARVINSN_expandarray:
+      case YARVINSN_reverse:
+      case YARVINSN_reput:
+      case YARVINSN_defineclass:
+      case YARVINSN_once:
+      case YARVINSN_opt_call_c_function:
         return true;
       default:
         break;
