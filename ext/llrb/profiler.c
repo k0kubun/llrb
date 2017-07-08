@@ -8,6 +8,7 @@
 
 #define LLRB_PROFILE_INTERVAL_USEC 1000
 #define LLRB_COMPILE_INTERVAL_TIMES 200
+#define LLRB_ENABLE_DEBUG 0
 
 struct llrb_sample {
   size_t total_calls; // Total count of stack-top occurrence
@@ -180,8 +181,6 @@ llrb_safe_compile_iseq(const rb_iseq_t *iseq)
       llrb_compile_error_handler, Qnil);
 }
 
-static VALUE rb_jit_stop(VALUE self); // For debug. TODO: remove!!!
-
 static void
 llrb_job_handler(void *data)
 {
@@ -195,25 +194,29 @@ llrb_job_handler(void *data)
   if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL_TIMES == 0) {
     const rb_iseq_t *iseq = llrb_search_compile_target();
     if (iseq) {
-      llrb_dump_iseq(iseq);
-      fprintf(stderr, " => ");
-      switch (llrb_safe_compile_iseq(iseq)) {
-        case Qtrue:
-          //fprintf(stderr, "success!");
-          fprintf(stderr, "success! stop JIT.");
-          rb_jit_stop(Qnil); // For debug. TODO: remove!!!
-          break;
-        case Qfalse:
-          fprintf(stderr, "not compiled");
-          break;
-        case Qnil:
-          fprintf(stderr, "COMPILE ERROR");
-          break;
-        default:
-          fprintf(stderr, "???");
-          break;
+      if (LLRB_ENABLE_DEBUG) {
+        llrb_dump_iseq(iseq);
+        fprintf(stderr, " => ");
       }
-      fprintf(stderr, "\n");
+
+      VALUE result = llrb_safe_compile_iseq(iseq);
+      if (LLRB_ENABLE_DEBUG) {
+        switch (result) {
+          case Qtrue:
+            fprintf(stderr, "success!");
+            break;
+          case Qfalse:
+            fprintf(stderr, "not compiled");
+            break;
+          case Qnil:
+            fprintf(stderr, "COMPILE ERROR");
+            break;
+          default:
+            fprintf(stderr, "???");
+            break;
+        }
+        fprintf(stderr, "\n");
+      }
     }
   }
   in_job_handler--;
