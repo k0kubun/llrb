@@ -13,7 +13,8 @@ build:
         code: bundle exec rake spec
     - script:
         name: optcarrot
-        code: bundle exec rake optcarrot:run || true # this can't succeed on CI now...
+        #code: bundle exec rake optcarrot:run || true # this can't succeed on CI now...
+        code: rake optcarrot install && ruby -rllrb/start optcarrot/bin/optcarrot --benchmark optcarrot/examples/Lan_Master.nes
     - script:
         name: bm_loop_while
         code: bin/bm_loop_while
