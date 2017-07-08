@@ -316,7 +316,7 @@ llrb_atfork_child(void)
 void
 Init_profiler(VALUE rb_mJIT)
 {
-  rb_define_singleton_method(rb_mJIT, "start", RUBY_METHOD_FUNC(rb_jit_start), 0);
+  rb_define_singleton_method(rb_mJIT, "start_internal", RUBY_METHOD_FUNC(rb_jit_start), 0);
   rb_define_singleton_method(rb_mJIT, "stop", RUBY_METHOD_FUNC(rb_jit_stop), 0);
 
   llrb_profiler.running = 0;

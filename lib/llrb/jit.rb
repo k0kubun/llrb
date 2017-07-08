@@ -40,6 +40,20 @@ module LLRB
       is_compiled(iseqw)
     end
 
+    def self.start
+      hook_stop
+      start_internal
+    end
+
+    # Hook JIT stop at exit to safely shutdown Ruby VM. JIT touches Ruby VM and
+    # it should not run after Ruby VM destruction. Otherwise it will cause SEGV.
+    def self.hook_stop
+      return if defined?(@hook_stop)
+      @hook_stop = true
+      at_exit { LLRB::JIT.stop }
+    end
+    private_class_method :hook_stop
+
     # Followings are defined in ext/llrb/llrb.cc
 
     # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
@@ -53,5 +67,10 @@ module LLRB
     # @param  [RubyVM::InstructionSequence] iseqw - RubyVM::InstructionSequence instance
     # @return [Boolean] return true if compiled
     private_class_method :is_compiled
+
+    # This does not hook stop, but it may cause SEGV if JIT runs after Ruby VM is shut down.
+    # To ensure JIT will be stopped on exit, you should use .start instead.
+    # @return [Boolean] return true if started JIT
+    private_class_method :start_internal
   end
 end
