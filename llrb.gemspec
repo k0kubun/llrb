@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Takashi Kokubun']
   spec.email         = ['takashikkbn@gmail.com']
 
-  spec.summary       = 'LLRB is LLVM-based JIT compiler for Ruby'
-  spec.description   = 'LLRB is LLVM-based JIT compiler for Ruby'
+  spec.summary       = 'LLRB is LLVM-based JIT compiler for Ruby. Note that this gem can be only installed to fork of CRuby.'
+  spec.description   = 'LLRB is LLVM-based JIT compiler for Ruby. Note that this gem can be only installed to fork of CRuby.'
   spec.homepage      = 'https://github.com/k0kubun/llrb'
   spec.license       = 'MIT'
 
