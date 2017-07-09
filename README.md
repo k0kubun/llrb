@@ -279,6 +279,8 @@ and we need MUCH MORE effort to improve performance in real-world application.
 
 ## Build dependency
 
+- **64bit CPU**
+  - This should be fixed later
 - LLVM/clang 3.8+
   - `llvm-config`, `clang` and `llvm-as` commands need to appear in `$PATH`
 - [CRuby fork in k0kubun/ruby's llrb branch](https://github.com/k0kubun/ruby/tree/llrb)
