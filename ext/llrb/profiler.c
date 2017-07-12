@@ -169,6 +169,8 @@ static VALUE
 llrb_compile_error_handler(RB_UNUSED_VAR(VALUE nil), VALUE e)
 {
   fprintf(stderr, "%s\n", RSTRING_PTR(rb_inspect(e)));
+  VALUE backtrace = rb_funcall(e, rb_intern("backtrace"), 0);
+  fprintf(stderr, "%s\n", RSTRING_PTR(rb_inspect(backtrace)));
   return Qnil;
 }
 
