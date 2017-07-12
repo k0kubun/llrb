@@ -90,7 +90,7 @@ RunModulePasses(llvm::Module *mod)
   llvm::PassManagerBuilder builder;
   builder.OptLevel  = 3;
   builder.SizeLevel = 0;
-  builder.Inliner = llvm::createFunctionInliningPass(builder.OptLevel, builder.SizeLevel);
+  builder.Inliner = llvm::createFunctionInliningPass(412);
   builder.populateModulePassManager(mpm);
 
   mpm.add(llvm::createVerifierPass());
