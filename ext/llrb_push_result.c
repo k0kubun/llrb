@@ -1,14 +1,11 @@
 #include "cruby.h"
 
-static inline void
-_llrb_push_result(rb_control_frame_t *cfp, VALUE result)
+void
+llrb_push_result(VALUE cfp_v, VALUE result)
 {
+  rb_control_frame_t *cfp = (rb_control_frame_t *)cfp_v;
+
   // PUSH(result)
   *(cfp->sp) = result;
   cfp->sp += 1;
-}
-void
-llrb_push_result(VALUE cfp, VALUE result)
-{
-  _llrb_push_result((rb_control_frame_t *)cfp, result);
 }
