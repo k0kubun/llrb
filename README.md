@@ -195,15 +195,16 @@ Benchmark.ips do |x|
 end
 ```
 
+On [wercker](https://app.wercker.com/k0kubun/llrb/runs/build/5966cdab1ee2040001449915?step=5966cdded82c270001e8740):
+
 ```
-# x86_64 GNU/Linux, Intel(R) Core(TM) i7-4790K CPU @ 4.00GHz
 Calculating -------------------------------------
-                Ruby      2.449  (± 0.0%) i/s -     13.000  in   5.308125s
-                LLRB      8.533  (± 0.0%) i/s -     43.000  in   5.040016s
+                Ruby      7.449  (± 0.0%) i/s -     38.000  in   5.101634s
+                LLRB     36.974  (± 0.0%) i/s -    186.000  in   5.030540s
 
 Comparison:
-                LLRB:        8.5 i/s
-                Ruby:        2.4 i/s - 3.48x  slower
+                LLRB:       37.0 i/s
+                Ruby:        7.4 i/s - 4.96x  slower
 ```
 
 ## How is the design?
