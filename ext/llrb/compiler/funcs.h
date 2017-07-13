@@ -84,7 +84,7 @@ static struct llrb_extern_func llrb_extern_funcs[] = {
   { 64, 4, { 64, 64, 64, 32 }, false, "vm_get_ev_const" },
   { 64, 4, { 64, 64, 64, 32 }, true,  "llrb_insn_invokeblock", true },
   { 64, 4, { 64, 64, 64, 64 }, false, "llrb_insn_defined", true },
-  { 64, 5, { 64, 64, 64, 64, 32 }, true, "llrb_insn_opt_send_without_block", true },
+  { 64, 5, { 64, 64, 64, 64, 64 }, false, "llrb_insn_opt_send_without_block", true },
   { 64, 6, { 64, 64, 64, 64, 64, 32 }, true, "llrb_insn_invokesuper", true },
   { 64, 6, { 64, 64, 64, 64, 64, 32 }, true, "llrb_insn_send", true },
 };

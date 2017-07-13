@@ -235,6 +235,17 @@ llrb_compile_opt_insn(const struct llrb_compiler *c, struct llrb_stack *stack, c
   xfree(args);
 }
 
+// Push receiver and arguments for method call
+static void
+llrb_compile_args(const struct llrb_compiler *c, struct llrb_stack *stack, const int argc)
+{
+  int stack_top = (int)stack->size - 1;
+  for (int i = (int)argc; i >= 0; i--) {
+    llrb_call_func(c, "llrb_push_result", 2, llrb_get_cfp(c), stack->body[stack_top-i]);
+  }
+  stack->size -= argc + 1;
+}
+
 static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_basic_block *block, struct llrb_stack *stack);
 
 // opt TODO:
@@ -547,21 +558,15 @@ llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const
       break;
     case YARVINSN_opt_send_without_block: {
       CALL_INFO ci = (CALL_INFO)operands[0];
-      unsigned int stack_size = ci->orig_argc + 1;
+      LLVMValueRef recv = stack->body[stack->size - ci->orig_argc - 1];
 
-      LLVMValueRef *args = ALLOC_N(LLVMValueRef, 5 + stack_size); // `xfree`d in this block.
-      args[0] = llrb_get_thread(c);
-      args[1] = llrb_get_cfp(c);
-      args[2] = llrb_value((VALUE)ci);
-      args[3] = llrb_value((VALUE)((CALL_CACHE)operands[1]));
-      args[4] = LLVMConstInt(LLVMInt32Type(), stack_size, false);
-      for (int i = (int)stack_size - 1; 0 <= i; i--) { // recv + argc
-        args[5 + i] = llrb_stack_pop(stack);
-      }
-
-      LLVMValueRef func = llrb_get_function(c->mod, "llrb_insn_opt_send_without_block");
-      llrb_stack_push(stack, LLVMBuildCall(c->builder, func, args, 5 + stack_size, "opt_send_without_block"));
-      xfree(args);
+      llrb_compile_args(c, stack, ci->orig_argc);
+      llrb_stack_push(stack, llrb_call_func(c, "llrb_insn_opt_send_without_block", 5,
+            llrb_get_thread(c),
+            llrb_get_cfp(c),
+            llrb_value((VALUE)ci),
+            llrb_value((VALUE)((CALL_CACHE)operands[1])),
+            recv));
       break;
     }
     case YARVINSN_invokesuper: { // TODO: refactor with opt_send_without_block
