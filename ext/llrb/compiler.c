@@ -256,6 +256,7 @@ static void llrb_compile_basic_block(const struct llrb_compiler *c, struct llrb_
 static bool
 llrb_compile_insn(const struct llrb_compiler *c, struct llrb_stack *stack, const unsigned int pos, const int insn, const VALUE *operands, bool *created_br)
 {
+  //fprintf(stderr, "  INSN: %s\n", insn_name(insn));
   llrb_increment_pc(c, pos, insn);
 
   //fprintf(stderr, "  [DEBUG] llrb_compile_insn: %04d before %-27s (stack size: %d)\n", pos, insn_name(insn), stack->size);

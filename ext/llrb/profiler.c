@@ -196,13 +196,12 @@ llrb_job_handler(void *data)
   if (llrb_profiler.profile_times % LLRB_COMPILE_INTERVAL_TIMES == 0) {
     const rb_iseq_t *iseq = llrb_search_compile_target();
     if (iseq) {
+      VALUE result = llrb_safe_compile_iseq(iseq);
+
       if (LLRB_ENABLE_DEBUG) {
         llrb_dump_iseq(iseq);
         fprintf(stderr, " => ");
-      }
 
-      VALUE result = llrb_safe_compile_iseq(iseq);
-      if (LLRB_ENABLE_DEBUG) {
         switch (result) {
           case Qtrue:
             fprintf(stderr, "success!");
