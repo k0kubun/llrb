@@ -4,6 +4,7 @@ module LLRBExtconf
   class << self
     def configure
       remove_invalid_warnflags
+      remove_warnflags_for_llvm
       add_cflags
       link_llvm
     end
@@ -32,6 +33,18 @@ module LLRBExtconf
         -Wno-constant-logical-operand
         -Wno-parentheses-equality
         -Wno-tautological-compare
+      ].each do |flag|
+        CONFIG['warnflags'].gsub!(flag, '')
+      end
+    end
+
+    def remove_warnflags_for_llvm
+      # /usr/local/Cellar/llvm/5.0.0/include/llvm/IR/DerivedTypes.h:410:40: error: implicit conversion loses integer precision: 'uint64_t'
+      #       (aka 'unsigned long long') to 'unsigned int' [-Werror,-Wshorten-64-to-32]
+      #     return VectorType::get(EltTy, VTy->getNumElements());
+      #            ~~~~~~~~~~             ~~~~~^~~~~~~~~~~~~~~~
+      %w[
+        -Wshorten-64-to-32
       ].each do |flag|
         CONFIG['warnflags'].gsub!(flag, '')
       end
