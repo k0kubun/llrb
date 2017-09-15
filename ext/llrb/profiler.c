@@ -66,9 +66,6 @@ llrb_dump_iseq(const rb_iseq_t *iseq)
     case ISEQ_TYPE_DEFINED_GUARD:
       fprintf(stderr,"ISEQ_TYPE_DEFINED_GUARD:");
       break;
-    default:
-      fprintf(stderr,"default:");
-      break;
   }
 
   if (cme && cme->def->type == VM_METHOD_TYPE_ISEQ) {
