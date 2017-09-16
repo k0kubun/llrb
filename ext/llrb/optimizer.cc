@@ -91,78 +91,78 @@ RunFunctionPasses(llvm::Module *mod, llvm::Function *func)
 static void
 PopulateModulePassManager(llvm::legacy::PassManager& mpm)
 {
-  mpm.add(llvm::createForceFunctionAttrsLegacyPass());
+  //mpm.add(llvm::createForceFunctionAttrsLegacyPass());
 
   // addInitialAliasAnalysisPasses(MPM);
   mpm.add(llvm::createTypeBasedAAWrapperPass());
-  mpm.add(llvm::createScopedNoAliasAAWrapperPass());
+  //mpm.add(llvm::createScopedNoAliasAAWrapperPass());
 
   // if (!DisableUnitAtATime)
-  mpm.add(llvm::createInferFunctionAttrsLegacyPass());
-  mpm.add(llvm::createIPSCCPPass());              // IP SCCP
-  mpm.add(llvm::createGlobalOptimizerPass());     // Optimize out global vars
-  mpm.add(llvm::createPromoteMemoryToRegisterPass()); // Promote any localized global vars
-  mpm.add(llvm::createDeadArgEliminationPass());  // Dead argument elimination
-  mpm.add(llvm::createInstructionCombiningPass());// Clean up after IPCP & DAE
-  mpm.add(llvm::createCFGSimplificationPass());   // Clean up after IPCP & DAE
+  //mpm.add(llvm::createInferFunctionAttrsLegacyPass());
+  //mpm.add(llvm::createIPSCCPPass());              // IP SCCP
+  //mpm.add(llvm::createGlobalOptimizerPass());     // Optimize out global vars
+  //mpm.add(llvm::createPromoteMemoryToRegisterPass()); // Promote any localized global vars
+  //mpm.add(llvm::createDeadArgEliminationPass());  // Dead argument elimination
+  //mpm.add(llvm::createInstructionCombiningPass());// Clean up after IPCP & DAE
+  //mpm.add(llvm::createCFGSimplificationPass());   // Clean up after IPCP & DAE
 
   // if (EnableNonLTOGlobalsModRef)
   mpm.add(llvm::createGlobalsAAWrapperPass());
 
   // Start of CallGraph SCC passes.
-  mpm.add(llvm::createPruneEHPass());
+  //mpm.add(llvm::createPruneEHPass());
   mpm.add(llvm::createFunctionInliningPass(412));
-  mpm.add(llvm::createPostOrderFunctionAttrsPass());
-  mpm.add(llvm::createArgumentPromotionPass());   // Scalarize uninlined fn args
+  //mpm.add(llvm::createPostOrderFunctionAttrsPass());
+  //mpm.add(llvm::createArgumentPromotionPass());   // Scalarize uninlined fn args
 
   // Start of function pass.
-  mpm.add(llvm::createSROAPass()); // Break up aggregate allocas, using SSAUpdater.
+  //mpm.add(llvm::createSROAPass()); // Break up aggregate allocas, using SSAUpdater.
   mpm.add(llvm::createEarlyCSEPass());              // Catch trivial redundancies
   mpm.add(llvm::createJumpThreadingPass());         // Thread jumps.
-  mpm.add(llvm::createCorrelatedValuePropagationPass()); // Propagate conditionals
+  //mpm.add(llvm::createCorrelatedValuePropagationPass()); // Propagate conditionals
   mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
   mpm.add(llvm::createInstructionCombiningPass());  // Combine silly seq's
 
-  mpm.add(llvm::createTailCallEliminationPass()); // Eliminate tail calls
-  mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
+  //mpm.add(llvm::createTailCallEliminationPass()); // Eliminate tail calls
+  //mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
   mpm.add(llvm::createReassociatePass());           // Reassociate expressions
-  mpm.add(llvm::createLoopRotatePass(-1)); // Rotate Loop - disable header duplication at -Oz
+  //mpm.add(llvm::createLoopRotatePass(-1)); // Rotate Loop - disable header duplication at -Oz
   mpm.add(llvm::createLICMPass());                  // Hoist loop invariants
   mpm.add(llvm::createLoopUnswitchPass(false));
-  mpm.add(llvm::createCFGSimplificationPass());
+  //mpm.add(llvm::createCFGSimplificationPass());
   mpm.add(llvm::createInstructionCombiningPass());
   mpm.add(llvm::createIndVarSimplifyPass());        // Canonicalize indvars
-  mpm.add(llvm::createLoopIdiomPass());             // Recognize idioms like memset.
-  mpm.add(llvm::createLoopDeletionPass());          // Delete dead loops
-  mpm.add(llvm::createSimpleLoopUnrollPass()); // Unroll small loops
+  //mpm.add(llvm::createLoopIdiomPass());             // Recognize idioms like memset.
+  //mpm.add(llvm::createLoopDeletionPass());          // Delete dead loops
+  //mpm.add(llvm::createSimpleLoopUnrollPass()); // Unroll small loops
 
   // if (OptLevel > 1)
-  mpm.add(llvm::createMergedLoadStoreMotionPass()); // Merge ld/st in diamonds
+  //mpm.add(llvm::createMergedLoadStoreMotionPass()); // Merge ld/st in diamonds
   mpm.add(llvm::createGVNPass(false));  // Remove redundancies
   mpm.add(llvm::createMemCpyOptPass());             // Remove memcpy / form memset
-  mpm.add(llvm::createSCCPPass());                  // Constant prop with SCCP
+  //mpm.add(llvm::createSCCPPass());                  // Constant prop with SCCP
 
   // Delete dead bit computations (instcombine runs after to fold away the dead
   // computations, and then ADCE will run later to exploit any new DCE
   // opportunities that creates).
-  mpm.add(llvm::createBitTrackingDCEPass());        // Delete dead bit computations
+  //mpm.add(llvm::createBitTrackingDCEPass());        // Delete dead bit computations
 
   // Run instcombine after redundancy elimination to exploit opportunities
   // opened up by them.
-  mpm.add(llvm::createInstructionCombiningPass());
-  mpm.add(llvm::createJumpThreadingPass());         // Thread jumps
-  mpm.add(llvm::createCorrelatedValuePropagationPass());
+  //mpm.add(llvm::createInstructionCombiningPass());
+  //mpm.add(llvm::createJumpThreadingPass());         // Thread jumps
+  //mpm.add(llvm::createCorrelatedValuePropagationPass());
   mpm.add(llvm::createDeadStoreEliminationPass());  // Delete dead stores
   mpm.add(llvm::createLICMPass());
 
-  mpm.add(llvm::createAggressiveDCEPass());         // Delete dead instructions
+  //mpm.add(llvm::createAggressiveDCEPass());         // Delete dead instructions
   mpm.add(llvm::createCFGSimplificationPass()); // Merge & remove BBs
   mpm.add(llvm::createInstructionCombiningPass());  // Clean up after everything.
 
   // FIXME: This is a HACK! The inliner pass above implicitly creates a CGSCC
   // pass manager that we are specifically trying to avoid. To prevent this
   // we must insert a no-op module pass to reset the pass manager.
-  mpm.add(llvm::createBarrierNoopPass());
+  //mpm.add(llvm::createBarrierNoopPass());
 
   mpm.add(llvm::createReversePostOrderFunctionAttrsPass());
 
@@ -175,7 +175,7 @@ PopulateModulePassManager(llvm::legacy::PassManager& mpm)
   // here enables more opportunity for GlobalDCE as it may make
   // globals referenced by available external functions dead
   // and saves running remaining passes on the eliminated functions.
-  mpm.add(llvm::createEliminateAvailableExternallyPass());
+  //mpm.add(llvm::createEliminateAvailableExternallyPass());
 
   // We add a fresh GlobalsModRef run at this point. This is particularly
   // useful as the above will have inlined, DCE'ed, and function-attr
@@ -195,12 +195,12 @@ PopulateModulePassManager(llvm::legacy::PassManager& mpm)
   mpm.add(llvm::createGlobalsAAWrapperPass());
 
   // if (RunFloat2Int)
-  mpm.add(llvm::createFloat2IntPass());
+  //mpm.add(llvm::createFloat2IntPass());
 
   // Re-rotate loops in all our loop nests. These may have fallout out of
   // rotated form due to GVN or other transformations, and the vectorizer relies
   // on the rotated form. Disable header duplication at -Oz.
-  mpm.add(llvm::createLoopRotatePass(-1));
+  //mpm.add(llvm::createLoopRotatePass(-1));
 
   mpm.add(llvm::createLoopVectorizePass(false, false));
 
@@ -211,8 +211,8 @@ PopulateModulePassManager(llvm::legacy::PassManager& mpm)
   // changed the code.
   mpm.add(llvm::createInstructionCombiningPass());
 
-  mpm.add(llvm::createCFGSimplificationPass());
-  mpm.add(llvm::createInstructionCombiningPass());
+  //mpm.add(llvm::createCFGSimplificationPass());
+  //mpm.add(llvm::createInstructionCombiningPass());
 
   mpm.add(llvm::createLoopUnrollPass());    // Unroll small loops
 
@@ -227,15 +227,15 @@ PopulateModulePassManager(llvm::legacy::PassManager& mpm)
 
   // After vectorization and unrolling, assume intrinsics may tell us more
   // about pointer alignments.
-  mpm.add(llvm::createAlignmentFromAssumptionsPass());
+  //mpm.add(llvm::createAlignmentFromAssumptionsPass());
 
   // FIXME: We shouldn't bother with this anymore.
-  mpm.add(llvm::createStripDeadPrototypesPass()); // Get rid of dead prototypes
+  //mpm.add(llvm::createStripDeadPrototypesPass()); // Get rid of dead prototypes
 
   // GlobalOpt already deletes dead functions and globals, at -O2 try a
   // late pass of GlobalDCE.  It is capable of deleting dead cycles.
-  mpm.add(llvm::createGlobalDCEPass());         // Remove dead fns and globals.
-  mpm.add(llvm::createConstantMergePass());     // Merge dup global constants
+  //mpm.add(llvm::createGlobalDCEPass());         // Remove dead fns and globals.
+  //mpm.add(llvm::createConstantMergePass());     // Merge dup global constants
 }
 
 static void
