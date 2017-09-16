@@ -6,8 +6,10 @@ require 'optparse'
 require 'llrb'
 
 preview = false
+stats = false
 opt = OptionParser.new
 opt.on('-p') { preview = true }
+opt.on('-s') { stats = true }
 opt.parse!(ARGV)
 
 ruby = Class.new
@@ -28,9 +30,10 @@ end
 LLRB::JIT.preview(llrb, :script) and return if preview
 
 started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
-LLRB::JIT.compile(llrb, :script, enable_stats: true)
+LLRB::JIT.compile(llrb, :script, enable_stats: stats)
 finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
 puts "Compile Time: #{ "%.2fms" % ((finished_at - started_at) / 1000)}"
+return if stats
 
 Benchmark.ips do |x|
   x.report('Ruby') { ruby.script }
