@@ -6,17 +6,17 @@ module LLRB
     #
     # @param [Object] recv - receiver of method to be compiled
     # @param [String,Symbol] method - precompiled method name
+    # @param [Boolean] enable_stats - enable LLVM Pass statistics
     # @return [Boolean] - return true if precompiled
-    def self.compile(recv, name)
-      compile_proc(recv.method(name))
+    def self.compile(recv, name, enable_stats: false)
+      compile_proc(recv.method(name), enable_stats: enable_stats)
     end
 
-    def self.compile_proc(func)
+    def self.compile_proc(func, enable_stats: false)
       iseqw = RubyVM::InstructionSequence.of(func)
       return false if iseqw.nil? # method defined with C function can't be compiled
 
-      #puts "#{iseqw.disasm}\n"
-      compile_iseq(iseqw)
+      compile_iseq(iseqw, enable_stats)
     end
 
     # Preview compiled method in LLVM IR

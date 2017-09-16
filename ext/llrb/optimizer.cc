@@ -27,6 +27,8 @@
 #include "llvm/Transforms/IPO/InferFunctionAttrs.h"
 #include "llvm/LinkAllPasses.h"
 
+#include "llvm/ADT/Statistic.h"
+
 namespace llrb {
 
 static inline std::string GetFeaturesStr()
@@ -253,21 +255,23 @@ RunModulePasses(llvm::Module *mod)
 }
 
 static void
-OptimizeFunction(llvm::Module *mod, llvm::Function *func)
+OptimizeFunction(llvm::Module *mod, llvm::Function *func, bool enable_stats)
 {
   SetFunctionAttributes(mod);
   RunFunctionPasses(mod, func);
+  if (enable_stats) llvm::EnableStatistics();
   RunModulePasses(mod);
+  if (enable_stats) llvm::PrintStatistics();
 }
 
 } // namespace llrb
 
 extern "C" {
 void
-llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc)
+llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc, bool enable_stats)
 {
   llvm::Module *mod = llvm::unwrap(cmod);
   llvm::Function *func = llvm::unwrap<llvm::Function>(cfunc);
-  llrb::OptimizeFunction(mod, func);
+  llrb::OptimizeFunction(mod, func, enable_stats);
 }
 } // extern "C"

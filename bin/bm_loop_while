@@ -28,7 +28,7 @@ end
 LLRB::JIT.preview(llrb, :script) and return if preview
 
 started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
-LLRB::JIT.compile(llrb, :script)
+LLRB::JIT.compile(llrb, :script, enable_stats: true)
 finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_microsecond)
 puts "Compile Time: #{ "%.2fms" % ((finished_at - started_at) / 1000)}"
 

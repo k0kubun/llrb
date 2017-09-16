@@ -15,7 +15,7 @@
 
 static const char *llrb_funcname = "llrb_exec";
 
-LLVMModuleRef llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname);
+LLVMModuleRef llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname, bool enable_stats);
 const rb_iseq_t *rb_iseqw_to_iseq(VALUE iseqw);
 
 static uint64_t
@@ -78,7 +78,7 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
   if (llrb_should_not_compile(iseq)) return Qfalse;
 
-  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, iseq->body->iseq_encoded, llrb_funcname);
+  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, iseq->body->iseq_encoded, llrb_funcname, false);
   LLVMDumpModule(mod);
   LLVMDisposeModule(mod);
   return Qtrue;
@@ -86,13 +86,13 @@ rb_jit_preview_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
 
 // Used by profiler.c too
 VALUE
-llrb_compile_iseq_to_method(const rb_iseq_t *iseq)
+llrb_compile_iseq_to_method(const rb_iseq_t *iseq, bool enable_stats)
 {
   if (llrb_should_not_compile(iseq)) return Qfalse;
 
   // Creating new_iseq_encoded before compilation to calculate program counter.
   VALUE *new_iseq_encoded = ALLOC_N(VALUE, iseq->body->iseq_size); // Never freed.
-  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, new_iseq_encoded, llrb_funcname);
+  LLVMModuleRef mod = llrb_compile_iseq(iseq->body, new_iseq_encoded, llrb_funcname, enable_stats);
 
   uint64_t func = llrb_create_native_func(mod, llrb_funcname);
   //LLVMDisposeModule(mod); // This causes SEGV: "corrupted double-linked list".
@@ -106,13 +106,14 @@ llrb_compile_iseq_to_method(const rb_iseq_t *iseq)
 }
 
 // LLRB::JIT.compile_iseq
-// @param  [Array]   iseqw  - RubyVM::InstructionSequence instance
+// @param  [Array]   iseqw - RubyVM::InstructionSequence instance
+// @param  [Boolean] enable_stats - Enable LLVM Pass statistics
 // @return [Boolean] return true if compiled
 static VALUE
-rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw)
+rb_jit_compile_iseq(RB_UNUSED_VAR(VALUE self), VALUE iseqw, VALUE enable_stats)
 {
   const rb_iseq_t *iseq = rb_iseqw_to_iseq(iseqw);
-  return llrb_compile_iseq_to_method(iseq);
+  return llrb_compile_iseq_to_method(iseq, RTEST(enable_stats));
 }
 
 static VALUE
@@ -134,7 +135,7 @@ Init_llrb(void)
   VALUE rb_mLLRB = rb_define_module("LLRB");
   VALUE rb_mJIT = rb_define_module_under(rb_mLLRB, "JIT");
   rb_define_singleton_method(rb_mJIT, "preview_iseq", RUBY_METHOD_FUNC(rb_jit_preview_iseq), 1);
-  rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 1);
+  rb_define_singleton_method(rb_mJIT, "compile_iseq", RUBY_METHOD_FUNC(rb_jit_compile_iseq), 2);
   rb_define_singleton_method(rb_mJIT, "is_compiled",  RUBY_METHOD_FUNC(rb_jit_is_compiled), 1);
 
   extern void Init_profiler(VALUE rb_mJIT);

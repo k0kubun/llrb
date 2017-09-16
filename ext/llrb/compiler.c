@@ -967,7 +967,7 @@ llrb_check_not_compilable(const rb_iseq_t *iseq)
 
 // llrb_create_native_func() uses a LLVM function named as `funcname` defined in returned LLVM module.
 LLVMModuleRef
-llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname)
+llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_iseq_encoded, const char* funcname, bool enable_stats)
 {
   extern void llrb_parse_iseq(const struct rb_iseq_constant_body *body, struct llrb_cfg *result);
   struct llrb_cfg cfg;
@@ -976,8 +976,8 @@ llrb_compile_iseq(const struct rb_iseq_constant_body *body, const VALUE *new_ise
   LLVMModuleRef mod = LLVMModuleCreateWithName("llrb");
   LLVMValueRef func = llrb_compile_cfg(mod, body, new_iseq_encoded, &cfg, funcname);
 
-  extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc);
-  if (1) llrb_optimize_function(mod, func);
+  extern void llrb_optimize_function(LLVMModuleRef cmod, LLVMValueRef cfunc, bool enable_stats);
+  if (1) llrb_optimize_function(mod, func, enable_stats);
 
   if (0) llrb_dump_cfg(body, &cfg);
   if (0) LLVMDumpModule(mod);
