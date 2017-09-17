@@ -243,12 +243,12 @@ RunModulePasses(llvm::Module *mod)
 {
   llvm::legacy::PassManager mpm;
 
-  // llvm::PassManagerBuilder builder;
-  // builder.OptLevel  = 3;
-  // builder.SizeLevel = 0;
-  // builder.Inliner = llvm::createFunctionInliningPass(412);
-  // builder.populateModulePassManager(mpm);
-  PopulateModulePassManager(mpm);
+  llvm::PassManagerBuilder builder;
+  builder.OptLevel  = 3;
+  builder.SizeLevel = 0;
+  builder.Inliner = llvm::createFunctionInliningPass(412);
+  builder.populateModulePassManager(mpm);
+  if (0) PopulateModulePassManager(mpm);
 
   mpm.add(llvm::createVerifierPass());
   mpm.run(*mod);
