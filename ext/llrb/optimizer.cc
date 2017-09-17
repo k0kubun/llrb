@@ -93,7 +93,7 @@ PopulateModulePassManager2(llvm::legacy::PassManager& mpm)
 {
   //mpm.add(llvm::createTypeBasedAAWrapperPass());
   //mpm.add(llvm::createGlobalsAAWrapperPass());
-  //mpm.add(llvm::createFunctionInliningPass(412));
+  mpm.add(llvm::createFunctionInliningPass(412));
   //mpm.add(llvm::createEarlyCSEPass());              // Catch trivial redundancies
   //mpm.add(llvm::createJumpThreadingPass());         // Thread jumps.
   //mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
