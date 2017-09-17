@@ -89,6 +89,38 @@ RunFunctionPasses(llvm::Module *mod, llvm::Function *func)
 }
 
 static void
+PopulateModulePassManager2(llvm::legacy::PassManager& mpm)
+{
+  //mpm.add(llvm::createTypeBasedAAWrapperPass());
+  //mpm.add(llvm::createGlobalsAAWrapperPass());
+  mpm.add(llvm::createFunctionInliningPass(412));
+  //mpm.add(llvm::createEarlyCSEPass());              // Catch trivial redundancies
+  //mpm.add(llvm::createJumpThreadingPass());         // Thread jumps.
+  //mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
+  mpm.add(llvm::createInstructionCombiningPass());  // Combine silly seq's
+  //mpm.add(llvm::createReassociatePass());           // Reassociate expressions
+  mpm.add(llvm::createLICMPass());                  // Hoist loop invariants
+  //mpm.add(llvm::createLoopUnswitchPass(false));
+  mpm.add(llvm::createInstructionCombiningPass());
+  //mpm.add(llvm::createIndVarSimplifyPass());        // Canonicalize indvars
+  //mpm.add(llvm::createGVNPass(false));  // Remove redundancies
+  //mpm.add(llvm::createMemCpyOptPass());             // Remove memcpy / form memset
+
+  //mpm.add(llvm::createDeadStoreEliminationPass());  // Delete dead stores
+  //mpm.add(llvm::createLICMPass());
+  //mpm.add(llvm::createCFGSimplificationPass()); // Merge & remove BBs
+  //mpm.add(llvm::createInstructionCombiningPass());  // Clean up after everything.
+  //mpm.add(llvm::createReversePostOrderFunctionAttrsPass());
+
+  //mpm.add(llvm::createGlobalsAAWrapperPass());
+  //mpm.add(llvm::createLoopVectorizePass(false, false));
+  //mpm.add(llvm::createInstructionCombiningPass());
+  //mpm.add(llvm::createLoopUnrollPass());    // Unroll small loops
+  //mpm.add(llvm::createInstructionCombiningPass());
+  //mpm.add(llvm::createLICMPass());
+}
+
+static void
 PopulateModulePassManager(llvm::legacy::PassManager& mpm)
 {
   //mpm.add(llvm::createForceFunctionAttrsLegacyPass());
@@ -248,7 +280,8 @@ RunModulePasses(llvm::Module *mod)
   // builder.SizeLevel = 0;
   // builder.Inliner = llvm::createFunctionInliningPass(412);
   // builder.populateModulePassManager(mpm);
-  PopulateModulePassManager(mpm);
+  if(0)PopulateModulePassManager(mpm);
+  PopulateModulePassManager2(mpm);
 
   mpm.add(llvm::createVerifierPass());
   mpm.run(*mod);
