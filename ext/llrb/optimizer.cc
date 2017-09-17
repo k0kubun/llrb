@@ -97,11 +97,11 @@ PopulateModulePassManager2(llvm::legacy::PassManager& mpm)
   //mpm.add(llvm::createEarlyCSEPass());              // Catch trivial redundancies
   //mpm.add(llvm::createJumpThreadingPass());         // Thread jumps.
   //mpm.add(llvm::createCFGSimplificationPass());     // Merge & remove BBs
-  //mpm.add(llvm::createInstructionCombiningPass());  // Combine silly seq's
+  mpm.add(llvm::createInstructionCombiningPass());  // Combine silly seq's
   //mpm.add(llvm::createReassociatePass());           // Reassociate expressions
   mpm.add(llvm::createLICMPass());                  // Hoist loop invariants
   //mpm.add(llvm::createLoopUnswitchPass(false));
-  //mpm.add(llvm::createInstructionCombiningPass());
+  mpm.add(llvm::createInstructionCombiningPass());
   //mpm.add(llvm::createIndVarSimplifyPass());        // Canonicalize indvars
   //mpm.add(llvm::createGVNPass(false));  // Remove redundancies
   //mpm.add(llvm::createMemCpyOptPass());             // Remove memcpy / form memset
