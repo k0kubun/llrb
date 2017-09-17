@@ -246,7 +246,7 @@ RunModulePasses(llvm::Module *mod)
   llvm::PassManagerBuilder builder;
   builder.OptLevel  = 3;
   builder.SizeLevel = 0;
-  builder.Inliner = llvm::createFunctionInliningPass(412);
+  builder.Inliner = llvm::createFunctionInliningPass(1000);
   builder.populateModulePassManager(mpm);
   if (0) PopulateModulePassManager(mpm);
 
