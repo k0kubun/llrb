@@ -175,8 +175,8 @@ llrb_compile_error_handler(RB_UNUSED_VAR(VALUE nil), VALUE e)
 static VALUE
 llrb_safe_compile_iseq(const rb_iseq_t *iseq)
 {
-  extern VALUE llrb_compile_iseq_to_method(const rb_iseq_t *iseq);
-  return rb_rescue(llrb_compile_iseq_to_method, (VALUE)iseq,
+  extern VALUE llrb_compile_iseq_to_method_without_stats(const rb_iseq_t *iseq);
+  return rb_rescue(llrb_compile_iseq_to_method_without_stats, (VALUE)iseq,
       llrb_compile_error_handler, Qnil);
 }
 

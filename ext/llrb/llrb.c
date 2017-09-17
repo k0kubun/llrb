@@ -105,6 +105,12 @@ llrb_compile_iseq_to_method(const rb_iseq_t *iseq, bool enable_stats)
   return Qtrue;
 }
 
+VALUE
+llrb_compile_iseq_to_method_without_stats(const rb_iseq_t *iseq)
+{
+  return llrb_compile_iseq_to_method(iseq, false);
+}
+
 // LLRB::JIT.compile_iseq
 // @param  [Array]   iseqw - RubyVM::InstructionSequence instance
 // @param  [Boolean] enable_stats - Enable LLVM Pass statistics
