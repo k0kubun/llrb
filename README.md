@@ -2,6 +2,10 @@
 
 LLRB is a LLVM-based JIT compiler for Ruby.
 
+## Project status
+
+I'm currently working on another JIT approach: [YARV-MJIT](https://github.com/k0kubun/yarv-mjit).
+
 ## What's LLRB?
 
 This is an experimental project to implement an idea presented by [@evanphx](https://github.com/evanphx) at [RubyKaigi 2015 Keynote](http://rubykaigi.org/2015/presentations/evanphx):<br>
@@ -269,14 +273,6 @@ It has less compilation effort, right?
 
 Currently the performance bottleneck is not in compiler, unfortunately!
 So it doesn't use extra thread for JIT compilation for now.
-
-## Project status
-
-Experimental. Not matured at all.
-
-Everything I said above is already implemented, but that's all!
-Core function inlining is achieved but it's not completely applied to all instructions
-and we need MUCH MORE effort to improve performance in real-world application.
 
 ## Build dependency
 
