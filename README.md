@@ -1,4 +1,4 @@
-# LLRB [![wercker status](https://app.wercker.com/status/71d808ff9de7f4f411714d40f9e99127/s/master "wercker status")](https://app.wercker.com/project/byKey/71d808ff9de7f4f411714d40f9e99127)
+# LLRB
 
 LLRB is a LLVM-based JIT compiler for Ruby.
 
